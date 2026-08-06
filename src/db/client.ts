@@ -1,0 +1,60 @@
+import { mkdirSync } from 'node:fs'
+import path from 'node:path'
+import { PGlite } from '@electric-sql/pglite'
+import { drizzle as drizzlePglite } from 'drizzle-orm/pglite'
+import { drizzle as drizzlePostgres } from 'drizzle-orm/postgres-js'
+import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
+import postgres from 'postgres'
+import { env } from '@/config/env'
+import * as schema from './schema'
+
+/**
+ * The application depends on this type, not on a concrete driver. PGlite backs
+ * local development; setting DATABASE_URL swaps in a hosted Postgres with no
+ * other change anywhere in the codebase.
+ */
+export type Database = PgDatabase<PgQueryResultHKT, typeof schema>
+
+export function createPgliteDatabase(client: PGlite): Database {
+  return drizzlePglite(client, { schema }) as unknown as Database
+}
+
+export function createPostgresDatabase(url: string): Database {
+  const sql = postgres(url, { max: 5 })
+  return drizzlePostgres(sql, { schema }) as unknown as Database
+}
+
+/**
+ * Next.js dev-mode hot reloading re-evaluates modules, and a second PGlite
+ * instance pointed at the same data directory fails to acquire its lock. The
+ * connection is parked on globalThis so reloads reuse it.
+ */
+const globalForDb = globalThis as unknown as {
+  __sortaDb?: Database
+  __sortaPglite?: PGlite
+}
+
+function initDatabase(): Database {
+  if (env.DATABASE_URL) return createPostgresDatabase(env.DATABASE_URL)
+
+  // PGlite creates its data directory but not the parents of it.
+  mkdirSync(path.dirname(path.resolve(env.PGLITE_DIR)), { recursive: true })
+
+  const client = globalForDb.__sortaPglite ?? new PGlite(env.PGLITE_DIR)
+  globalForDb.__sortaPglite = client
+  return createPgliteDatabase(client)
+}
+
+export function getDb(): Database {
+  if (!globalForDb.__sortaDb) {
+    globalForDb.__sortaDb = initDatabase()
+  }
+  return globalForDb.__sortaDb
+}
+
+/** The raw PGlite handle, when running embedded. Used by the migrator. */
+export function getPgliteClient(): PGlite | undefined {
+  return globalForDb.__sortaPglite
+}
+
+export { schema }

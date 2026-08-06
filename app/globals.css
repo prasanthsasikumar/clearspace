@@ -1,0 +1,1056 @@
+@import "../tokens.css";
+
+/* Hallmark · genre: modern-minimal · macrostructure: Workbench · theme: Cobalt
+ * nav: N9 edge-aligned minimal · action: C4 sticky bottom bar · footer: Ft2 (index only)
+ * tone: utilitarian · enrichment: none — the user's own photographs are the imagery
+ * motion: box-draw · press-tick · row-insert (3 primitives, all reduced-motion safe)
+ * pre-emit critique: P5 H5 E4 S5 R5 V4
+ */
+
+/* -------------------------------------------------------------------------- */
+/* Base                                                                       */
+/* -------------------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  overflow-x: clip;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink-2);
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  line-height: 1.55;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  /* Reading a serial number off a label needs real figures, not proportional. */
+  font-variant-numeric: tabular-nums;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  color: var(--color-ink);
+  font-weight: 600;
+  font-style: normal;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.15;
+  margin: 0;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+h1 {
+  font-size: var(--text-display-s);
+  letter-spacing: var(--tracking-display);
+}
+h2 {
+  font-size: var(--text-xl);
+}
+h3 {
+  font-size: var(--text-lg);
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+::selection {
+  background: var(--color-accent-soft);
+  color: var(--color-ink);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Layout                                                                     */
+/* -------------------------------------------------------------------------- */
+
+.shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page {
+  flex: 1;
+  width: 100%;
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+  padding-block: var(--space-md) var(--space-2xl);
+}
+
+/* Pages carrying a fixed action bar reserve room so the last row is reachable. */
+.page--barred {
+  padding-bottom: calc(var(--space-2xl) + 4.5rem + env(safe-area-inset-bottom));
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+.stack--tight {
+  gap: var(--space-2xs);
+}
+.stack--loose {
+  gap: var(--space-md);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  flex-wrap: wrap;
+}
+.row--between {
+  justify-content: space-between;
+}
+
+.rule {
+  height: var(--rule-hair);
+  background: var(--color-rule);
+  border: 0;
+  margin: 0;
+}
+
+/* -------------------------------------------------------------------------- */
+/* N9 · Edge-aligned app bar                                                  */
+/* -------------------------------------------------------------------------- */
+
+.appbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--page-gutter);
+  padding-top: max(var(--space-xs), env(safe-area-inset-top));
+  background: color-mix(in oklch, var(--color-paper) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+}
+
+.appbar__lead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  min-width: 0;
+}
+
+.appbar__title {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  color: var(--color-ink);
+}
+
+.wordmark::after {
+  content: ".";
+  color: var(--color-accent);
+}
+
+.backlink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3xs);
+  min-height: 44px;
+  padding-inline: var(--space-2xs);
+  margin-inline-start: calc(var(--space-2xs) * -1);
+  font-size: var(--text-sm);
+  color: var(--color-ink-3);
+  white-space: nowrap;
+  transition: color var(--dur-short) var(--ease-out);
+}
+.backlink:hover {
+  color: var(--color-ink);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Mono label — the machine-readout voice                                     */
+/* -------------------------------------------------------------------------- */
+
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+
+.meta {
+  font-size: var(--text-sm);
+  color: var(--color-ink-3);
+}
+
+.lede {
+  font-size: var(--text-md);
+  color: var(--color-ink-3);
+  max-width: 46ch;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Buttons — all eight states                                                 */
+/* -------------------------------------------------------------------------- */
+
+.btn {
+  --btn-bg: transparent;
+  --btn-fg: var(--color-ink);
+  --btn-border: var(--color-rule-2);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3xs);
+  min-height: 44px;
+  padding: 0 var(--space-sm);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  border: var(--rule-hair) solid var(--btn-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-short) var(--ease-out),
+    border-color var(--dur-short) var(--ease-out),
+    color var(--dur-short) var(--ease-out),
+    transform var(--dur-tick) var(--ease-out);
+}
+
+.btn:hover,
+.btn.is-hover {
+  --btn-bg: var(--color-paper-3);
+}
+
+.btn:active,
+.btn.is-active {
+  transform: translateY(1px);
+}
+
+.btn:focus-visible,
+.btn.is-focus {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.btn[disabled],
+.btn.is-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn[data-state="loading"] {
+  cursor: progress;
+  color: var(--color-ink-3);
+}
+
+.btn[data-state="error"] {
+  --btn-border: var(--color-danger);
+  --btn-fg: var(--color-danger);
+}
+
+.btn[data-state="success"] {
+  --btn-border: var(--color-ok);
+  --btn-fg: var(--color-ok);
+}
+
+.btn--primary {
+  --btn-bg: var(--color-accent);
+  --btn-fg: var(--color-accent-ink);
+  --btn-border: var(--color-accent);
+}
+.btn--primary:hover,
+.btn--primary.is-hover {
+  --btn-bg: var(--color-accent-press);
+  --btn-border: var(--color-accent-press);
+}
+.btn--primary[data-state="loading"] {
+  --btn-fg: color-mix(in oklch, var(--color-accent-ink) 70%, transparent);
+}
+
+.btn--quiet {
+  --btn-border: transparent;
+  --btn-fg: var(--color-ink-3);
+}
+.btn--quiet:hover {
+  --btn-fg: var(--color-ink);
+}
+
+.btn--danger {
+  --btn-fg: var(--color-danger);
+  --btn-border: var(--color-rule-2);
+}
+.btn--danger:hover {
+  --btn-bg: var(--color-danger-soft);
+  --btn-border: var(--color-danger);
+}
+
+.btn--block {
+  width: 100%;
+}
+
+.btn--sm {
+  min-height: 36px;
+  padding-inline: var(--space-xs);
+  font-size: var(--text-sm);
+}
+
+/* A thumb in a dusty storage unit is not a mouse pointer. Compact controls
+   keep their compact type but grow back to a real target on touch. */
+@media (pointer: coarse) {
+  .btn--sm {
+    min-height: 44px;
+  }
+  .photo__remove {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Fields                                                                     */
+/* -------------------------------------------------------------------------- */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+}
+
+.field__control {
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-2xs) var(--space-xs);
+  background: var(--color-paper);
+  border: var(--rule-hair) solid var(--color-rule-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-md);
+  transition: border-color var(--dur-short) var(--ease-out);
+}
+
+.field__control:hover {
+  border-color: var(--color-ink-3);
+}
+
+.field__control:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+  border-color: var(--color-accent);
+}
+
+.field__control[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+.field__control::placeholder {
+  color: var(--color-ink-3);
+}
+
+textarea.field__control {
+  min-height: 6.5rem;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+select.field__control {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--color-ink-3) 50%),
+    linear-gradient(135deg, var(--color-ink-3) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% + 2px),
+    calc(100% - 13px) calc(50% + 2px);
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+  padding-inline-end: var(--space-lg);
+}
+
+.field__error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3xs);
+  font-size: var(--text-sm);
+  color: var(--color-danger);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Surfaces — hairlines, never shadows                                        */
+/* -------------------------------------------------------------------------- */
+
+.panel {
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-md);
+  background: var(--color-paper);
+  overflow: hidden;
+}
+
+.panel__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+  background: var(--color-paper-2);
+}
+
+.panel__body {
+  padding: var(--space-sm);
+}
+
+/* A tappable row. The whole row is the target, not a link inside it. */
+.rowlink {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-xs);
+  width: 100%;
+  padding: var(--space-xs) var(--space-sm);
+  border: 0;
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+  background: transparent;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color var(--dur-short) var(--ease-out);
+}
+.rowlink:last-child {
+  border-bottom: 0;
+}
+.rowlink:hover {
+  background: var(--color-paper-2);
+}
+.rowlink:active {
+  background: var(--color-paper-3);
+}
+
+.rowlink__title {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: 500;
+  color: var(--color-ink);
+  letter-spacing: var(--tracking-tight);
+  overflow-wrap: anywhere;
+}
+
+.rowlink__chev {
+  color: var(--color-ink-3);
+  font-size: var(--text-lg);
+  line-height: 1;
+}
+
+/* A button that reads as text — used where a row's title opens a detail view
+   but the row also carries its own controls. */
+.linkish {
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: start;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.thumb {
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-sm);
+  border: var(--rule-hair) solid var(--color-rule);
+  object-fit: cover;
+  background: var(--color-paper-3);
+  flex: none;
+}
+.thumb--lg {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Status chips                                                               */
+/* -------------------------------------------------------------------------- */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3xs);
+  padding: 2px var(--space-2xs);
+  border: var(--rule-hair) solid var(--color-rule-2);
+  border-radius: var(--radius-full);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+  white-space: nowrap;
+}
+
+.chip--attention {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+.chip--ok {
+  border-color: var(--color-ok);
+  color: var(--color-ok);
+  background: var(--color-ok-soft);
+}
+.chip--warn {
+  border-color: var(--color-warn);
+  color: oklch(42% 0.1 72);
+  background: var(--color-warn-soft);
+}
+
+/* -------------------------------------------------------------------------- */
+/* C4 · Sticky action bar                                                     */
+/* -------------------------------------------------------------------------- */
+
+.actionbar {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: var(--z-bar);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--page-gutter);
+  padding-bottom: max(var(--space-xs), env(safe-area-inset-bottom));
+  background: var(--color-paper);
+  box-shadow: var(--shadow-bar);
+}
+
+.actionbar__note {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-sm);
+  color: var(--color-ink-3);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Detection review stage                                                     */
+/* -------------------------------------------------------------------------- */
+
+.stage {
+  position: relative;
+  width: 100%;
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-graphite);
+  user-select: none;
+}
+
+/* Only draw mode claims the gesture. Outside it the page must still scroll
+   under a finger — a review screen you cannot scroll past is worse than one
+   without drawing at all. */
+.stage[data-draw="true"] {
+  touch-action: none;
+  cursor: crosshair;
+  outline: 2px dashed var(--color-accent);
+  outline-offset: -2px;
+}
+
+.stage__image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.stage__overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.stage__hint {
+  padding: var(--space-2xs) var(--space-xs);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--color-graphite-ink);
+  background: var(--color-graphite);
+}
+
+/* One box. Drawn, not decorated: a 2px frame and a solid label tab, both in
+   the signal colour when selected and in paper otherwise. */
+.box {
+  position: absolute;
+  border: 2px solid var(--color-accent-ink);
+  border-radius: 3px;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px oklch(24% 0.02 258 / 0.55);
+  transition:
+    border-color var(--dur-short) var(--ease-out),
+    background-color var(--dur-short) var(--ease-out);
+  animation: box-draw var(--dur-med) var(--ease-out) both;
+}
+
+.box:hover {
+  background: oklch(58% 0.2 256 / 0.14);
+}
+
+.box[data-selected="true"] {
+  border-color: var(--color-accent);
+  background: oklch(58% 0.2 256 / 0.2);
+  box-shadow: 0 0 0 1px var(--color-accent-ink);
+}
+
+.box[data-promoted="true"] {
+  border-color: var(--color-ok);
+  border-style: dashed;
+  background: oklch(52% 0.13 156 / 0.16);
+}
+
+.box:focus-visible {
+  outline: 2px solid var(--color-accent-ink);
+  outline-offset: 2px;
+}
+
+.box__tag {
+  position: absolute;
+  top: 0;
+  inset-inline-start: 0;
+  transform: translateY(-100%);
+  max-width: 100%;
+  padding: 1px 5px;
+  background: var(--color-accent-ink);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-radius: 2px 2px 0 0;
+}
+
+.box[data-selected="true"] .box__tag {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+}
+
+.box[data-promoted="true"] .box__tag {
+  background: var(--color-ok);
+  color: var(--color-accent-ink);
+}
+
+/* The box being dragged out by hand. */
+.box--draft {
+  border-style: dashed;
+  border-color: var(--color-accent);
+  background: oklch(58% 0.2 256 / 0.12);
+  pointer-events: none;
+  animation: none;
+}
+
+@keyframes box-draw {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Coverage checklist                                                         */
+/* -------------------------------------------------------------------------- */
+
+.coverage {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.coverage__item {
+  display: grid;
+  grid-template-columns: 1.25rem minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--space-2xs);
+  padding-block: var(--space-2xs);
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+}
+.coverage__item:last-child {
+  border-bottom: 0;
+}
+
+.coverage__mark {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-ink-3);
+}
+.coverage__item[data-done="true"] .coverage__mark {
+  color: var(--color-ok);
+}
+
+.coverage__name {
+  font-size: var(--text-md);
+  color: var(--color-ink);
+}
+.coverage__item[data-done="true"] .coverage__name {
+  color: var(--color-ink-3);
+}
+
+.coverage__why {
+  font-size: var(--text-sm);
+  color: var(--color-ink-3);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Photo grid                                                                 */
+/* -------------------------------------------------------------------------- */
+
+.photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(9rem, 100%), 1fr));
+  gap: var(--space-2xs);
+}
+
+.photo {
+  position: relative;
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--color-paper-3);
+}
+
+.photo img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.photo__view {
+  position: absolute;
+  inset-inline-start: var(--space-3xs);
+  bottom: var(--space-3xs);
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: color-mix(in oklch, var(--color-graphite) 82%, transparent);
+  color: var(--color-graphite-ink);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+}
+
+.photo__remove {
+  position: absolute;
+  inset-inline-end: var(--space-3xs);
+  top: var(--space-3xs);
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: color-mix(in oklch, var(--color-graphite) 78%, transparent);
+  color: var(--color-graphite-ink);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--dur-short) var(--ease-out);
+}
+.photo:hover .photo__remove,
+.photo__remove:focus-visible {
+  opacity: 1;
+}
+/* Touch has no hover, so the control is simply always present there. */
+@media (pointer: coarse) {
+  .photo__remove {
+    opacity: 1;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Capture modes                                                              */
+/* -------------------------------------------------------------------------- */
+
+.modes {
+  display: grid;
+  gap: var(--space-2xs);
+}
+
+.mode {
+  display: grid;
+  gap: var(--space-3xs);
+  padding: var(--space-sm);
+  border: var(--rule-hair) solid var(--color-rule-2);
+  border-radius: var(--radius-md);
+  background: var(--color-paper);
+  text-align: start;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-short) var(--ease-out),
+    background-color var(--dur-short) var(--ease-out);
+}
+.mode:hover {
+  border-color: var(--color-ink-3);
+}
+.mode[aria-pressed="true"] {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.mode__title {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--color-ink);
+  letter-spacing: var(--tracking-tight);
+}
+
+.steps {
+  margin: 0;
+  padding-inline-start: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+  font-size: var(--text-sm);
+  color: var(--color-ink-3);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Empty + notice                                                             */
+/* -------------------------------------------------------------------------- */
+
+.empty {
+  display: grid;
+  gap: var(--space-2xs);
+  padding: var(--space-xl) var(--space-sm);
+  border: var(--rule-hair) dashed var(--color-rule-2);
+  border-radius: var(--radius-md);
+  text-align: center;
+  justify-items: center;
+}
+
+.notice {
+  display: flex;
+  gap: var(--space-2xs);
+  padding: var(--space-xs) var(--space-sm);
+  border: var(--rule-hair) solid var(--color-rule-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  color: var(--color-ink-2);
+  background: var(--color-paper-2);
+}
+.notice--accent {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+  color: var(--color-ink);
+}
+.notice--danger {
+  border-color: var(--color-danger);
+  background: var(--color-danger-soft);
+  color: oklch(38% 0.14 26);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Sheet                                                                      */
+/* -------------------------------------------------------------------------- */
+
+.sheet {
+  width: min(34rem, calc(100% - 2rem));
+  padding: 0;
+  border: var(--rule-hair) solid var(--color-rule-2);
+  border-radius: var(--radius-lg);
+  background: var(--color-paper);
+  color: var(--color-ink-2);
+}
+
+.sheet::backdrop {
+  background: oklch(24% 0.02 258 / 0.4);
+}
+
+.sheet__body {
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Toast — failures only. Success is silent.                                  */
+/* -------------------------------------------------------------------------- */
+
+.toast {
+  position: fixed;
+  inset-inline: var(--space-sm);
+  bottom: calc(env(safe-area-inset-bottom) + 5rem);
+  z-index: var(--z-toast);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  max-width: 32rem;
+  margin-inline: auto;
+  padding: var(--space-xs) var(--space-sm);
+  border: var(--rule-hair) solid var(--color-danger);
+  border-radius: var(--radius-sm);
+  background: var(--color-danger-soft);
+  color: oklch(36% 0.14 26);
+  font-size: var(--text-sm);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Progress — indeterminate work                                              */
+/* -------------------------------------------------------------------------- */
+
+.working {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.working__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: currentColor;
+  animation: pulse 1.4s var(--ease-in-out) infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Rows arriving after a promote. One-shot, never on scroll. */
+.enter {
+  animation: enter var(--dur-med) var(--ease-out) both;
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Ft2 · Inline single-line footer (index only)                               */
+/* -------------------------------------------------------------------------- */
+
+.colophon {
+  border-top: var(--rule-hair) solid var(--color-rule);
+  padding-block: var(--space-sm);
+  margin-top: var(--space-xl);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-sm);
+  align-items: baseline;
+  font-size: var(--text-sm);
+  color: var(--color-ink-3);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Reduced motion                                                             */
+/* -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .box,
+  .enter {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .working__dot {
+    animation: none;
+    opacity: 1;
+  }
+}

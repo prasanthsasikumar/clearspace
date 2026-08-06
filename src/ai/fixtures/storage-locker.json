@@ -1,0 +1,13 @@
+{
+  "objects": [
+    { "label": "mesh office chair", "category": "furniture", "box_2d": [352, 62, 806, 318], "confidence": 0.93, "sellable": true },
+    { "label": "flat-screen television", "category": "electronics", "box_2d": [206, 372, 470, 742], "confidence": 0.9, "sellable": true },
+    { "label": "rolling tool chest", "category": "tools", "box_2d": [534, 372, 848, 656], "confidence": 0.88, "sellable": true },
+    { "label": "floor lamp", "category": "furniture", "box_2d": [96, 806, 700, 926], "confidence": 0.81, "sellable": true },
+    { "label": "box of paperback books", "category": "books_media", "box_2d": [700, 690, 872, 900], "confidence": 0.76, "sellable": true },
+    { "label": "cordless drill kit", "category": "tools", "box_2d": [268, 108, 340, 296], "confidence": 0.72, "sellable": true },
+    { "label": "pair of running shoes", "category": "apparel", "box_2d": [876, 96, 962, 316], "confidence": 0.68, "sellable": true },
+    { "label": "microwave oven", "category": "appliance", "box_2d": [512, 700, 656, 900], "confidence": 0.64, "sellable": true },
+    { "label": "concrete floor", "category": "other", "box_2d": [860, 0, 1000, 1000], "confidence": 0.99, "sellable": false }
+  ]
+}
