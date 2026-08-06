@@ -1,15 +1,17 @@
-import { getVisionProvider } from '@/ai'
+import { getObjectMatcher, getVisionProvider } from '@/ai'
 import { getDb, type Database } from '@/db/client'
 import { registerJobHandlers } from '@/jobs/handlers'
 import { getBlobStore } from '@/storage'
 import type { JobContext } from '@/jobs/worker'
 import type { BlobStore } from '@/storage'
 import type { VisionProvider } from '@/ai/vision-provider'
+import type { ObjectMatcher } from '@/ai/object-matcher'
 
 export interface AppContext extends JobContext {
   db: Database
   blobs: BlobStore
   vision: VisionProvider
+  matcher: ObjectMatcher
 }
 
 /**
@@ -25,5 +27,6 @@ export function getAppContext(): AppContext {
     db: getDb(),
     blobs: getBlobStore(),
     vision: getVisionProvider(),
+    matcher: getObjectMatcher(),
   }
 }

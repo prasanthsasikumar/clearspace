@@ -1,6 +1,7 @@
 import type { Database } from '@/db/client'
 import type { BlobStore } from '@/storage'
 import type { VisionProvider } from '@/ai/vision-provider'
+import type { ObjectMatcher } from '@/ai/object-matcher'
 import type { Job } from '@/db/schema'
 import { claimNextJob, completeJob, failJob, reclaimStalledJobs } from './queue'
 
@@ -8,6 +9,7 @@ export interface JobContext {
   db: Database
   blobs: BlobStore
   vision: VisionProvider
+  matcher: ObjectMatcher
 }
 
 export type JobHandler = (ctx: JobContext, job: Job) => Promise<unknown>

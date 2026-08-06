@@ -5,11 +5,11 @@ import { getDb } from '../src/db/client'
 import { applyMigrations } from '../src/db/migrate'
 import { registerJobHandlers } from '../src/jobs/handlers'
 import { drain } from '../src/jobs/worker'
-import { getVisionProvider } from '../src/ai'
+import { getObjectMatcher, getVisionProvider } from '../src/ai'
 import { getBlobStore } from '../src/storage'
 import { createLot, listLots } from '../src/services/lots'
 import { getCurrentUser } from '../src/services/user'
-import { createImageScan, getScanDetail } from '../src/services/scans'
+import { createBatch, getBatchProgress } from '../src/services/batches'
 
 const WIDTH = 1400
 const HEIGHT = 1050
@@ -22,14 +22,16 @@ const HEIGHT = 1050
  * garage would misrepresent what the app produces. The rectangles sit exactly
  * where the recorded boxes say they do, so the overlay lines up with reality.
  */
-function sceneSvg(): string {
+function sceneSvg(pass = 0): string {
   const objects = fixture.objects.filter((o) => o.sellable)
+  // Each pass is nudged, as a second walk past the same shelf would be.
+  const jitter = pass * 14
 
   const shapes = objects
     .map((object) => {
       const [ymin, xmin, ymax, xmax] = object.box_2d as [number, number, number, number]
-      const x = (xmin / 1000) * WIDTH
-      const y = (ymin / 1000) * HEIGHT
+      const x = (xmin / 1000) * WIDTH + jitter
+      const y = (ymin / 1000) * HEIGHT - jitter / 2
       const w = ((xmax - xmin) / 1000) * WIDTH
       const h = ((ymax - ymin) / 1000) * HEIGHT
       const fontSize = Math.max(13, Math.min(22, w / 12))
@@ -46,7 +48,7 @@ function sceneSvg(): string {
     <rect width="100%" height="100%" fill="#1b2029" />
     <rect y="${HEIGHT * 0.86}" width="100%" height="${HEIGHT * 0.14}" fill="#242b36" />
     <text x="24" y="40" font-family="monospace" font-size="20" fill="#5d6a7e">
-      SORTA — DEMO SCENE (not a photograph)
+      SORTA — DEMO SCENE ${pass + 1} (not a photograph)
     </text>
     ${shapes}
   </svg>`
@@ -63,6 +65,7 @@ async function main() {
 
   const blobs = getBlobStore()
   const vision = getVisionProvider()
+  const matcher = getObjectMatcher()
   const user = await getCurrentUser(db)
 
   const existing = await listLots(db, user.id)
@@ -77,20 +80,28 @@ async function main() {
     locationText: 'Bay 12, Fremont',
   })
 
-  const image = await sharp(Buffer.from(sceneSvg())).jpeg({ quality: 90 }).toBuffer()
-  const { scan } = await createImageScan(db, blobs, {
-    lotId: lot.id,
-    kind: 'scene',
-    file: { data: image, mimeType: 'image/jpeg' },
-  })
+  // Three passes at the same space — the thing the bulk loop exists to handle.
+  const files = []
+  for (let pass = 0; pass < 3; pass += 1) {
+    files.push({
+      data: await sharp(Buffer.from(sceneSvg(pass))).jpeg({ quality: 90 }).toBuffer(),
+      mimeType: 'image/jpeg',
+    })
+  }
 
-  console.log(`Running detection with the "${vision.name}" provider…`)
-  await drain({ db, blobs, vision }, 20)
+  const batch = await createBatch(db, blobs, { lotId: lot.id, files })
 
-  const detail = await getScanDetail(db, scan.id)
   console.log(
-    `Seeded "${lot.name}" with ${detail?.detections.length ?? 0} detections.\n` +
-      `Open http://localhost:3000/scans/${scan.id} to review them.`,
+    `Detecting with "${vision.name}" and matching with "${matcher.name}" across ${files.length} photos…`,
+  )
+  await drain({ db, blobs, vision, matcher }, 50)
+
+  const progress = await getBatchProgress(db, batch.batchId)
+  console.log(
+    `Seeded "${lot.name}": ${progress?.detectionCount ?? 0} detections across ` +
+      `${progress?.photoCount ?? 0} photos, grouped into ${progress?.itemCount ?? 0} listings ` +
+      `(${progress?.multiViewItems ?? 0} with several views).\n` +
+      `Open http://localhost:3300/lots/${lot.id}`,
   )
   process.exit(0)
 }

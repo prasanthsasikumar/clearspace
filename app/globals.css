@@ -827,6 +827,78 @@ select.field__control {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Listing board                                                              */
+/* -------------------------------------------------------------------------- */
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(15rem, 100%), 1fr));
+  gap: var(--space-sm);
+}
+
+.listing {
+  display: flex;
+  flex-direction: column;
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-md);
+  background: var(--color-paper);
+  overflow: hidden;
+}
+
+.listing__figure {
+  position: relative;
+  display: block;
+  background: var(--color-paper-3);
+}
+
+.listing__figure img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+/* How many photos this object was found in. A high count is a signal the
+   object is real and well covered, not a decoration. */
+.listing__views {
+  position: absolute;
+  inset-inline-end: var(--space-3xs);
+  top: var(--space-3xs);
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  background: color-mix(in oklch, var(--color-graphite) 82%, transparent);
+  color: var(--color-graphite-ink);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: var(--tracking-mono);
+}
+
+.listing__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+  padding: var(--space-xs) var(--space-sm);
+}
+
+.listing__title {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: 500;
+  color: var(--color-ink);
+  letter-spacing: var(--tracking-tight);
+  overflow-wrap: anywhere;
+}
+
+.listing__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2xs);
+  padding: var(--space-3xs) var(--space-2xs) var(--space-2xs);
+  border-top: var(--rule-hair) solid var(--color-rule);
+  margin-top: auto;
+}
+
+/* -------------------------------------------------------------------------- */
 /* Capture modes                                                              */
 /* -------------------------------------------------------------------------- */
 
@@ -953,6 +1025,14 @@ select.field__control {
   background: var(--color-danger-soft);
   color: oklch(36% 0.14 26);
   font-size: var(--text-sm);
+}
+
+/* Undo is not a failure, so it does not wear the failure colour. */
+.toast--neutral {
+  border-color: var(--color-rule-2);
+  background: var(--color-paper-2);
+  color: var(--color-ink-2);
+  justify-content: space-between;
 }
 
 /* -------------------------------------------------------------------------- */

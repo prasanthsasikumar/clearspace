@@ -30,7 +30,13 @@ export interface UploadedFile {
 export async function createImageScan(
   db: Database,
   blobs: BlobStore,
-  input: { lotId: string; kind: Extract<ScanKind, 'scene' | 'photo'>; file: UploadedFile },
+  input: {
+    lotId: string
+    kind: Extract<ScanKind, 'scene' | 'photo'>
+    file: UploadedFile
+    /** Photos uploaded together share a batch and are grouped together. */
+    batchId?: string
+  },
 ): Promise<{ scan: Scan; jobId: string }> {
   const normalized = await normalizeUpload(input.file.data)
   const key = makeBlobKey('scans', normalized.contentType)
@@ -40,6 +46,7 @@ export async function createImageScan(
     .insert(scans)
     .values({
       lotId: input.lotId,
+      batchId: input.batchId ?? null,
       kind: input.kind,
       blobKey: stored.key,
       mimeType: stored.contentType,
@@ -52,7 +59,10 @@ export async function createImageScan(
 
   if (!scan) throw new Error('Failed to record scan')
 
-  const job = await enqueue(db, 'detect_objects', { scanId: scan.id })
+  const job = await enqueue(db, 'detect_objects', {
+    scanId: scan.id,
+    ...(input.batchId ? { batchId: input.batchId } : {}),
+  })
   await touchLot(db, input.lotId)
 
   return { scan, jobId: job.id }

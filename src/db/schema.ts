@@ -116,6 +116,11 @@ export const scans = pgTable('scans', {
   lotId: uuid('lot_id')
     .notNull()
     .references(() => lots.id, { onDelete: 'cascade' }),
+  /**
+   * Photos uploaded together share a batch, and cross-photo grouping runs per
+   * batch. Null for the single-scan path, which predates batches.
+   */
+  batchId: uuid('batch_id'),
   kind: scanKind('kind').notNull(),
   /** Null for video scans, whose imagery lives in `scan_frames`. */
   blobKey: text('blob_key'),
@@ -126,7 +131,7 @@ export const scans = pgTable('scans', {
   status: scanStatus('status').notNull().default('uploaded'),
   error: text('error'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [index('scans_lot_idx').on(t.lotId)])
+}, (t) => [index('scans_lot_idx').on(t.lotId), index('scans_batch_idx').on(t.batchId)])
 
 export const scanFrames = pgTable('scan_frames', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -175,6 +180,12 @@ export const detections = pgTable('detections', {
   category: text('category'),
   /** Normalized fractions of image size, origin top-left. See domain/geometry. */
   bbox: jsonb('bbox').$type<BoundingBox>().notNull(),
+  /**
+   * The isolated object, cut out during detection. It is what the matcher
+   * compares and what becomes the item's view — cutting it twice would be
+   * wasted work on every single detection.
+   */
+  cropBlobKey: text('crop_blob_key'),
   maskBlobKey: text('mask_blob_key'),
   confidence: real('confidence'),
   source: detectionSource('source').notNull().default('model'),
@@ -191,6 +202,8 @@ export const itemPhotos = pgTable('item_photos', {
     .notNull()
     .references(() => items.id, { onDelete: 'cascade' }),
   blobKey: text('blob_key').notNull(),
+  /** Which crop, and so which original photo, this view came from. */
+  sourceDetectionId: uuid('source_detection_id'),
   view: photoView('view').notNull().default('other'),
   isPrimary: boolean('is_primary').notNull().default(false),
   width: integer('width'),

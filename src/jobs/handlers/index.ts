@@ -1,6 +1,7 @@
 import { registerHandler } from '../worker'
 import { assessPhotoHandler } from './assess-photo'
 import { detectObjectsHandler } from './detect-objects'
+import { groupObjectsHandler } from './group-objects'
 
 let registered = false
 
@@ -13,8 +14,10 @@ export function registerJobHandlers(): void {
   if (registered) return
   registerHandler('detect_objects', detectObjectsHandler)
   registerHandler('assess_photo', assessPhotoHandler)
+  registerHandler('group_objects', groupObjectsHandler)
   registered = true
 }
 
 export { detectObjectsHandler } from './detect-objects'
 export { assessPhotoHandler } from './assess-photo'
+export { groupObjectsHandler } from './group-objects'

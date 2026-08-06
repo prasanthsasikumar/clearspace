@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { AppBar } from '@/components/AppBar'
-import { Capture } from '@/components/Capture'
+import { BulkCapture } from '@/components/BulkCapture'
 import { getAppContext } from '@/server/context'
 import { getLot } from '@/services/lots'
 import { getCurrentUser } from '@/services/user'
@@ -23,7 +23,7 @@ export default async function CapturePage({
     <div className="shell">
       <AppBar back={{ href: `/lots/${lot.id}`, label: lot.name }} title="Capture" />
       <main className="page page--barred">
-        <Capture lotId={lot.id} />
+        <BulkCapture lotId={lot.id} />
       </main>
     </div>
   )

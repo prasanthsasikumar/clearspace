@@ -12,6 +12,7 @@ import type {
 } from '@/db/schema'
 import type { LotSummary } from '@/services/lots'
 import type { ItemWithPrimaryPhoto } from '@/services/items'
+import type { BatchProgress } from '@/services/batches'
 
 /**
  * Carries the server's own error message to the UI.
@@ -110,6 +111,20 @@ export async function uploadFrames(
   }
   return request(`/api/scans/${scanId}/frames`, { method: 'POST', body: form })
 }
+
+/* --- Batches --------------------------------------------------------------- */
+
+export async function uploadBatch(
+  lotId: string,
+  files: readonly File[],
+): Promise<{ batchId: string; photoCount: number }> {
+  const form = new FormData()
+  for (const file of files) form.append('files', file)
+  return request(`/api/lots/${lotId}/batches`, { method: 'POST', body: form })
+}
+
+export const getBatch = (batchId: string) =>
+  request<BatchProgress>(`/api/batches/${batchId}`)
 
 export const getScan = (scanId: string) =>
   request<{ scan: Scan; frames: ScanFrame[]; detections: Detection[] }>(
