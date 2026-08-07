@@ -13,11 +13,16 @@ type Phase =
  * Sign-in, for someone who already has work in the app.
  *
  * Both routes upgrade the anonymous account in place rather than creating a
- * second one — `updateUser` for email, `linkIdentity` for Google — so the lot
+ * second one (`updateUser` for email, `linkIdentity` for Google), so the lot
  * they just photographed is still theirs afterwards. Signing in normally is
  * the fallback for a visitor arriving on a new device.
+ *
+ * `claimed` is set when Supabase has already refused to link this Google
+ * account because it belongs to someone else. Linking again would refuse
+ * again, forever, so the button switches to plain sign-in and the copy says
+ * what that costs.
  */
-export function SignIn({ next = '/' }: { next?: string }) {
+export function SignIn({ next = '/', claimed = false }: { next?: string; claimed?: boolean }) {
   const [email, setEmail] = useState('')
   const [phase, setPhase] = useState<Phase>({ name: 'idle' })
 
@@ -70,7 +75,7 @@ export function SignIn({ next = '/' }: { next?: string }) {
     try {
       const { data } = await supabase.auth.getUser()
 
-      if (data.user?.is_anonymous) {
+      if (data.user?.is_anonymous && !claimed) {
         const { error } = await supabase.auth.linkIdentity({
           provider: 'google',
           options: { redirectTo },
@@ -117,14 +122,22 @@ export function SignIn({ next = '/' }: { next?: string }) {
 
   return (
     <div className="stack stack--loose">
-      <button
-        type="button"
-        className="btn btn--block"
-        onClick={() => void withGoogle()}
-        disabled={phase.name === 'sending'}
-      >
-        Continue with Google
-      </button>
+      <div className="stack stack--tight">
+        <button
+          type="button"
+          className="btn btn--block"
+          onClick={() => void withGoogle()}
+          disabled={phase.name === 'sending'}
+        >
+          Continue with Google
+        </button>
+        {claimed ? (
+          <span className="meta">
+            This opens the account that Google is already connected to. Photos taken in this
+            browser stay on the account you are in now.
+          </span>
+        ) : null}
+      </div>
 
       <div className="row row--between">
         <span className="rule" style={{ flex: 1 }} />
@@ -148,7 +161,7 @@ export function SignIn({ next = '/' }: { next?: string }) {
             onChange={(e) => setEmail(e.target.value)}
           />
           <span className="meta">
-            We send a link — there is no password to invent or forget.
+            We send a link. There is no password to invent or forget.
           </span>
         </div>
 

@@ -3,6 +3,22 @@ import { SignIn } from '@/components/SignIn'
 
 export const dynamic = 'force-dynamic'
 
+/**
+ * What went wrong, in the words of the person it happened to.
+ *
+ * `identity_already_exists` is the one that matters. It means the Google
+ * account is already attached to a different Clearspace account, and no amount
+ * of trying again will change that, so the copy has to say which account is in
+ * the way instead of asking for another attempt.
+ */
+const MESSAGES: Record<string, string> = {
+  identity_already_exists:
+    'That Google account is already connected to another Clearspace account. Continue with Google to open that one instead, or use your email to keep what is in this browser.',
+  exchange_failed: 'That link has already been used or has expired. Ask for a new one.',
+  missing_code: 'That sign-in link was incomplete. Ask for a new one.',
+  provider_error: 'Google could not finish that sign-in. Try again, or use your email.',
+}
+
 export default async function SignInPage({
   searchParams,
 }: {
@@ -27,15 +43,11 @@ export default async function SignInPage({
           {error ? (
             <p className="notice notice--danger" role="alert">
               <span aria-hidden="true">⚠</span>
-              <span>
-                {error === 'exchange_failed'
-                  ? 'That link has already been used or has expired. Ask for a new one.'
-                  : 'That sign-in link was incomplete. Ask for a new one.'}
-              </span>
+              <span>{MESSAGES[error] ?? MESSAGES.provider_error}</span>
             </p>
           ) : null}
 
-          <SignIn next={next ?? '/'} />
+          <SignIn next={next ?? '/'} claimed={error === 'identity_already_exists'} />
         </div>
       </main>
     </div>

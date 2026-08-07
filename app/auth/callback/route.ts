@@ -3,6 +3,16 @@ import { cookies } from 'next/headers'
 import { createServerAuthClient } from '@/auth/supabase'
 import { isAuthEnabled } from '@/config/env'
 
+/** Provider codes are echoed back to the user, so only known-shaped ones pass. */
+const SAFE_CODE = /^[a-z_]{1,64}$/
+
+function signinUrl(origin: string, error: string, next: string): URL {
+  const target = new URL('/signin', origin)
+  target.searchParams.set('error', error)
+  if (next !== '/') target.searchParams.set('next', next)
+  return target
+}
+
 /**
  * Where Google and the email magic link land.
  *
@@ -13,10 +23,25 @@ import { isAuthEnabled } from '@/config/env'
 export async function GET(request: NextRequest) {
   const url = new URL(request.url)
   const code = url.searchParams.get('code')
+  // Only same-origin paths, so a crafted link cannot bounce someone off-site.
   const next = url.searchParams.get('next') ?? '/'
+  const destination = next.startsWith('/') ? next : '/'
+
+  /*
+   * A provider that refuses returns here with `error_code` and no `code` at
+   * all. Reading only `code` reported that as a missing one, and the user was
+   * told their sign-in link was incomplete: untrue, and impossible to act on.
+   * The refusal itself is the useful thing, so it is carried through.
+   */
+  const refusal = url.searchParams.get('error_code') ?? url.searchParams.get('error')
+  if (refusal) {
+    return NextResponse.redirect(
+      signinUrl(url.origin, SAFE_CODE.test(refusal) ? refusal : 'provider_error', destination),
+    )
+  }
 
   if (!isAuthEnabled || !code) {
-    return NextResponse.redirect(new URL('/signin?error=missing_code', url.origin))
+    return NextResponse.redirect(signinUrl(url.origin, 'missing_code', destination))
   }
 
   const store = await cookies()
@@ -29,10 +54,8 @@ export async function GET(request: NextRequest) {
 
   const { error } = await supabase.auth.exchangeCodeForSession(code)
   if (error) {
-    return NextResponse.redirect(new URL('/signin?error=exchange_failed', url.origin))
+    return NextResponse.redirect(signinUrl(url.origin, 'exchange_failed', destination))
   }
 
-  // Only same-origin paths, so a crafted link cannot bounce someone off-site.
-  const destination = next.startsWith('/') ? next : '/'
   return NextResponse.redirect(new URL(destination, url.origin))
 }
