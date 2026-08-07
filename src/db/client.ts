@@ -31,7 +31,19 @@ export function createPgliteDatabase(client: PGlite): Database {
  * exhaust the pooler.
  */
 export function createPostgresDatabase(url: string): Database {
-  const sql = postgres(url, { max: 1, prepare: false, idle_timeout: 20 })
+  const sql = postgres(url, {
+    max: 1,
+    prepare: false,
+    idle_timeout: 20,
+    // Idempotent DDL emits "already exists, skipping" NOTICEs on every boot.
+    // postgres.js prints those to stderr, where they read exactly like
+    // failures — which is how people learn to ignore the log that will
+    // eventually carry a real one.
+    onnotice: (notice) => {
+      if (notice.severity === 'NOTICE' && notice.code?.startsWith('42P')) return
+      console.warn('[db]', notice.severity, notice.message)
+    },
+  })
   return drizzlePostgres(sql, { schema }) as unknown as Database
 }
 
