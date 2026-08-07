@@ -1,4 +1,25 @@
+import { existsSync } from 'node:fs'
+import path from 'node:path'
 import { z } from 'zod'
+
+/**
+ * Next.js loads `.env.local` itself, but the migrate and seed scripts run under
+ * bare `tsx` and would silently fall back to demo mode without it — which looks
+ * exactly like a working run, just against fixtures. Loading it here means one
+ * place decides what configuration exists, whichever entrypoint is running.
+ */
+function loadLocalEnvFile(): void {
+  // Never under test. A suite that quietly picks up a real key stops being a
+  // test suite and starts being a bill — and an intermittent one, since it
+  // would then depend on a network.
+  if (process.env.NODE_ENV === 'test' || process.env.VITEST) return
+  if (process.env.GEMINI_API_KEY !== undefined) return
+  const file = path.join(process.cwd(), '.env.local')
+  if (!existsSync(file)) return
+  process.loadEnvFile(file)
+}
+
+loadLocalEnvFile()
 
 /**
  * Environment is parsed once, at import, and fails loudly. Every module reads
@@ -10,7 +31,14 @@ const schema = z.object({
 
   /** Unset means demo mode: the app runs against recorded fixtures. */
   GEMINI_API_KEY: z.string().min(1).optional(),
-  GEMINI_MODEL: z.string().default('gemini-2.5-flash'),
+  /**
+   * An alias rather than a pinned version on purpose. Google retires pinned
+   * models for new keys, and the failure is a hard 404 on every detection —
+   * an app that stops working because a default went stale is worse than one
+   * whose model quietly improves. Pin via GEMINI_MODEL when stability matters
+   * more than staying alive.
+   */
+  GEMINI_MODEL: z.string().default('gemini-flash-latest'),
 
   BLOB_DRIVER: z.enum(['disk']).default('disk'),
   BLOB_DIR: z.string().default('./storage'),
