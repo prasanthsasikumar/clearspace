@@ -89,6 +89,64 @@ describe('bulk batch → grouped listings', () => {
     expect(detail!.item.status).not.toBe('needs_confirmation')
   })
 
+  /*
+   * The reason adding and sealing are separate calls.
+   *
+   * Photos arrive one request at a time so a dropped connection costs the one
+   * in flight rather than the whole walk around the unit. Nothing may be
+   * analysed on the way in: the fan-in that starts grouping fires when no
+   * detection jobs remain outstanding for a batch, so a photo analysed while
+   * its siblings were still uploading would group on its own and every object
+   * photographed twice would become two listings.
+   */
+  it('waits for the whole batch before grouping any of it', async () => {
+    const { addToBatch, sealBatch } = await import('@/services/batches')
+    const batchId = crypto.randomUUID()
+
+    await addToBatch(harness.db, harness.blobs, {
+      lotId,
+      batchId,
+      files: [{ data: await makeJpeg(1200, 900), mimeType: 'image/jpeg' }],
+    })
+    await drainJobs(harness)
+
+    // Nothing was enqueued, so draining did nothing and no item exists yet.
+    expect(await listItems(harness.db, lotId)).toHaveLength(0)
+
+    await addToBatch(harness.db, harness.blobs, {
+      lotId,
+      batchId,
+      files: [{ data: await makeJpeg(1200, 900), mimeType: 'image/jpeg' }],
+    })
+    await sealBatch(harness.db, lotId, batchId)
+    await drainJobs(harness)
+
+    // Both photos were grouped together, so the same object across the two of
+    // them is one listing with two views rather than two listings.
+    const created = await listItems(harness.db, lotId)
+    expect(created).toHaveLength(8)
+    const detail = await getItemDetail(harness.db, created[0]!.id)
+    expect(detail!.photos).toHaveLength(2)
+  })
+
+  it('seals twice without analysing anything twice', async () => {
+    const { addToBatch, sealBatch } = await import('@/services/batches')
+    const batchId = crypto.randomUUID()
+
+    await addToBatch(harness.db, harness.blobs, {
+      lotId,
+      batchId,
+      files: [{ data: await makeJpeg(1200, 900), mimeType: 'image/jpeg' }],
+    })
+
+    const first = await sealBatch(harness.db, lotId, batchId)
+    // A dropped response leaves the client retrying a seal it already made.
+    const second = await sealBatch(harness.db, lotId, batchId)
+
+    expect(first).toHaveLength(1)
+    expect(second).toHaveLength(0)
+  })
+
   it('hangs every view of an object off its listing', async () => {
     await uploadPhotos(3)
 

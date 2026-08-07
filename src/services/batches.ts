@@ -67,6 +67,58 @@ export async function addToBatch(
   return created
 }
 
+export interface UploadedPhoto {
+  blobKey: string
+  mimeType: string
+  width: number
+  height: number
+  byteSize: number
+}
+
+/**
+ * Records photos the browser already put in storage.
+ *
+ * The dimensions come from the client because nothing here ever holds the
+ * bytes: they went straight to the bucket. That is safe to take at face value
+ * because it is the uploader's own lot and the numbers are descriptive, not
+ * load-bearing. Everything that acts on a photo, detection included, reads the
+ * blob itself.
+ *
+ * Server-side normalisation is skipped for the same reason it can be: the
+ * browser already rotated by EXIF and capped the long edge before sending,
+ * which is what turns a 12MB HEIC into a 400KB JPEG and a 40-second upload
+ * into a 2-second one.
+ */
+export async function addUploadedToBatch(
+  db: Database,
+  input: { lotId: string; batchId: string; photos: readonly UploadedPhoto[] },
+): Promise<Scan[]> {
+  const created: Scan[] = []
+
+  for (const photo of input.photos) {
+    const [scan] = await db
+      .insert(scans)
+      .values({
+        lotId: input.lotId,
+        batchId: input.batchId,
+        kind: 'photo',
+        blobKey: photo.blobKey,
+        mimeType: photo.mimeType,
+        width: photo.width,
+        height: photo.height,
+        byteSize: photo.byteSize,
+        status: 'uploaded',
+      })
+      .returning()
+
+    if (!scan) throw new Error('Failed to record scan')
+    created.push(scan)
+  }
+
+  await touchLot(db, input.lotId)
+  return created
+}
+
 /**
  * Closes a batch and starts analysing all of it at once.
  *

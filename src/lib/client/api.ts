@@ -115,12 +115,98 @@ export async function uploadFrames(
 
 /* --- Batches --------------------------------------------------------------- */
 
+export interface UploadablePhoto {
+  file: File
+  width: number
+  height: number
+}
+
+/** Two retries with a growing pause: enough for a lift or a passing van. */
+const UPLOAD_ATTEMPTS = 3
+
+async function putWithRetry(
+  url: string,
+  headers: Record<string, string>,
+  file: File,
+): Promise<void> {
+  let lastError: unknown = null
+  for (let attempt = 0; attempt < UPLOAD_ATTEMPTS; attempt += 1) {
+    try {
+      const response = await fetch(url, { method: 'PUT', headers, body: file })
+      if (response.ok) return
+      // A refused signature will be refused again; only transport is worth
+      // retrying, and 4xx here means the target itself is wrong.
+      if (response.status < 500) throw new Error(`Upload rejected (${response.status})`)
+      lastError = new Error(`Upload failed (${response.status})`)
+    } catch (error) {
+      lastError = error
+    }
+    await new Promise((resolve) => setTimeout(resolve, 400 * 2 ** attempt))
+  }
+  throw lastError instanceof Error ? lastError : new Error('Upload failed')
+}
+
+/**
+ * Sends a batch, one photo at a time, straight to storage where it can.
+ *
+ * The whole pile used to go up in a single request, so a drop at ninety
+ * percent lost all of it and the walk around the unit had to be repeated.
+ * Photos now go to storage individually and a failure costs the one in flight.
+ * Where the driver cannot issue upload targets, local disk in development, it
+ * falls back to posting the files as before.
+ *
+ * `onProgress` reports photos landed, because a minute of silence on one bar
+ * of signal is indistinguishable from a hang.
+ */
 export async function uploadBatch(
   lotId: string,
-  files: readonly File[],
+  photos: readonly UploadablePhoto[],
+  onProgress?: (done: number, total: number) => void,
 ): Promise<{ batchId: string; photoCount: number }> {
+  const targets = await request<{
+    direct: boolean
+    targets: { key: string; url: string; headers: Record<string, string> }[]
+  }>(`/api/lots/${lotId}/uploads`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ photos: photos.map((p) => ({ mimeType: p.file.type })) }),
+  }).catch(() => ({ direct: false, targets: [] }))
+
+  if (!targets.direct || targets.targets.length !== photos.length) {
+    const form = new FormData()
+    for (const photo of photos) form.append('files', photo.file)
+    onProgress?.(0, photos.length)
+    return request(`/api/lots/${lotId}/batches`, { method: 'POST', body: form })
+  }
+
+  const batchId = crypto.randomUUID()
+  const landed: {
+    blobKey: string
+    mimeType: string
+    width: number
+    height: number
+    byteSize: number
+  }[] = []
+
+  for (const [index, photo] of photos.entries()) {
+    const target = targets.targets[index]!
+    await putWithRetry(target.url, target.headers, photo.file)
+    landed.push({
+      blobKey: target.key,
+      mimeType: photo.file.type || 'image/jpeg',
+      width: photo.width,
+      height: photo.height,
+      byteSize: photo.file.size,
+    })
+    onProgress?.(landed.length, photos.length)
+  }
+
+  // One call to record them and close the batch, so analysis starts on all of
+  // it at once rather than on whichever photo arrived first.
   const form = new FormData()
-  for (const file of files) form.append('files', file)
+  form.append('batchId', batchId)
+  form.append('uploaded', JSON.stringify(landed))
+  form.append('final', 'true')
   return request(`/api/lots/${lotId}/batches`, { method: 'POST', body: form })
 }
 

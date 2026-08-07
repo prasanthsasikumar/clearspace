@@ -2,7 +2,8 @@ import type { NextRequest } from 'next/server'
 import { assertUploadSize, fail, ok, route } from '@/server/api'
 import { getAppContext } from '@/server/context'
 import { getLot } from '@/services/lots'
-import { addToBatch, createBatch, sealBatch } from '@/services/batches'
+import { z } from 'zod'
+import { addToBatch, addUploadedToBatch, createBatch, sealBatch } from '@/services/batches'
 import { requireSessionUser } from '@/server/auth'
 import type { UploadedFile } from '@/services/scans'
 
@@ -45,11 +46,35 @@ export const POST = route(async (request: NextRequest, { params }: Params) => {
     await addToBatch(db, blobs, { lotId: lot.id, batchId, files: await read(files) })
   }
 
+  /*
+   * Photos that went straight to storage arrive here as keys rather than
+   * bytes. The client sends what it already knows about each one, since
+   * nothing on this side ever held the file.
+   */
+  const uploaded = form.get('uploaded')
+  if (typeof uploaded === 'string' && uploaded.length > 0) {
+    const parsed = uploadedSchema.safeParse(JSON.parse(uploaded))
+    if (!parsed.success) {
+      return fail('invalid_request', 'Those uploads could not be read.', 422)
+    }
+    await addUploadedToBatch(db, { lotId: lot.id, batchId, photos: parsed.data })
+  }
+
   const jobIds = final ? await sealBatch(db, lot.id, batchId) : []
   return ok({ batchId, photoCount: files.length, started: jobIds.length }, 201)
 })
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+const uploadedSchema = z.array(
+  z.object({
+    blobKey: z.string().min(1),
+    mimeType: z.string().min(1),
+    width: z.number().int().positive(),
+    height: z.number().int().positive(),
+    byteSize: z.number().int().positive(),
+  }),
+)
 
 async function read(files: readonly File[]): Promise<UploadedFile[]> {
   const uploads: UploadedFile[] = []

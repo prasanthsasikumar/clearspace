@@ -136,10 +136,15 @@ export function BulkCapture({ lotId }: { lotId: string }) {
   async function upload() {
     setPhase({ name: 'uploading', note: `Uploading ${photos.length} photos…` })
     try {
-      const { batchId } = await uploadBatch(
-        lotId,
-        photos.map((photo) => photo.file),
-      )
+      // PreparedImage already carries the file and its dimensions, which is
+      // everything the upload needs: the bytes go to storage and the numbers
+      // go to the app.
+      const { batchId } = await uploadBatch(lotId, photos, (done, total) => {
+        setPhase({
+          name: 'uploading',
+          note: done === 0 ? `Uploading ${total} photos…` : `Uploaded ${done} of ${total}`,
+        })
+      })
       router.push(`/batches/${batchId}`)
     } catch (error) {
       setPhase({
@@ -191,7 +196,7 @@ export function BulkCapture({ lotId }: { lotId: string }) {
             <div className="progress__head">
               <span>{phase.note}</span>
               <span className="progress__state">
-                {phase.name === 'reading' ? 'reading' : `0 / ${photos.length}`}
+                {phase.name === 'reading' ? 'reading' : `of ${photos.length}`}
               </span>
             </div>
             <div className="progress__track">

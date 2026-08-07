@@ -93,4 +93,32 @@ export class SupabaseBlobStore implements BlobStore {
     assertSafeKey(key)
     return `/api/blobs/${key}`
   }
+
+  /**
+   * A signed URL the browser can PUT one object to.
+   *
+   * Signed rather than handing the browser a key: the token is scoped to this
+   * one path, expires, and cannot be turned into a read of anyone else's
+   * bucket. The service key never leaves the server.
+   */
+  async createUploadTarget(
+    key: string,
+    contentType: string,
+  ): Promise<{ url: string; headers: Record<string, string> } | null> {
+    assertSafeKey(key)
+    const base = this.options.url.replace(/\/$/, '')
+    const response = await fetch(
+      `${base}/storage/v1/object/upload/sign/${this.options.bucket}/${key}`,
+      { method: 'POST', headers: this.headers({ 'Content-Type': 'application/json' }) },
+    )
+
+    if (!response.ok) return null
+    const body = (await response.json()) as { url?: string }
+    if (!body.url) return null
+
+    return {
+      url: `${base}/storage/v1${body.url}`,
+      headers: { 'Content-Type': contentType, 'x-upsert': 'true' },
+    }
+  }
 }

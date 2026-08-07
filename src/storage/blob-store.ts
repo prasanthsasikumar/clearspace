@@ -22,6 +22,22 @@ export interface BlobStore {
   delete(key: string): Promise<void>
   /** The path a browser fetches this blob from. */
   url(key: string): string
+  /**
+   * A one-shot target the browser can PUT straight to, or null when this
+   * driver has no such thing.
+   *
+   * Routing an upload through the app costs the serverless function the whole
+   * time the bytes are in flight, which on one bar of signal is most of the
+   * time there is, and caps a batch at the request body limit. Sending them
+   * to storage directly leaves the function to record what landed.
+   *
+   * Local disk returns null and callers fall back to posting the file, which
+   * is what keeps `npm run dev` and the test suite working unchanged.
+   */
+  createUploadTarget?(
+    key: string,
+    contentType: string,
+  ): Promise<{ url: string; headers: Record<string, string> } | null>
 }
 
 const EXTENSION_BY_MIME: Record<string, string> = {
