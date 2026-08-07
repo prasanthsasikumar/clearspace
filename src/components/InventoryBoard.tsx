@@ -6,9 +6,14 @@ import { useRouter } from 'next/navigation'
 import type { ItemWithPrimaryPhoto } from '@/services/items'
 import { isDraft, needsReview } from '@/domain/item-status'
 import { exportReadiness } from '@/domain/export-readiness'
-import { ApiError, blobUrl, requestEnrichment, updateItem } from '@/lib/client/api'
+import { ApiError, blobUrl, nudgeQueue, requestEnrichment, updateItem } from '@/lib/client/api'
 import { StatusChip } from './StatusChip'
 import { ExportButton } from './ExportButton'
+
+/** How often the board takes its turn at draining the queue. */
+const DRAIN_MS = 2500
+/** About four minutes, after which an item that will never enrich stops asking. */
+const MAX_DRAIN_TICKS = 96
 
 interface Binned {
   item: ItemWithPrimaryPhoto
@@ -57,6 +62,56 @@ export function InventoryBoard({
   // The same question the export asks, so the number beside the button and
   // the number inside the dialog can never disagree.
   const readyCount = items.filter((i) => exportReadiness(i).ready).length
+
+  /*
+   * Items still waiting to be written up.
+   *
+   * Grouping enqueues one enrichment job per item, and on a serverless host
+   * nothing drains the queue between requests: the progress screen polls
+   * until grouping finishes and then stops, which is the exact moment the
+   * enrichment work begins. Whoever is looking at unfinished work has to be
+   * the one who moves it along, so this screen takes its turn, the same way
+   * the progress and listings screens take theirs. Without it the board sits
+   * on "Not yet priced" until the daily cron happens to run.
+   */
+  const awaiting = items.filter(
+    (i) => i.estimatedValueCents === null && isDraft(i.status),
+  ).length
+
+  useEffect(() => {
+    if (awaiting === 0) return
+
+    // Enrichment is two model calls an item, so a lot arrives over a couple of
+    // minutes. The cap stops a permanently failing item from polling forever.
+    let ticks = 0
+    const timer = setInterval(() => {
+      ticks += 1
+      if (ticks > MAX_DRAIN_TICKS) {
+        clearInterval(timer)
+        return
+      }
+      void nudgeQueue()
+        .then(() => router.refresh())
+        .catch(() => {
+          // A dropped nudge is not worth surfacing; the next tick retries.
+        })
+    }, DRAIN_MS)
+
+    return () => clearInterval(timer)
+  }, [awaiting, router])
+
+  /*
+   * Prices land on the server, so the refresh above arrives as new props. The
+   * board keeps its own list to make binning optimistic, and replacing that
+   * wholesale would resurrect whatever was just binned; merging by id takes
+   * the fresh fields for rows still on the board and leaves the rest alone.
+   */
+  useEffect(() => {
+    setItems((prev) => {
+      const fresh = new Map(initialItems.map((i) => [i.id, i]))
+      return prev.map((item) => fresh.get(item.id) ?? item)
+    })
+  }, [initialItems])
 
   /* Anything that is not binning ends the undo window. */
   const clearUndo = useCallback(() => setBinned([]), [])
@@ -379,9 +434,16 @@ export function InventoryBoard({
             screen reserved for what the seller came to do.
           */}
           <span className="actionbar__note">
-            {readyCount > 0
-              ? `${readyCount} ready to export`
-              : 'Write the listings you want to sell, then export.'}
+            {awaiting > 0 ? (
+              <span className="working">
+                <span className="working__dot" aria-hidden="true" />
+                Writing {awaiting} {awaiting === 1 ? 'listing' : 'listings'}
+              </span>
+            ) : readyCount > 0 ? (
+              `${readyCount} ready to export`
+            ) : (
+              'Bin what you do not want to sell.'
+            )}
           </span>
           <ExportButton lotId={lotId} />
         </aside>

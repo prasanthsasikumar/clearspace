@@ -70,6 +70,12 @@ export function BatchProgress({ batchId, initial }: { batchId: string; initial: 
             done={photosDone}
             active={!photosDone}
             value={`${progress.analysedCount} of ${progress.photoCount}`}
+            // The only phase whose total is known ahead of time, so it is the
+            // only one that gets a real bar. Guessing at the others would be
+            // a progress bar that lies, which is worse than none.
+            fraction={
+              progress.photoCount > 0 ? progress.analysedCount / progress.photoCount : 0
+            }
           />
           <ProgressRow
             name="Finding objects"
@@ -188,12 +194,15 @@ function ProgressRow({
   done,
   active,
   pending,
+  fraction,
 }: {
   name: string
   value: string
   done: boolean
   active?: boolean
   pending?: boolean
+  /** 0 to 1, for the one phase whose total is known. */
+  fraction?: number
 }) {
   return (
     <div className="progrow" data-done={done} data-active={!done && active}>
@@ -202,14 +211,30 @@ function ProgressRow({
       </span>
       <span className="progrow__value">
         {done ? (
-          <span className="progrow__mark" aria-hidden="true">
+          <span className="progrow__mark enter" aria-hidden="true">
             ✓
           </span>
         ) : active ? (
           <span className="working__dot" aria-hidden="true" />
         ) : null}
-        {value}
+        {/*
+          Keyed on the value so a changed count remounts and arrives with the
+          row-insert motion. Two minutes of a number that never visibly moves
+          reads as a stall, and the count is the only evidence this screen has
+          that anything is happening.
+        */}
+        <span className="progrow__count enter" key={value}>
+          {value}
+        </span>
       </span>
+
+      {fraction !== undefined && !done ? (
+        <span
+          className="progrow__bar"
+          style={{ transform: `scaleX(${Math.max(0, Math.min(1, fraction))})` }}
+          aria-hidden="true"
+        />
+      ) : null}
     </div>
   )
 }

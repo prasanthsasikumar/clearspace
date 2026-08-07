@@ -2254,6 +2254,32 @@ select.field__control {
   color: var(--color-ok);
 }
 
+/* Numbers arrive rather than blink. Two minutes of a count that never visibly
+   moves reads as a stall, and this count is the only evidence the screen has
+   that anything is happening. */
+.progrow__count {
+  display: inline-block;
+}
+
+/* The determinate line, drawn along the row's own bottom edge rather than as
+   a bar sitting inside it. Scaled rather than resized, so it animates on the
+   compositor and never reflows the row. */
+.progrow {
+  position: relative;
+  overflow: hidden;
+}
+
+.progrow__bar {
+  position: absolute;
+  inset-inline-start: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--color-accent);
+  transform-origin: left center;
+  transition: transform var(--dur-med) var(--ease-out);
+}
+
 /* -------------------------------------------------------------------------- */
 /* Sheet                                                                      */
 /* -------------------------------------------------------------------------- */
