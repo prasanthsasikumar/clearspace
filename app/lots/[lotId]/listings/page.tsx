@@ -5,7 +5,7 @@ import { getAppContext } from '@/server/context'
 import { getLot } from '@/services/lots'
 import { listItems } from '@/services/items'
 import { getEnrichmentProgress } from '@/services/enrichment'
-import { getCurrentUser } from '@/services/user'
+import { requireSessionUser } from '@/server/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,7 +16,7 @@ export default async function ListingsPage({
 }) {
   const { lotId } = await params
   const { db } = getAppContext()
-  const user = await getCurrentUser(db)
+  const user = await requireSessionUser(db)
 
   const lot = await getLot(db, user.id, lotId)
   if (!lot) notFound()

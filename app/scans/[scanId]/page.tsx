@@ -4,14 +4,14 @@ import { DetectionReview } from '@/components/DetectionReview'
 import { getAppContext } from '@/server/context'
 import { getScanDetail } from '@/services/scans'
 import { getLot } from '@/services/lots'
-import { getCurrentUser } from '@/services/user'
+import { requireSessionUser } from '@/server/auth'
 
 export const dynamic = 'force-dynamic'
 
 export default async function ScanPage({ params }: { params: Promise<{ scanId: string }> }) {
   const { scanId } = await params
   const { db } = getAppContext()
-  const user = await getCurrentUser(db)
+  const user = await requireSessionUser(db)
 
   const detail = await getScanDetail(db, scanId)
   if (!detail) notFound()

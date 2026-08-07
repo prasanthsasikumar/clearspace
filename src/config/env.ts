@@ -49,6 +49,15 @@ const schema = z.object({
   SUPABASE_SERVICE_KEY: z.string().min(1).optional(),
   SUPABASE_BUCKET: z.string().default('sorta'),
 
+  /*
+   * Auth. These two are public by design — the anon key is a scoped,
+   * RLS-bound token meant to ship in the browser bundle. Unset means auth is
+   * off and the app runs as a single local user, which is what keeps a fresh
+   * clone usable with no accounts at all.
+   */
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).optional(),
+
   /**
    * Shared secret for /api/jobs/tick. Unset is fine locally; on any host with
    * a scheduler in front of it this must be set, or anyone can make the app
@@ -91,3 +100,12 @@ if (env.BLOB_DRIVER === 'supabase' && (!env.SUPABASE_URL || !env.SUPABASE_SERVIC
  * mode — detection replays recorded fixtures instead of calling the API.
  */
 export const isDemoMode = !env.GEMINI_API_KEY
+
+/**
+ * True when Supabase Auth is configured. When it is not, every request runs as
+ * one implicit local user — a fresh clone should be fully usable before anyone
+ * signs up for anything.
+ */
+export const isAuthEnabled = Boolean(
+  env.NEXT_PUBLIC_SUPABASE_URL && env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+)

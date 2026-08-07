@@ -111,10 +111,45 @@ A 30-photo lot is roughly 30 detection calls + ~4 grouping calls, then ~2 calls
 per item you ask it to write up. Enrichment is deliberately on demand for this
 reason — grouping does not trigger it.
 
+## Auth
+
+Anyone can use Sorta without an account; signing in is what makes the work
+survive a cleared cache and follow them to another device.
+
+The mechanism: middleware signs a first-time visitor in **anonymously** before
+anything renders, so their lot is persisted server-side from the first upload.
+Adding an email or linking Google later keeps the **same Supabase user id**, so
+nothing is migrated at the moment they commit — which is exactly the moment you
+cannot afford to lose someone's work.
+
+### Dashboard toggles
+
+| Where | Setting | Needed |
+|---|---|---|
+| Authentication → Sign In / Providers | **Anonymous sign-ins** → on | Yes — without it, first-time visitors hit the sign-in wall instead of the app |
+| Authentication → Sign In / Providers | **Email** | Already on |
+| Authentication → Sign In / Providers | **Google** → on, + client ID/secret from Google Cloud | Only for the Google button |
+| Authentication → URL Configuration | **Redirect URLs** → add `http://localhost:3300/auth/callback` and `https://<app>/auth/callback` | Yes — the magic link and OAuth both return here |
+
+Google needs an OAuth client from Google Cloud Console (Web application), with
+`https://<ref>.supabase.co/auth/v1/callback` as the authorised redirect URI.
+Until it is configured the button is present and returns a clear error rather
+than failing silently.
+
+### Environment
+
+Auth is off unless both of these are set, and with it off the app runs as a
+single implicit local user — which is what keeps a fresh clone usable:
+
+| Name | Value |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://<ref>.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Settings → API → `anon` / publishable |
+
 ## Not done
 
 - **eBay publishing** — the button exists and is disabled.
 - **Photo ZIP export** — the Facebook CSV and per-item share sheet are built.
-- **Auth** — a single implicit local user. Every query is already scoped by
-  `user_id`, so adding a session lookup is additive, but **anyone with the URL
-  sees the same inventory.** Keep the deployment private until this lands.
+- **Passwords** — email sign-in is a magic link only. Nothing to invent or
+  forget, and no password reset flow to build.
+- **Account deletion / export** — no self-serve way to remove an account yet.

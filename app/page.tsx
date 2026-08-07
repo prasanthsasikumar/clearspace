@@ -1,9 +1,11 @@
 import Link from 'next/link'
 import { AppBar } from '@/components/AppBar'
 import { NewLotButton } from '@/components/NewLotButton'
+import { AccountBadge } from '@/components/AccountBadge'
+import { isAuthEnabled } from '@/config/env'
 import { getAppContext } from '@/server/context'
 import { listLots } from '@/services/lots'
-import { getCurrentUser } from '@/services/user'
+import { requireSessionUser } from '@/server/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,12 +20,19 @@ const KIND_LABELS: Record<string, string> = {
 
 export default async function LotsPage() {
   const { db } = getAppContext()
-  const user = await getCurrentUser(db)
+  const user = await requireSessionUser(db)
   const lots = await listLots(db, user.id)
 
   return (
     <div className="shell">
-      <AppBar action={<NewLotButton />} />
+      <AppBar
+        action={<NewLotButton />}
+        account={
+          isAuthEnabled ? (
+            <AccountBadge email={user.email} isAnonymous={user.isAnonymous} />
+          ) : null
+        }
+      />
 
       <main className="page">
         <div className="stack stack--loose">

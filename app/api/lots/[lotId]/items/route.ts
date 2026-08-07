@@ -4,14 +4,14 @@ import { createItemSchema } from '@/server/schemas'
 import { getAppContext } from '@/server/context'
 import { createItem, listItems } from '@/services/items'
 import { getLot } from '@/services/lots'
-import { getCurrentUser } from '@/services/user'
+import { requireSessionUser } from '@/server/auth'
 
 type Params = { params: Promise<{ lotId: string }> }
 
 export const GET = route(async (_request: NextRequest, { params }: Params) => {
   const { lotId } = await params
   const { db } = getAppContext()
-  const user = await getCurrentUser(db)
+  const user = await requireSessionUser(db)
 
   const lot = await getLot(db, user.id, lotId)
   if (!lot) return fail('not_found', 'That lot no longer exists.', 404)
@@ -23,7 +23,7 @@ export const GET = route(async (_request: NextRequest, { params }: Params) => {
 export const POST = route(async (request: NextRequest, { params }: Params) => {
   const { lotId } = await params
   const { db } = getAppContext()
-  const user = await getCurrentUser(db)
+  const user = await requireSessionUser(db)
 
   const lot = await getLot(db, user.id, lotId)
   if (!lot) return fail('not_found', 'That lot no longer exists.', 404)

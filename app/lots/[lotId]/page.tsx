@@ -6,7 +6,7 @@ import { getAppContext } from '@/server/context'
 import { getLot } from '@/services/lots'
 import { listItems } from '@/services/items'
 import { listScansForLot } from '@/services/scans'
-import { getCurrentUser } from '@/services/user'
+import { requireSessionUser } from '@/server/auth'
 import { getBatchProgress } from '@/services/batches'
 
 export const dynamic = 'force-dynamic'
@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic'
 export default async function LotPage({ params }: { params: Promise<{ lotId: string }> }) {
   const { lotId } = await params
   const { db } = getAppContext()
-  const user = await getCurrentUser(db)
+  const user = await requireSessionUser(db)
 
   const lot = await getLot(db, user.id, lotId)
   if (!lot) notFound()

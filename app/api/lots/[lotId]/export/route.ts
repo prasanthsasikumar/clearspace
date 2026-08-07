@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { fail, route } from '@/server/api'
 import { getAppContext } from '@/server/context'
 import { getLot } from '@/services/lots'
-import { getCurrentUser } from '@/services/user'
+import { requireSessionUser } from '@/server/auth'
 import { buildLotExport } from '@/services/exports'
 
 type Params = { params: Promise<{ lotId: string }> }
@@ -17,7 +17,7 @@ type Params = { params: Promise<{ lotId: string }> }
 export const GET = route(async (request: NextRequest, { params }: Params) => {
   const { lotId } = await params
   const { db } = getAppContext()
-  const user = await getCurrentUser(db)
+  const user = await requireSessionUser(db)
 
   const lot = await getLot(db, user.id, lotId)
   if (!lot) return fail('not_found', 'That lot no longer exists.', 404)

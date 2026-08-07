@@ -3,7 +3,7 @@ import { assertUploadSize, fail, ok, route } from '@/server/api'
 import { getAppContext } from '@/server/context'
 import { getLot } from '@/services/lots'
 import { createBatch } from '@/services/batches'
-import { getCurrentUser } from '@/services/user'
+import { requireSessionUser } from '@/server/auth'
 import type { UploadedFile } from '@/services/scans'
 
 type Params = { params: Promise<{ lotId: string }> }
@@ -12,7 +12,7 @@ type Params = { params: Promise<{ lotId: string }> }
 export const POST = route(async (request: NextRequest, { params }: Params) => {
   const { lotId } = await params
   const { db, blobs } = getAppContext()
-  const user = await getCurrentUser(db)
+  const user = await requireSessionUser(db)
 
   const lot = await getLot(db, user.id, lotId)
   if (!lot) return fail('not_found', 'That lot no longer exists.', 404)

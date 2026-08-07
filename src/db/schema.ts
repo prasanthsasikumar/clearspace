@@ -90,10 +90,19 @@ export const detectionSource = pgEnum('detection_source', ['model', 'user'])
 /* Tables                                                                     */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * One row per identity. `id` is the Supabase auth user id, which is what makes
+ * the anonymous-to-registered upgrade free: Supabase keeps the same id when a
+ * visitor adds an email or links Google, so nothing here has to move.
+ *
+ * `email` is null for anonymous visitors — they are real, persisted users who
+ * simply cannot sign back in yet.
+ */
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
-  email: text('email').notNull(),
+  email: text('email'),
   displayName: text('display_name'),
+  isAnonymous: boolean('is_anonymous').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex('users_email_idx').on(t.email)])
 

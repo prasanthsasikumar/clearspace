@@ -5,6 +5,8 @@ interface AppBarProps {
   title?: string
   back?: { href: string; label: string }
   action?: React.ReactNode
+  /** Who is signed in — shown on every screen so the state is never a mystery. */
+  account?: React.ReactNode
 }
 
 /**
@@ -14,7 +16,7 @@ interface AppBarProps {
  * one on the right. No link row: on a phone held one-handed in a storage unit,
  * a row of five destinations is five chances to leave by accident.
  */
-export function AppBar({ title, back, action }: AppBarProps) {
+export function AppBar({ title, back, action, account }: AppBarProps) {
   return (
     <header className="appbar">
       <div className="appbar__lead">
@@ -30,7 +32,10 @@ export function AppBar({ title, back, action }: AppBarProps) {
         )}
         {title ? <span className="appbar__title">{title}</span> : null}
       </div>
-      {action}
+      <div className="row">
+        {account}
+        {action}
+      </div>
     </header>
   )
 }

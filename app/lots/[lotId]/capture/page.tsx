@@ -3,7 +3,7 @@ import { AppBar } from '@/components/AppBar'
 import { BulkCapture } from '@/components/BulkCapture'
 import { getAppContext } from '@/server/context'
 import { getLot } from '@/services/lots'
-import { getCurrentUser } from '@/services/user'
+import { requireSessionUser } from '@/server/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,7 +14,7 @@ export default async function CapturePage({
 }) {
   const { lotId } = await params
   const { db } = getAppContext()
-  const user = await getCurrentUser(db)
+  const user = await requireSessionUser(db)
 
   const lot = await getLot(db, user.id, lotId)
   if (!lot) notFound()
