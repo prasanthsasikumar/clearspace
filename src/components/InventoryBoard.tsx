@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { ItemWithPrimaryPhoto } from '@/services/items'
 import { isDraft, needsReview } from '@/domain/item-status'
+import { exportReadiness } from '@/domain/export-readiness'
 import { ApiError, blobUrl, requestEnrichment, updateItem } from '@/lib/client/api'
 import { StatusChip } from './StatusChip'
 import { ExportButton } from './ExportButton'
@@ -53,9 +54,9 @@ export function InventoryBoard({
   const reviewable = useMemo(() => items.filter((i) => needsReview(i.status)), [items])
   const selectedItems = items.filter((i) => selected.has(i.id))
   const selectedDrafts = selectedItems.filter((i) => isDraft(i.status))
-  // What the feed would actually carry. An item with no price is left out of
-  // it, so this is the honest count to put next to an Export button.
-  const readyCount = items.filter((i) => i.estimatedValueCents !== null).length
+  // The same question the export asks, so the number beside the button and
+  // the number inside the dialog can never disagree.
+  const readyCount = items.filter((i) => exportReadiness(i).ready).length
 
   /* Anything that is not binning ends the undo window. */
   const clearUndo = useCallback(() => setBinned([]), [])
@@ -215,6 +216,7 @@ export function InventoryBoard({
       >
         {items.map((item, index) => {
           const isSelected = selected.has(item.id)
+          const readiness = exportReadiness(item)
           return (
             <article
               className="listing enter"
@@ -268,7 +270,27 @@ export function InventoryBoard({
                   </span>
                 )}
                 <div className="listing__foot">
-                  <StatusChip status={item.status} />
+                  {/*
+                    An approved item that is missing a price says so, rather
+                    than claiming a readiness the export will not honour.
+                  */}
+                  {readiness.blocker ? (
+                    <span className="chip chip--warn">
+                      <span className="chip__glyph" aria-hidden="true">
+                        ▲
+                      </span>
+                      {readiness.blocker}
+                    </span>
+                  ) : readiness.ready ? (
+                    <span className="chip chip--ok">
+                      <span className="chip__glyph" aria-hidden="true">
+                        ●
+                      </span>
+                      Ready to export
+                    </span>
+                  ) : (
+                    <StatusChip status={item.status} />
+                  )}
                   <button
                     type="button"
                     className="btn btn--sm listing__bin"

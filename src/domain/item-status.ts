@@ -26,7 +26,10 @@ export const statusLabels: Record<ItemStatus, string> = {
   photos_needed: 'Add photos',
   ai_identified: 'Review listing',
   needs_confirmation: 'Draft',
-  confirmed: 'Ready to export',
+  // Not "Ready to export": this status only means a person approved the
+  // details. Whether it can actually be exported is `exportReadiness`, which
+  // also wants a price and a condition.
+  confirmed: 'Confirmed',
   listed: 'Exported',
   sold: 'Sold',
   discarded: 'Binned',
