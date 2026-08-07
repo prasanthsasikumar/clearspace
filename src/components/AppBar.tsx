@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Wordmark } from './Wordmark'
 
 interface AppBarProps {
   /** Omit on the index, where the wordmark stands alone. */
@@ -26,8 +27,8 @@ export function AppBar({ title, back, action, account }: AppBarProps) {
             {back.label}
           </Link>
         ) : (
-          <Link className="wordmark" href="/">
-            Clearspace
+          <Link className="wordmark__link" href="/" aria-label="Clearspace, home">
+            <Wordmark />
           </Link>
         )}
         {title ? <span className="appbar__title">{title}</span> : null}

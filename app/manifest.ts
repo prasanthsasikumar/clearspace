@@ -15,5 +15,10 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: '#f7f8fb',
     theme_color: '#f7f8fb',
     orientation: 'portrait',
+    // One SVG at every size. A home-screen icon that has to be a bitmap needs
+    // half a dozen of them, and this mark is drawn rather than photographed.
+    icons: [
+      { src: '/icon.svg', type: 'image/svg+xml', sizes: 'any', purpose: 'any' },
+    ],
   }
 }

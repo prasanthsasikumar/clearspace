@@ -191,19 +191,45 @@ textarea {
   text-overflow: ellipsis;
 }
 
+/* Mark and name, locked together. The mark carries the one accent node, which
+   is the item that just landed in the grid; everything else is ink. */
 .wordmark {
-  font-family: var(--font-display);
-  font-size: var(--text-lg);
-  font-weight: 600;
-  letter-spacing: -0.04em;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
   color: var(--color-ink);
 }
 
-/* The period is part of the wordmark, not a signal. Accent is spent on the
-   four things that mean "act here"; a full stop is not one of them. */
-.wordmark::after {
-  content: ".";
+.wordmark__mark {
+  height: 1.15em;
+  width: auto;
+  flex: none;
+}
+
+.wordmark__text {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 500;
+  letter-spacing: -0.03em;
   color: var(--color-ink);
+}
+
+.wordmark__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  border-radius: var(--radius-sm);
+}
+
+/* On a phone the name gives way and the mark stands alone, which is what it
+   was drawn to do. */
+@media (max-width: 26rem) {
+  .wordmark__text {
+    display: none;
+  }
+  .wordmark__mark {
+    height: 1.6em;
+  }
 }
 
 .backlink {
