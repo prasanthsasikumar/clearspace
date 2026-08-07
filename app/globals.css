@@ -1068,9 +1068,19 @@ select.field__control {
     grid-template-columns: 1rem 4rem minmax(0, 1fr) auto;
   }
 }
+/*
+ * Both the reason and the action drop below the view name on a phone. The
+ * button has to be placed as explicitly as the reason above it: left to
+ * auto-placement it lands in column one, which is the 1rem glyph column, and
+ * a button squeezed to a glyph's width spills its label across the row.
+ */
 @media (max-width: 48rem) {
-  .coverage__why {
+  .coverage__why,
+  .coverage__item .btn {
     grid-column: 2 / -1;
+  }
+  .coverage__item .btn {
+    justify-self: start;
   }
 }
 .coverage__item:last-child {
@@ -1265,23 +1275,82 @@ select.field__control {
   outline-offset: 2px;
 }
 
-/* Accent disc + tick, so selection reads by shape as well as by hue. */
-.listing__check {
+/* The link that covers the card. Everything the card does on a tap, it does
+   through this, so there is one target and one destination. */
+.listing__open {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: var(--radius-md);
+}
+
+.listing:hover {
+  border-color: var(--color-rule-2);
+}
+
+.listing:has(.listing__open:focus-visible) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* The controls sit above the stretched link so they keep their own jobs. */
+.listing__select,
+.listing__bin {
+  position: relative;
+  z-index: 2;
+}
+
+/*
+ * An empty ring until it is ticked. Selection has to be visible before it
+ * happens: a mark that only exists once selected is a state you can only find
+ * by accident.
+ */
+.listing__select {
   position: absolute;
   inset-inline-end: var(--space-2xs);
   top: var(--space-2xs);
-  z-index: var(--z-base);
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   display: grid;
   place-items: center;
+  padding: 0;
+  border: 1.5px solid var(--color-paper);
   border-radius: var(--radius-full);
-  background: var(--color-accent);
-  color: var(--color-accent-ink);
+  background: color-mix(in oklch, var(--color-graphite) 45%, transparent);
+  color: transparent;
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 600;
   line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-short) var(--ease-out),
+    border-color var(--dur-short) var(--ease-out),
+    color var(--dur-short) var(--ease-out);
+}
+
+.listing__select:hover {
+  background: color-mix(in oklch, var(--color-graphite) 70%, transparent);
+  color: color-mix(in oklch, var(--color-paper) 60%, transparent);
+}
+
+.listing__select[aria-pressed="true"] {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-accent-ink);
+}
+
+.listing__select:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* A real target on a thumb, without growing the ring itself. */
+@media (pointer: coarse) {
+  .listing__select {
+    width: 32px;
+    height: 32px;
+  }
 }
 
 .listing__price {
@@ -1350,6 +1419,7 @@ select.field__control {
 }
 
 .listing__title {
+  display: block;
   font-family: var(--font-display);
   font-size: var(--text-md);
   font-weight: 500;

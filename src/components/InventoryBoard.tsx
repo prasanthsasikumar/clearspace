@@ -263,12 +263,13 @@ export function InventoryBoard({
         </Link>
       ) : null}
 
-      <div
-        className="board"
-        role="listbox"
-        aria-multiselectable="true"
-        aria-label="Listings in this lot"
-      >
+      {/*
+        A grid of links with a checkbox on each, not a listbox. Tapping a card
+        used to select it and tapping its title silently navigated, with
+        nothing on the card to say which did what. Open-on-tap and a visible
+        tick are the two conventions people already have.
+      */}
+      <div className="board">
         {items.map((item, index) => {
           const isSelected = selected.has(item.id)
           const readiness = exportReadiness(item)
@@ -280,18 +281,22 @@ export function InventoryBoard({
                 if (node) cardRefs.current.set(item.id, node)
                 else cardRefs.current.delete(item.id)
               }}
-              role="option"
-              aria-selected={isSelected}
-              aria-label={item.title}
               data-selected={isSelected}
               data-cursor={index === cursor}
-              tabIndex={index === cursor ? 0 : -1}
-              onClick={() => {
-                setCursor(index)
-                toggle(item.id)
-              }}
-              onFocus={() => setCursor(index)}
             >
+              {/*
+                One real link, stretched over the card. The controls sit above
+                it, so the whole card opens the item and the two buttons on it
+                still do their own jobs.
+              */}
+              <Link
+                className="listing__open"
+                href={`/items/${item.id}?cursor=${index}`}
+                onFocus={() => setCursor(index)}
+              >
+                <span className="visually-hidden">Open {item.title}</span>
+              </Link>
+
               <span className="listing__figure">
                 {item.primaryPhotoKey ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -302,21 +307,24 @@ export function InventoryBoard({
                 {item.photoCount > 1 ? (
                   <span className="listing__views">{item.photoCount} views</span>
                 ) : null}
-                {isSelected ? (
-                  <span className="listing__check" aria-hidden="true">
-                    ✓
-                  </span>
-                ) : null}
+                {/* Always present, so selection is discoverable rather than a
+                    state you find by accident. */}
+                <button
+                  type="button"
+                  className="listing__select"
+                  aria-pressed={isSelected}
+                  aria-label={`Select ${item.title}`}
+                  onClick={() => {
+                    setCursor(index)
+                    toggle(item.id)
+                  }}
+                >
+                  <span aria-hidden="true">✓</span>
+                </button>
               </span>
 
               <div className="listing__body">
-                <Link
-                  className="listing__title"
-                  href={`/items/${item.id}?cursor=${index}`}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {item.title}
-                </Link>
+                <span className="listing__title">{item.title}</span>
                 {item.estimatedValueCents === null ? (
                   <span className="listing__price listing__price--none">Not yet priced</span>
                 ) : (

@@ -47,9 +47,8 @@ export function ListingPanel({
         </div>
         <div className="panel__body">
           <p className="meta">
-            Not written yet. Select this item on the board and tap Next to have Clearspace identify,
-            price, and write it.
-          </p>
+            Not written yet. Clearspace writes every item on its own, so this one is still in
+            the queue. Leave the board open and it will fill itself in.</p>
         </div>
       </section>
     )

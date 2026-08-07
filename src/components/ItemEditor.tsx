@@ -199,7 +199,7 @@ export function ItemEditor({
           <h1>{item.title}</h1>
           <p className="meta">
             {item.estimatedValueCents === null
-              ? 'Not yet priced. Select it on the board and tap Next.'
+              ? 'Not yet priced. Clearspace is still writing this one.'
               : formatMoney(item.estimatedValueCents, item.currency)}
           </p>
         </div>
