@@ -1275,13 +1275,29 @@ select.field__control {
   outline-offset: 2px;
 }
 
-/* The link that covers the card. Everything the card does on a tap, it does
-   through this, so there is one target and one destination. */
-.listing__open {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  border-radius: var(--radius-md);
+/* The picture is the selection target: the biggest thing on the card, and the
+   thing you are actually judging when you decide to keep something. */
+.listing__pick {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.listing__pick:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+.listing__actions {
+  display: flex;
+  gap: var(--space-3xs);
+}
+
+.listing__actions .btn {
+  flex: 1;
 }
 
 .listing:hover {
@@ -1293,64 +1309,39 @@ select.field__control {
   outline-offset: 2px;
 }
 
-/* The controls sit above the stretched link so they keep their own jobs. */
-.listing__select,
-.listing__bin {
-  position: relative;
-  z-index: 2;
-}
-
 /*
  * An empty ring until it is ticked. Selection has to be visible before it
  * happens: a mark that only exists once selected is a state you can only find
  * by accident.
  */
+/* The tick the picture carries. Visible before it is ticked, so selection is
+   something you can see is available rather than discover. */
 .listing__select {
   position: absolute;
   inset-inline-end: var(--space-2xs);
   top: var(--space-2xs);
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   display: grid;
   place-items: center;
-  padding: 0;
   border: 1.5px solid var(--color-paper);
   border-radius: var(--radius-full);
   background: color-mix(in oklch, var(--color-graphite) 45%, transparent);
   color: transparent;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1;
-  cursor: pointer;
   transition:
     background-color var(--dur-short) var(--ease-out),
     border-color var(--dur-short) var(--ease-out),
     color var(--dur-short) var(--ease-out);
 }
 
-.listing__select:hover {
-  background: color-mix(in oklch, var(--color-graphite) 70%, transparent);
-  color: color-mix(in oklch, var(--color-paper) 60%, transparent);
-}
-
-.listing__select[aria-pressed="true"] {
+.listing__select[data-on="true"] {
   background: var(--color-accent);
   border-color: var(--color-accent);
   color: var(--color-accent-ink);
-}
-
-.listing__select:focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
-}
-
-/* A real target on a thumb, without growing the ring itself. */
-@media (pointer: coarse) {
-  .listing__select {
-    width: 32px;
-    height: 32px;
-  }
 }
 
 .listing__price {

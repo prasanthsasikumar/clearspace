@@ -270,6 +270,23 @@ export function InventoryBoard({
 
   return (
     <>
+      <div className="row row--between">
+        <span className="label">
+          {selected.size > 0 ? `${selected.size} selected` : `${items.length} listings`}
+        </span>
+        <button
+          type="button"
+          className="btn btn--sm btn--quiet"
+          onClick={() =>
+            setSelected(
+              selected.size === items.length ? new Set() : new Set(items.map((i) => i.id)),
+            )
+          }
+        >
+          {selected.size === items.length && items.length > 0 ? 'Select none' : 'Select all'}
+        </button>
+      </div>
+
       {reviewable.length > 0 ? (
         <Link className="notice notice--accent" href={`/lots/${lotId}/listings`}>
           <span aria-hidden="true">◆</span>
@@ -302,19 +319,21 @@ export function InventoryBoard({
               data-cursor={index === cursor}
             >
               {/*
-                One real link, stretched over the card. The controls sit above
-                it, so the whole card opens the item and the two buttons on it
-                still do their own jobs.
+                The picture is the selection target, and editing is a button.
+                A link stretched over the whole card meant every mis-tap while
+                picking things to bin landed on a detail screen, which is a
+                long way back from where you were.
               */}
-              <Link
-                className="listing__open"
-                href={`/items/${item.id}?cursor=${index}`}
-                onFocus={() => setCursor(index)}
+              <button
+                type="button"
+                className="listing__figure listing__pick"
+                aria-pressed={isSelected}
+                aria-label={`Select ${item.title}`}
+                onClick={() => {
+                  setCursor(index)
+                  toggle(item.id)
+                }}
               >
-                <span className="visually-hidden">Open {item.title}</span>
-              </Link>
-
-              <span className="listing__figure">
                 {item.primaryPhotoKey ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={blobUrl(item.primaryPhotoKey)} alt="" loading="lazy" />
@@ -326,19 +345,10 @@ export function InventoryBoard({
                 ) : null}
                 {/* Always present, so selection is discoverable rather than a
                     state you find by accident. */}
-                <button
-                  type="button"
-                  className="listing__select"
-                  aria-pressed={isSelected}
-                  aria-label={`Select ${item.title}`}
-                  onClick={() => {
-                    setCursor(index)
-                    toggle(item.id)
-                  }}
-                >
-                  <span aria-hidden="true">✓</span>
-                </button>
-              </span>
+                <span className="listing__select" data-on={isSelected} aria-hidden="true">
+                  ✓
+                </span>
+              </button>
 
               <div className="listing__body">
                 <span className="listing__title">{item.title}</span>
@@ -371,16 +381,22 @@ export function InventoryBoard({
                   ) : (
                     <StatusChip status={item.status} />
                   )}
-                  <button
-                    type="button"
-                    className="btn btn--sm listing__bin"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      void bin(item)
-                    }}
-                  >
-                    Bin
-                  </button>
+                  <span className="listing__actions">
+                    <Link
+                      className="btn btn--sm"
+                      href={`/items/${item.id}?cursor=${index}`}
+                      onFocus={() => setCursor(index)}
+                    >
+                      Edit
+                    </Link>
+                    <button
+                      type="button"
+                      className="btn btn--sm listing__bin"
+                      onClick={() => void bin(item)}
+                    >
+                      Bin
+                    </button>
+                  </span>
                 </div>
               </div>
             </article>
