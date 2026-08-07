@@ -7,23 +7,31 @@ import { createBrowserAuthClient } from '@/auth/browser'
 /**
  * Who you are, in the app bar.
  *
- * An anonymous visitor gets a plain "Save your work" link rather than a nag —
- * their work genuinely is saved, just to a browser rather than to them, and
- * the copy should not pretend otherwise.
+ * "Save your work" is only honest once there is work. On an empty account it
+ * names a benefit the visitor cannot yet feel and reads as a nag, so until
+ * they have made something it is just a quiet way in. The moment they have a
+ * lot, the offer becomes real and earns the primary style.
  */
 export function AccountBadge({
   email,
   isAnonymous,
+  hasWork = false,
 }: {
   email: string | null
   isAnonymous: boolean
+  /** True once the visitor has something that signing in would preserve. */
+  hasWork?: boolean
 }) {
   const router = useRouter()
 
   if (isAnonymous) {
-    return (
+    return hasWork ? (
       <Link className="btn btn--sm btn--primary" href="/signin">
         Save your work
+      </Link>
+    ) : (
+      <Link className="btn btn--sm btn--quiet" href="/signin">
+        Log in
       </Link>
     )
   }

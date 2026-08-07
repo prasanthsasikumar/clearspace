@@ -29,7 +29,11 @@ export default async function LotsPage() {
         action={<NewLotButton />}
         account={
           isAuthEnabled ? (
-            <AccountBadge email={user.email} isAnonymous={user.isAnonymous} />
+            <AccountBadge
+              email={user.email}
+              isAnonymous={user.isAnonymous}
+              hasWork={lots.length > 0}
+            />
           ) : null
         }
       />
@@ -89,7 +93,11 @@ export default async function LotsPage() {
 
           <footer className="colophon">
             <span>Clearspace</span>
-            <span>Photos and inventory stay on this machine.</span>
+            <span>
+              {user.isAnonymous
+                ? 'Your work is saved to this browser. Log in to keep it.'
+                : 'Your work is saved to your account.'}
+            </span>
           </footer>
         </div>
       </main>
