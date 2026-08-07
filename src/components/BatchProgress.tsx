@@ -70,16 +70,19 @@ export function BatchProgress({
             <ul className="coverage">
               <Step
                 done={progress.analysedCount === progress.photoCount}
+                active={progress.phase === 'analysing'}
                 name="Looking at each photo"
                 value={`${progress.analysedCount} of ${progress.photoCount}`}
               />
               <Step
                 done={progress.detectionCount > 0}
+                active={progress.phase === 'analysing' && progress.detectionCount > 0}
                 name="Finding objects"
                 value={progress.detectionCount === 0 ? '—' : String(progress.detectionCount)}
               />
               <Step
                 done={progress.phase === 'complete'}
+                active={progress.phase === 'grouping'}
                 name="Matching the same thing across photos"
                 value={
                   progress.phase === 'complete'
@@ -138,11 +141,21 @@ export function BatchProgress({
   )
 }
 
-function Step({ done, name, value }: { done: boolean; name: string; value: string }) {
+function Step({
+  done,
+  active,
+  name,
+  value,
+}: {
+  done: boolean
+  active?: boolean
+  name: string
+  value: string
+}) {
   return (
-    <li className="coverage__item" data-done={done}>
+    <li className="coverage__item" data-done={done} data-active={!done && active}>
       <span className="coverage__mark" aria-hidden="true">
-        {done ? '✓' : '○'}
+        {done ? '✓' : active ? '◆' : '○'}
       </span>
       <span className="coverage__name">{name}</span>
       <span className="label">{value}</span>

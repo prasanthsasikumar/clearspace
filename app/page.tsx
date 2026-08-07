@@ -4,7 +4,6 @@ import { NewLotButton } from '@/components/NewLotButton'
 import { getAppContext } from '@/server/context'
 import { listLots } from '@/services/lots'
 import { getCurrentUser } from '@/services/user'
-import { isDemoMode } from '@/config/env'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,16 +34,6 @@ export default async function LotsPage() {
               there, matches the same thing across your photos, and writes it up.
             </p>
           </div>
-
-          {isDemoMode ? (
-            <p className="notice">
-              <span aria-hidden="true">●</span>
-              <span>
-                Running on recorded detections — no <code>GEMINI_API_KEY</code> is set. Every
-                other part of the app is live.
-              </span>
-            </p>
-          ) : null}
 
           {lots.length === 0 ? (
             <div className="empty">

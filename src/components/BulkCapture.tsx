@@ -35,6 +35,7 @@ export function BulkCapture({ lotId }: { lotId: string }) {
 
   const [phase, setPhase] = useState<Phase>({ name: 'idle' })
   const [photos, setPhotos] = useState<PreparedImage[]>([])
+  const [dragOver, setDragOver] = useState(false)
 
   const busy = phase.name === 'reading' || phase.name === 'uploading'
   const blurry = photos.filter((p) => adviceFor(p.quality)).length
@@ -48,6 +49,11 @@ export function BulkCapture({ lotId }: { lotId: string }) {
   async function onPhotos(event: React.ChangeEvent<HTMLInputElement>) {
     const files = [...(event.target.files ?? [])]
     event.target.value = ''
+    await ingest(files)
+  }
+
+  /** One ingest path, so dropping and picking can never behave differently. */
+  async function ingest(files: readonly File[]) {
     if (files.length === 0) return
 
     if (photos.length + files.length > MAX_PHOTOS) {
@@ -74,6 +80,17 @@ export function BulkCapture({ lotId }: { lotId: string }) {
         message: error instanceof Error ? error.message : 'Could not read those photos.',
       })
     }
+  }
+
+  async function onDrop(event: React.DragEvent) {
+    event.preventDefault()
+    setDragOver(false)
+    const dropped = [...event.dataTransfer.files].filter((f) => f.type.startsWith('image/'))
+    if (dropped.length === 0) {
+      setPhase({ name: 'failed', message: 'Those were not image files.' })
+      return
+    }
+    await ingest(dropped)
   }
 
   async function onVideo(event: React.ChangeEvent<HTMLInputElement>) {
@@ -142,6 +159,32 @@ export function BulkCapture({ lotId }: { lotId: string }) {
             works out which photos show the same thing.
           </p>
         </div>
+
+        {photos.length === 0 ? (
+          <div
+            className="dropzone"
+            data-over={dragOver}
+            onClick={() => photoInput.current?.click()}
+            onDragOver={(e) => {
+              e.preventDefault()
+              setDragOver(true)
+            }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => void onDrop(e)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                photoInput.current?.click()
+              }
+            }}
+          >
+            <span className="dropzone__mark" aria-hidden="true" />
+            <span className="dropzone__title">Drop your photos here</span>
+            <span className="meta">or tap to pick them from your camera roll</span>
+          </div>
+        ) : null}
 
         {photos.length === 0 ? (
           <section className="panel">
