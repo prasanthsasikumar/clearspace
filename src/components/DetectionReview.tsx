@@ -50,6 +50,10 @@ export function DetectionReview({
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [promoting, setPromoting] = useState<Set<string>>(new Set())
   const [drawing, setDrawing] = useState(false)
+  // Which box and row are lit together. A 40px box on a crowded shelf is not a
+  // reliable target, so the list is the real one; pairing is what tells you
+  // which thing in the photo the row you are pointing at actually is.
+  const [pairedId, setPairedId] = useState<string | null>(null)
   const [draft, setDraft] = useState<BoundingBox | null>(null)
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -194,7 +198,8 @@ export function DetectionReview({
 
   return (
     <>
-      <div className="stack stack--loose">
+      <div className="split split--railEnd">
+        <div className="split__main stack stack--loose">
         <div className="stack stack--tight">
           <h1>{working ? 'Looking at your photo…' : `${visible.length} things found`}</h1>
           <p className="lede">
@@ -272,6 +277,9 @@ export function DetectionReview({
                   style={boxStyle(detection.bbox)}
                   data-selected={detection.id === selectedId}
                   data-promoted={promoted}
+                  data-paired={detection.id === pairedId}
+                  onMouseEnter={() => setPairedId(detection.id)}
+                  onMouseLeave={() => setPairedId(null)}
                   aria-label={`${detection.label}${promoted ? ', already added' : ''}`}
                   onClick={(event) => {
                     if (drawing) return
@@ -328,8 +336,11 @@ export function DetectionReview({
           </p>
         ) : null}
 
+        </div>
+
+        <aside className="split__rail" aria-label="What was found in this photo">
         {visible.length > 0 ? (
-          <section className="panel">
+          <section className="panel panel--flush">
             <div className="panel__head">
               <span className="label">Detected</span>
               <span className="label">
@@ -340,7 +351,13 @@ export function DetectionReview({
               const promoted = detection.promotedItemId !== null
               const isPending = promoting.has(detection.id)
               return (
-                <div className="rowlink" key={detection.id}>
+                <div
+                  className="rowlink"
+                  key={detection.id}
+                  data-paired={detection.id === pairedId}
+                  onMouseEnter={() => setPairedId(detection.id)}
+                  onMouseLeave={() => setPairedId(null)}
+                >
                   <span className="label" aria-hidden="true">
                     {detection.confidence === null
                       ? 'YOU'
@@ -388,12 +405,18 @@ export function DetectionReview({
 
         {!working && visible.length === 0 ? (
           <div className="empty">
-            <p className="label">Nothing detected</p>
-            <p className="lede">
+            <p className="empty__title">Nothing detected.</p>
+            <p className="empty__lede">
               Draw a box around anything worth selling, or go back and shoot the wall closer.
             </p>
           </div>
         ) : null}
+
+        <p className="rail__note meta">
+          Hovering a row lights its box, and the other way round. Something with no box at all?
+          Draw one.
+        </p>
+        </aside>
       </div>
 
       <aside className="actionbar">

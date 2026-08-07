@@ -12,8 +12,18 @@ import { blobUrl } from '@/lib/client/api'
 
 export const dynamic = 'force-dynamic'
 
-export default async function LotPage({ params }: { params: Promise<{ lotId: string }> }) {
+export default async function LotPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ lotId: string }>
+  searchParams: Promise<{ cursor?: string }>
+}) {
   const { lotId } = await params
+  // Where the keyboard was when the user left for an item's detail. Coming
+  // back to the top of a 60-card grid after editing card 34 is its own small
+  // punishment, so the position rides along in the URL.
+  const { cursor } = await searchParams
   const { db } = getAppContext()
   const user = await requireSessionUser(db)
 
@@ -86,7 +96,12 @@ export default async function LotPage({ params }: { params: Promise<{ lotId: str
               </Link>
             </div>
           ) : (
-            <InventoryBoard lotId={lot.id} items={live} captureHref={`/lots/${lot.id}/capture`} />
+            <InventoryBoard
+              lotId={lot.id}
+              items={live}
+              captureHref={`/lots/${lot.id}/capture`}
+              initialCursor={Number(cursor ?? 0)}
+            />
           )}
 
           {/*

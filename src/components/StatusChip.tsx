@@ -31,7 +31,30 @@ const TONE: Record<ItemStatus, string> = {
   discarded: 'chip--muted',
 }
 
-export function StatusChip({ status }: { status: ItemStatus }) {
+/**
+ * `glyphOnly` is for the 320px rail, where the word would push the item's
+ * title out of its own row. The meaning is not thrown away: it moves into the
+ * accessible name, so the chip still says "needs confirmation" to a screen
+ * reader and on hover rather than being a coloured shape and nothing else.
+ */
+export function StatusChip({
+  status,
+  glyphOnly = false,
+}: {
+  status: ItemStatus
+  glyphOnly?: boolean
+}) {
+  if (glyphOnly) {
+    return (
+      <span className={`chip chip--glyph ${TONE[status]}`} title={statusLabels[status]}>
+        <span className="chip__glyph" aria-hidden="true">
+          {GLYPH[status]}
+        </span>
+        <span className="visually-hidden">{statusLabels[status]}</span>
+      </span>
+    )
+  }
+
   return (
     <span className={`chip ${TONE[status]}`}>
       <span className="chip__glyph" aria-hidden="true">

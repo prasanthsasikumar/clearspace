@@ -31,15 +31,21 @@ export function InventoryBoard({
   lotId,
   items: initialItems,
   captureHref,
+  initialCursor = 0,
 }: {
   lotId: string
   items: ItemWithPrimaryPhoto[]
   captureHref: string
+  initialCursor?: number
 }) {
   const router = useRouter()
   const [items, setItems] = useState(initialItems)
   const [selected, setSelected] = useState<Set<string>>(() => new Set())
-  const [cursor, setCursor] = useState(0)
+  const [cursor, setCursor] = useState(() =>
+    Number.isFinite(initialCursor) && initialCursor > 0
+      ? Math.min(initialCursor, Math.max(0, initialItems.length - 1))
+      : 0,
+  )
   const [binned, setBinned] = useState<Binned[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -174,7 +180,7 @@ export function InventoryBoard({
       }
       if (event.key === 'Enter' && current) {
         event.preventDefault()
-        router.push(`/items/${current.id}`)
+        router.push(`/items/${current.id}?cursor=${cursor}`)
         return
       }
       if (event.key === 'Escape' && selected.size > 0) {
@@ -247,7 +253,7 @@ export function InventoryBoard({
               <div className="listing__body">
                 <Link
                   className="listing__title"
-                  href={`/items/${item.id}`}
+                  href={`/items/${item.id}?cursor=${index}`}
                   onClick={(e) => e.stopPropagation()}
                 >
                   {item.title}

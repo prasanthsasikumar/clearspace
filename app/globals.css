@@ -1240,6 +1240,177 @@ select.field__control {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Split pane: a rail beside the thing it indexes                            */
+/* -------------------------------------------------------------------------- */
+
+/*
+ * Desktop only, and deliberately so. Below 1024 a 700px viewport cannot afford
+ * both panes at editable sizes, so the rail drops out entirely and the detail
+ * becomes the whole screen: the phone pattern, not a squeezed desktop one.
+ */
+.split {
+  display: block;
+}
+
+.split__rail {
+  display: none;
+}
+
+@media (min-width: 64rem) {
+  .split {
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    align-items: start;
+    gap: 0;
+  }
+
+  /* S6 puts the image first and the list beside it, so the rail changes
+     sides. Same component, same rules, mirrored. */
+  .split--railEnd {
+    grid-template-columns: minmax(0, 1fr) 320px;
+  }
+
+  .split__rail {
+    display: block;
+    position: sticky;
+    top: var(--appbar-h);
+    max-height: calc(100dvh - var(--appbar-h));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-inline-end: var(--rule-hair) solid var(--color-rule);
+  }
+
+  .split--railEnd .split__rail {
+    border-inline-end: 0;
+    border-inline-start: var(--rule-hair) solid var(--color-rule);
+  }
+
+  .split__main {
+    min-width: 0;
+    padding: var(--space-md) var(--space-lg) var(--space-xl);
+  }
+
+  .split--railEnd .split__main {
+    padding-inline-start: 0;
+  }
+}
+
+@media (min-width: 80rem) {
+  .split {
+    grid-template-columns: 400px minmax(0, 1fr);
+  }
+  .split--railEnd {
+    grid-template-columns: minmax(0, 1fr) 400px;
+  }
+}
+
+.rail__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  min-height: var(--appbar-h);
+  padding: 0 var(--space-md);
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+}
+
+.rail__count {
+  margin-inline-start: auto;
+}
+
+/* One row per item: thumb, title, price, and a glyph-only chip. The name is
+   the only thing that has to be readable at this width. */
+.railrow {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: 60px;
+  padding: var(--space-2xs) var(--space-md);
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+  cursor: pointer;
+  transition: background-color var(--dur-short) var(--ease-out);
+}
+
+.railrow:hover {
+  background: var(--color-paper-2);
+}
+
+/* The row you are on. An inset bar rather than a border, so the row does not
+   move by a pixel as it becomes current. */
+.railrow[data-current="true"] {
+  background: var(--color-accent-soft);
+  box-shadow: inset 2px 0 0 var(--color-accent);
+}
+
+.railrow__thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  border: var(--rule-hair) solid var(--color-rule);
+  background: var(--color-paper-3);
+  object-fit: cover;
+}
+
+.railrow__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.railrow__title {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.railrow__price {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--color-ink-3);
+}
+
+/* Inside a rail the panel is the rail, so it drops the border it would
+   otherwise draw against one. */
+.panel--flush {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.rail__note {
+  padding: var(--space-sm) var(--space-md);
+}
+
+/* A row lit from its box, and a box lit from its row. */
+.rowlink[data-paired="true"] {
+  background: var(--color-paper-2);
+}
+
+/* Glyph-only chip for the 320px rail. Square rather than pill so it reads as
+   a mark rather than a truncated label. */
+.chip--glyph {
+  width: 26px;
+  padding: 0;
+  justify-content: center;
+}
+
+.detailhead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-sm);
+}
+
+.detailhead__saved {
+  margin-inline-start: auto;
+}
+
+/* -------------------------------------------------------------------------- */
 /* Board chrome: work strip, head, keyboard hints, selection bar              */
 /* -------------------------------------------------------------------------- */
 
