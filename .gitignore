@@ -8,9 +8,11 @@ next-env.d.ts
 .env
 .env.local
 
-# Local data — PGlite database files and uploaded blobs
-.data/
-storage/
+# Local data: PGlite database files and uploaded blobs.
+# Anchored to the repo root, because a bare `storage/` also swallows
+# `src/storage/` and quietly leaves the blob adapters out of every clone.
+/.data/
+/storage/
 
 .DS_Store
 coverage/
