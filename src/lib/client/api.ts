@@ -196,17 +196,36 @@ export const getEnrichmentProgress = (lotId: string) =>
 
 /* --- Export ---------------------------------------------------------------- */
 
+export interface ExportNote {
+  itemId: string
+  field: string
+  message: string
+}
+
 export interface ExportPreview {
+  /** Rows the Facebook catalogue feed would carry. */
   rowCount: number
-  skipped: Array<{ itemId: string; field: string; message: string }>
-  warnings: Array<{ itemId: string; field: string; message: string }>
+  skipped: ExportNote[]
+  warnings: ExportNote[]
   unconfirmedPrices: number
+  /*
+   * The two exports leave different things out: the catalogue feed needs a
+   * photograph, the Marketplace sheet needs a condition. They are reported
+   * apart so the dialog never promises one export's readiness for the other.
+   */
+  marketplaceRowCount: number
+  marketplaceSkipped: ExportNote[]
+  marketplaceWarnings: ExportNote[]
 }
 
 export const getExportPreview = (lotId: string) =>
   request<ExportPreview>(`/api/lots/${lotId}/export/preview`)
 
 export const exportUrl = (lotId: string) => `/api/lots/${lotId}/export`
+
+/** The Marketplace bulk-upload workbook: what a private seller actually wants. */
+export const marketplaceExportUrl = (lotId: string) =>
+  `/api/lots/${lotId}/export/marketplace`
 
 /* --- Queue ----------------------------------------------------------------- */
 

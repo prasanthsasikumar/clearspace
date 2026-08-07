@@ -1,7 +1,12 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { exportUrl, getExportPreview, type ExportPreview } from '@/lib/client/api'
+import {
+  exportUrl,
+  getExportPreview,
+  marketplaceExportUrl,
+  type ExportPreview,
+} from '@/lib/client/api'
 
 /**
  * Export, without the trip to another screen first.
@@ -34,7 +39,10 @@ export function ExportButton({ lotId }: { lotId: string }) {
     }
   }
 
-  const rows = preview?.rowCount ?? 0
+  // Marketplace leads. The catalogue feed needs a Commerce Manager business
+  // catalogue, which the seller clearing a garage does not have.
+  const rows = preview?.marketplaceRowCount ?? 0
+  const feedRows = preview?.rowCount ?? 0
   const nothingToSend = preview !== null && rows === 0
 
   return (
@@ -75,7 +83,7 @@ export function ExportButton({ lotId }: { lotId: string }) {
           {preview ? (
             <>
               <p className="label">
-                {rows} {rows === 1 ? 'row' : 'rows'} ready
+                {rows} of 50 {rows === 1 ? 'listing' : 'listings'} ready
               </p>
 
               {/*
@@ -90,8 +98,9 @@ export function ExportButton({ lotId }: { lotId: string }) {
                     ▲
                   </span>
                   <span>
-                    Nothing has a price yet, so there is nothing to export. Select the items you
-                    want on the board and write their listings first.
+                    Nothing is ready yet. Marketplace needs a title, a price, and a condition on
+                    every listing. Select the items you want on the board and write their
+                    listings first.
                   </span>
                 </p>
               ) : null}
@@ -110,41 +119,58 @@ export function ExportButton({ lotId }: { lotId: string }) {
                 </p>
               ) : null}
 
-              {preview.skipped.length > 0 && !nothingToSend ? (
+              {preview.marketplaceSkipped.length > 0 && !nothingToSend ? (
                 <ul className="steps">
-                  {preview.skipped.slice(0, 4).map((s) => (
+                  {preview.marketplaceSkipped.slice(0, 4).map((s) => (
                     <li key={`${s.itemId}-${s.field}`}>{s.message}</li>
                   ))}
-                  {preview.skipped.length > 4 ? (
-                    <li>and {preview.skipped.length - 4} more left out.</li>
+                  {preview.marketplaceSkipped.length > 4 ? (
+                    <li>and {preview.marketplaceSkipped.length - 4} more left out.</li>
                   ) : null}
                 </ul>
               ) : null}
 
               <p className="meta">
-                This is Facebook’s catalogue feed format, which needs a Commerce Manager business
-                catalogue. Selling privately? Open an item and use Share instead.
+                The workbook is Facebook’s own Marketplace bulk upload template, filled in. Open
+                Marketplace, choose Create listings in bulk, and hand it back. Photographs are
+                added there, since the template has no column for them.
               </p>
             </>
           ) : null}
 
           <div className="row">
-            <button type="button" className="btn" disabled title="eBay publishing is not built yet">
-              eBay
-            </button>
-            {/* A real control, not a link dressed as a disabled one. */}
+            {/* Real controls, not links dressed as disabled ones. */}
+            {feedRows > 0 ? (
+              <a
+                className="btn"
+                href={exportUrl(lotId)}
+                download
+                title="Facebook catalogue feed, for a Commerce Manager business catalogue"
+              >
+                Catalogue CSV
+              </a>
+            ) : (
+              <button
+                type="button"
+                className="btn"
+                disabled
+                title="Needs a price and a photograph on at least one item"
+              >
+                Catalogue CSV
+              </button>
+            )}
             {rows > 0 ? (
               <a
                 className="btn btn--primary"
-                href={exportUrl(lotId)}
+                href={marketplaceExportUrl(lotId)}
                 download
                 onClick={() => dialogRef.current?.close()}
               >
-                Download CSV
+                Marketplace sheet
               </a>
             ) : (
               <button type="button" className="btn btn--primary" disabled>
-                Download CSV
+                Marketplace sheet
               </button>
             )}
           </div>

@@ -2,6 +2,7 @@ import { and, desc, eq, inArray, ne } from 'drizzle-orm'
 import type { Database } from '@/db/client'
 import { itemPhotos, items, listings } from '@/db/schema'
 import { buildFacebookFeed, type ExportResult, type ExportableItem } from '@/domain/export/facebook'
+import { buildMarketplaceSheet, type MarketplaceResult } from '@/domain/export/marketplace'
 
 export interface BuildExportInput {
   lotId: string
@@ -94,6 +95,74 @@ export async function buildLotExport(
   return {
     ...result,
     filename: 'clearspace-facebook-catalog.csv',
+    unconfirmedPrices: live.filter(
+      (item) => item.priceUnconfirmed && item.estimatedValueCents !== null,
+    ).length,
+  }
+}
+
+export interface LotMarketplaceExport extends MarketplaceResult {
+  filename: string
+  unconfirmedPrices: number
+}
+
+/**
+ * Assembles the Marketplace bulk-upload workbook for a lot.
+ *
+ * Shares the catalogue feed's read of the lot, including the rule that the
+ * newest written listing beats whatever the item row still says, so the two
+ * exports can never disagree about a title or a price. What it does not need
+ * is photographs: the template has no image column, because a private seller
+ * adds the pictures in the Marketplace composer after the listings land.
+ */
+export async function buildLotMarketplaceExport(
+  db: Database,
+  input: Pick<BuildExportInput, 'lotId' | 'itemIds'>,
+): Promise<LotMarketplaceExport> {
+  const rows = await db
+    .select()
+    .from(items)
+    .where(
+      input.itemIds && input.itemIds.length > 0
+        ? and(eq(items.lotId, input.lotId), inArray(items.id, [...input.itemIds]))
+        : and(eq(items.lotId, input.lotId), ne(items.status, 'discarded')),
+    )
+
+  const live = rows.filter((item) => item.status !== 'discarded')
+  const filename = 'clearspace-marketplace.xlsx'
+
+  if (live.length === 0) {
+    return { ...buildMarketplaceSheet([]), filename, unconfirmedPrices: 0 }
+  }
+
+  const ids = live.map((item) => item.id)
+  const drafts = await db
+    .select()
+    .from(listings)
+    .where(inArray(listings.itemId, ids))
+    .orderBy(desc(listings.createdAt))
+
+  const listingByItem = new Map<string, (typeof drafts)[number]>()
+  for (const draft of drafts) {
+    if (!listingByItem.has(draft.itemId)) listingByItem.set(draft.itemId, draft)
+  }
+
+  const result = buildMarketplaceSheet(
+    live.map((item) => {
+      const draft = listingByItem.get(item.id)
+      return {
+        id: item.id,
+        title: draft?.title ?? item.title,
+        priceCents: draft?.priceCents ?? item.estimatedValueCents,
+        condition: item.condition,
+        description: draft?.description ?? item.userNotes,
+      }
+    }),
+  )
+
+  return {
+    ...result,
+    filename,
     unconfirmedPrices: live.filter(
       (item) => item.priceUnconfirmed && item.estimatedValueCents !== null,
     ).length,

@@ -3,7 +3,7 @@ import { fail, ok, route } from '@/server/api'
 import { getAppContext } from '@/server/context'
 import { getLot } from '@/services/lots'
 import { requireSessionUser } from '@/server/auth'
-import { buildLotExport } from '@/services/exports'
+import { buildLotExport, buildLotMarketplaceExport } from '@/services/exports'
 
 type Params = { params: Promise<{ lotId: string }> }
 
@@ -20,12 +20,21 @@ export const GET = route(async (request: NextRequest, { params }: Params) => {
   if (!lot) return fail('not_found', 'That lot no longer exists.', 404)
 
   const url = new URL(request.url)
-  const result = await buildLotExport(db, { lotId: lot.id, origin: url.origin })
+  const [result, marketplace] = await Promise.all([
+    buildLotExport(db, { lotId: lot.id, origin: url.origin }),
+    buildLotMarketplaceExport(db, { lotId: lot.id }),
+  ])
 
   return ok({
     rowCount: result.rowCount,
     skipped: result.skipped,
     warnings: result.warnings,
     unconfirmedPrices: result.unconfirmedPrices,
+    // The two exports leave different things out: the catalogue feed needs a
+    // photograph, the Marketplace sheet needs a condition. Reporting both
+    // stops the dialog promising one export's readiness for the other.
+    marketplaceRowCount: marketplace.rowCount,
+    marketplaceSkipped: marketplace.skipped,
+    marketplaceWarnings: marketplace.warnings,
   })
 })
