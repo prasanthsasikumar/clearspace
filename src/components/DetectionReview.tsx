@@ -222,6 +222,21 @@ export function DetectionReview({
           </div>
         ) : null}
 
+        {/* Draw mode is a mode, so it says so, and says how to leave. */}
+        {drawing ? (
+          <div className="drawbar" role="status">
+            <span className="label drawbar__title">Draw mode</span>
+            <span className="meta">Drag a box around the thing Clearspace missed.</span>
+            <button
+              type="button"
+              className="btn btn--sm btn--quiet"
+              onClick={() => setDrawing(false)}
+            >
+              Esc to cancel
+            </button>
+          </div>
+        ) : null}
+
         <div
           className="stage"
           ref={stageRef}
@@ -247,7 +262,7 @@ export function DetectionReview({
           )}
 
           <div className="stage__overlay">
-            {visible.map((detection) => {
+            {visible.map((detection, index) => {
               const promoted = detection.promotedItemId !== null
               return (
                 <button
@@ -267,8 +282,12 @@ export function DetectionReview({
                   disabled={drawing}
                 >
                   <span className="box__tag">
-                    {promoted ? '✓ ' : ''}
-                    {detection.label}
+                    {index + 1}
+                    <span className="box__label">
+                      {' '}
+                      {detection.label}
+                      {promoted ? ' ✓' : ''}
+                    </span>
                   </span>
                 </button>
               )

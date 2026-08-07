@@ -19,7 +19,7 @@ const KINDS = [
  * The native `<dialog>` handles the focus trap, the backdrop, and Escape for
  * free; reimplementing those is where hand-rolled modals go wrong.
  */
-export function NewLotButton() {
+export function NewLotButton({ size }: { size?: 'lg' }) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const router = useRouter()
 
@@ -57,7 +57,7 @@ export function NewLotButton() {
     <>
       <button
         type="button"
-        className="btn btn--primary"
+        className={size === 'lg' ? 'btn btn--primary btn--lg' : 'btn btn--primary'}
         onClick={() => {
           setState('idle')
           setError(null)

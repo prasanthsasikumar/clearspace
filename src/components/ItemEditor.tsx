@@ -232,83 +232,79 @@ export function ItemEditor({
         {/* --- Photos ----------------------------------------------------- */}
 
         <section className="stack">
-          <div className="row row--between">
-            <span className="label">Photos</span>
+
+          <div className="photos">
+            {photos.map((photo) => (
+              <figure className="photo" key={photo.id}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={blobUrl(photo.blobKey)} alt={`${VIEW_LABELS[photo.view]} view`} />
+                <figcaption className="photo__view">{VIEW_LABELS[photo.view]}</figcaption>
+                <button
+                  type="button"
+                  className="photo__remove"
+                  aria-label={`Remove the ${VIEW_LABELS[photo.view].toLowerCase()} photo`}
+                  onClick={() => void removePhoto(photo.id)}
+                >
+                  ×
+                </button>
+              </figure>
+            ))}
+            {/* The add tile lives in the grid, so adding a photo is the same
+                gesture as looking at one. */}
             <button
               type="button"
-              className="btn btn--sm"
+              className="photo photo--add"
               onClick={() => requestPhoto('other')}
               disabled={uploading}
-              data-state={uploading ? 'loading' : undefined}
             >
-              {uploading ? 'Adding…' : 'Add photo'}
+              <span>{uploading ? 'Adding…' : '+ Add photo'}</span>
+              <span className="label">tag its view type</span>
             </button>
           </div>
-
-          {photos.length === 0 ? (
-            <div className="empty">
-              <p className="meta">No photos yet.</p>
-            </div>
-          ) : (
-            <div className="photos">
-              {photos.map((photo) => (
-                <figure className="photo" key={photo.id}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={blobUrl(photo.blobKey)} alt={`${VIEW_LABELS[photo.view]} view`} />
-                  <figcaption className="photo__view">{VIEW_LABELS[photo.view]}</figcaption>
-                  <button
-                    type="button"
-                    className="photo__remove"
-                    aria-label={`Remove the ${VIEW_LABELS[photo.view].toLowerCase()} photo`}
-                    onClick={() => void removePhoto(photo.id)}
-                  >
-                    ×
-                  </button>
-                </figure>
-              ))}
-            </div>
-          )}
         </section>
 
         {/* --- Coverage --------------------------------------------------- */}
 
+        {/*
+          The centre of this screen. Not "you are 40% done" but "this photo is
+          missing and here is what it costs you", which is the only version of
+          a checklist anyone acts on.
+        */}
         <section className="panel">
-          <div className="panel__head">
-            <span className="label">Shot list</span>
+          <div className="panel__head panel__head--wrap">
             <span className="label">
-              {coverage.isListable ? 'Complete' : `${coverage.missingRequired.length} missing`}
+              Coverage · {coverage.captured.length} of {coverage.requirements.length}
             </span>
+            <span className="meta">What is still missing, and why it changes the price.</span>
           </div>
-          <div className="panel__body">
-            <ul className="coverage">
-              {coverage.requirements.map((requirement) => {
-                const done = coverage.captured.includes(requirement.view)
-                return (
-                  <li className="coverage__item" key={requirement.view} data-done={done}>
-                    <span className="coverage__mark" aria-hidden="true">
-                      {done ? '✓' : requirement.importance === 'required' ? '●' : '○'}
-                    </span>
-                    <span className="stack stack--tight">
-                      <span className="coverage__name">{requirement.prompt}</span>
-                      <span className="coverage__why">{requirement.rationale}</span>
-                    </span>
-                    {done ? (
-                      <span className="visually-hidden">Captured</span>
-                    ) : (
-                      <button
-                        type="button"
-                        className="btn btn--sm"
-                        onClick={() => requestPhoto(requirement.view)}
-                        disabled={uploading}
-                      >
-                        Take
-                      </button>
-                    )}
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
+          <ul className="coverage">
+            {coverage.requirements.map((requirement) => {
+              const done = coverage.captured.includes(requirement.view)
+              return (
+                <li className="coverage__item" key={requirement.view} data-done={done}>
+                  <span className="coverage__mark" aria-hidden="true">
+                    {done ? '✓' : '▲'}
+                  </span>
+                  <span className="coverage__view">{VIEW_LABELS[requirement.view]}</span>
+                  <span className="coverage__why">
+                    {done ? 'Covered.' : requirement.rationale}
+                  </span>
+                  {done ? (
+                    <span className="visually-hidden">Captured</span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn btn--sm"
+                      onClick={() => requestPhoto(requirement.view)}
+                      disabled={uploading}
+                    >
+                      Add {VIEW_LABELS[requirement.view].toLowerCase()} shot
+                    </button>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
         </section>
 
         {/* --- Details ---------------------------------------------------- */}

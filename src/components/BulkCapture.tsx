@@ -149,116 +149,187 @@ export function BulkCapture({ lotId }: { lotId: string }) {
     }
   }
 
-  return (
-    <>
-      <div className="stack stack--loose">
-        <div className="stack stack--tight">
-          <h1>Photograph the whole space.</h1>
-          <p className="lede">
-            Walk around and shoot everything. Overlap, repeat yourself, get it wrong. Clearspace
-            works out which photos show the same thing.
-          </p>
-        </div>
+  const ready = photos.length > 0
 
-        {photos.length === 0 ? (
-          <div
-            className="dropzone"
-            data-over={dragOver}
-            onClick={() => photoInput.current?.click()}
-            onDragOver={(e) => {
-              e.preventDefault()
-              setDragOver(true)
-            }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={(e) => void onDrop(e)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault()
-                photoInput.current?.click()
-              }
-            }}
-          >
-            <span className="dropzone__mark" aria-hidden="true" />
-            <span className="dropzone__title">Drop your photos here</span>
-            <span className="meta">or tap to pick them from your camera roll</span>
+  return (
+    /*
+      The whole content area is the drop target, and it stays one after the
+      first pass lands: dropping a second folder on top of the first is the
+      gesture, not a mode you have to re-enter.
+    */
+    <div
+      className="capture"
+      data-over={dragOver}
+      onDragOver={(e) => {
+        e.preventDefault()
+        setDragOver(true)
+      }}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={(e) => void onDrop(e)}
+    >
+      <div className="stack stack--loose">
+        {phase.name === 'failed' ? (
+          <p className="notice notice--danger" role="alert">
+            <span className="notice__glyph" aria-hidden="true">
+              ■
+            </span>
+            <span>
+              <strong>{phase.message}</strong> Your photos are still here, nothing was lost.
+            </span>
+            <button
+              type="button"
+              className="btn btn--sm"
+              onClick={() => setPhase(ready ? { name: 'ready' } : { name: 'idle' })}
+            >
+              Retry
+            </button>
+          </p>
+        ) : null}
+
+        {busy && 'note' in phase ? (
+          <div className="progress" role="status">
+            <div className="progress__head">
+              <span>{phase.note}</span>
+              <span className="progress__state">
+                {phase.name === 'reading' ? 'reading' : `0 / ${photos.length}`}
+              </span>
+            </div>
+            <div className="progress__track">
+              <div className="progress__fill" />
+            </div>
+            <span className="meta">Keeps going if you lock the phone.</span>
           </div>
         ) : null}
 
-        {photos.length === 0 ? (
-          <section className="panel">
-            <div className="panel__head">
-              <span className="label">Worth knowing</span>
+        {!ready ? (
+          <>
+            {/* Desktop: dropping a folder is the primary gesture. */}
+            <div
+              className="dropzone"
+              data-over={dragOver}
+              onClick={() => photoInput.current?.click()}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  photoInput.current?.click()
+                }
+              }}
+            >
+              <span className="dropzone__mark" aria-hidden="true" />
+              <span className="dropzone__title">Drop a folder of photos here</span>
+              <span className="lede">
+                No framing rules, nothing to name. Shoot everything, badly is fine. Clearspace
+                sorts it out.
+              </span>
+              <div className="row dropzone__actions">
+                <button
+                  type="button"
+                  className="btn btn--primary"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    photoInput.current?.click()
+                  }}
+                  disabled={busy}
+                  data-state={phase.name === 'reading' ? 'loading' : undefined}
+                >
+                  Select photos
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    videoInput.current?.click()
+                  }}
+                  disabled={busy}
+                >
+                  Upload a video walkthrough
+                </button>
+              </div>
+              <span className="label dropzone__limit">
+                Up to {MAX_PHOTOS} photos per batch · a 90MB walkthrough uploads as ~8 frames
+              </span>
             </div>
-            <div className="panel__body">
-              <ul className="steps">
-                <li>Open the door and let in as much light as you can.</li>
-                <li>Photograph anything you might sell, several times, from wherever you are standing.</li>
-                <li>Get closer to small things. A shelf of tools needs its own shot.</li>
-                <li>Twenty photos of a storage unit is plenty. Sixty is the limit.</li>
-              </ul>
+
+            {/* Phone: two targets big enough for a gloved thumb in bad light. */}
+            <div className="bigtargets">
+              <p className="lede">
+                Walk the space and photograph everything you might sell. No framing rules, badly
+                is fine.
+              </p>
+              <button
+                type="button"
+                className="bigtarget bigtarget--primary"
+                onClick={() => photoInput.current?.click()}
+                disabled={busy}
+              >
+                <CameraMark />
+                <span className="bigtarget__title">Photograph the space</span>
+                <span className="bigtarget__note">Opens the rear camera · multi-shot</span>
+              </button>
+              <button
+                type="button"
+                className="bigtarget"
+                onClick={() => videoInput.current?.click()}
+                disabled={busy}
+              >
+                <span className="bigtarget__title">Record a video walkthrough</span>
+                <span className="bigtarget__note">A 90MB video uploads as ~8 sharp frames</span>
+              </button>
+              <span className="label bigtargets__limit">Up to {MAX_PHOTOS} photos per batch</span>
             </div>
-          </section>
-        ) : null}
-
-        {phase.name === 'failed' ? (
-          <p className="notice notice--danger" role="alert">
-            <span aria-hidden="true">⚠</span>
-            <span>{phase.message}</span>
-          </p>
-        ) : null}
-
-        {photos.length > 0 ? (
+          </>
+        ) : (
           <section className="stack">
-            <div className="row row--between">
+            <div className="capturehead">
+              <h1 className="capturehead__count">
+                {photos.length} {photos.length === 1 ? 'photo' : 'photos'} ready
+              </h1>
               <span className="label">
-                {photos.length} {photos.length === 1 ? 'photo' : 'photos'}
+                {photos.length} / {MAX_PHOTOS}
               </span>
               <button type="button" className="btn btn--sm btn--quiet" onClick={clear}>
                 Start over
               </button>
             </div>
-            <div className="photos">
-              {photos.map((photo) => (
-                <figure className="photo" key={photo.previewUrl}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={photo.previewUrl} alt="" />
-                  {adviceFor(photo.quality) ? (
-                    <figcaption className="photo__view">Soft</figcaption>
-                  ) : null}
-                </figure>
-              ))}
-            </div>
+
+            {/* Advisory, never a gate. A soft photo still finds something. */}
             {blurry > 0 ? (
-              <p className="notice">
-                <span aria-hidden="true">◆</span>
+              <p className="notice notice--warn">
+                <span className="notice__glyph" aria-hidden="true">
+                  ▲
+                </span>
                 <span>
-                  {blurry} {blurry === 1 ? 'photo looks' : 'photos look'} soft or dark. They
-                  still upload. Clearspace will just find less in them.
+                  {blurry} look blurry. They upload anyway, and sharper shots can be added later.
                 </span>
               </p>
             ) : null}
-            <div className="row">
+
+            <div className="thumbgrid">
+              {photos.map((photo) => (
+                <figure className="thumbtile" key={photo.previewUrl}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={photo.previewUrl} alt="" />
+                  {adviceFor(photo.quality) ? (
+                    <figcaption className="thumbtile__badge">
+                      <span aria-hidden="true">▲</span> blurry
+                    </figcaption>
+                  ) : null}
+                </figure>
+              ))}
               <button
                 type="button"
-                className="btn"
+                className="thumbtile thumbtile--add"
                 onClick={() => photoInput.current?.click()}
                 disabled={busy}
               >
-                Add more
-              </button>
-              <button
-                type="button"
-                className="btn"
-                onClick={() => videoInput.current?.click()}
-                disabled={busy}
-              >
-                Add a walkthrough
+                + Add more
               </button>
             </div>
           </section>
-        ) : null}
+        )}
 
         <input
           ref={photoInput}
@@ -278,46 +349,46 @@ export function BulkCapture({ lotId }: { lotId: string }) {
         />
       </div>
 
-      <aside className="actionbar">
-        <span className="actionbar__note">
-          {busy && 'note' in phase
-            ? phase.note
-            : photos.length > 0
-              ? 'Clearspace takes it from here.'
-              : 'Pick everything at once.'}
-        </span>
-        {photos.length === 0 ? (
-          <>
-            <button
-              type="button"
-              className="btn"
-              onClick={() => videoInput.current?.click()}
-              disabled={busy}
-            >
-              Video
-            </button>
-            <button
-              type="button"
-              className="btn btn--primary"
-              onClick={() => photoInput.current?.click()}
-              disabled={busy}
-              data-state={phase.name === 'reading' ? 'loading' : undefined}
-            >
-              {phase.name === 'reading' ? 'Reading…' : 'Choose photos'}
-            </button>
-          </>
-        ) : (
+      {/*
+        The action bar exists only once there is something to upload. In the
+        idle state the drop zone and the two big targets are already the one
+        action, and a bar repeating them would be a second primary.
+      */}
+      {ready ? (
+        <aside className="actionbar">
+          <span className="actionbar__note">
+            {photos.length} photos · drop more anywhere on this page
+          </span>
           <button
             type="button"
-            className="btn btn--primary"
+            className="btn btn--primary btn--lg"
             onClick={upload}
             disabled={busy}
             data-state={phase.name === 'uploading' ? 'loading' : undefined}
           >
-            {phase.name === 'uploading' ? 'Sending…' : `Sort ${photos.length}`}
+            {phase.name === 'uploading' ? 'Sending…' : `Upload ${photos.length} photos`}
           </button>
-        )}
-      </aside>
-    </>
+        </aside>
+      ) : null}
+    </div>
+  )
+}
+
+/** Two plain shapes. A drawn camera, not a stock icon. */
+function CameraMark() {
+  return (
+    <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+      <rect
+        x="4"
+        y="9"
+        width="26"
+        height="19"
+        rx="3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
+      <circle cx="17" cy="18.5" r="5.5" fill="none" stroke="currentColor" strokeWidth="2" />
+    </svg>
   )
 }

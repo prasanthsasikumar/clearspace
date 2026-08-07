@@ -26,7 +26,9 @@ export default async function BatchPage({
   return (
     <div className="shell">
       <AppBar back={{ href: `/lots/${lot.id}`, label: lot.name }} title="Sorting" />
-      <main className="page page--barred">
+      {/* A narrower column than the rest of the app: three counts and a
+          headline do not want 62rem of measure to travel across. */}
+      <main className="page page--narrow">
         <BatchProgress batchId={batchId} initial={progress} />
       </main>
     </div>

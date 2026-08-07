@@ -21,7 +21,7 @@ export default async function CapturePage({
 
   return (
     <div className="shell">
-      <AppBar back={{ href: `/lots/${lot.id}`, label: lot.name }} title="Capture" />
+      <AppBar back={{ href: `/lots/${lot.id}`, label: lot.name }} title="Add photos" />
       <main className="page page--barred">
         <BulkCapture lotId={lot.id} />
       </main>

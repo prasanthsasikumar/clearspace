@@ -12,18 +12,12 @@ const POLL_MS = 1200
  * The waiting screen.
  *
  * Thirty photos take a minute or two to work through, and a bare spinner over
- * that span reads as broken: people close the tab. So the counts move: photos
- * analysed, objects found, and finally items made. Each number is a promise
- * being kept in public, and the phase line names what is happening now rather
- * than showing a percentage nobody believes.
+ * that span reads as broken: people close the tab. So the counts move, polled
+ * about once a second, and the headline names the phase rather than showing a
+ * percentage nobody believes. Counts are mono and tabular because a number
+ * that jitters as its digits change width looks like a fault.
  */
-export function BatchProgress({
-  batchId,
-  initial,
-}: {
-  batchId: string
-  initial: Progress
-}) {
+export function BatchProgress({ batchId, initial }: { batchId: string; initial: Progress }) {
   const router = useRouter()
   const [progress, setProgress] = useState(initial)
   // A tick can outlast the poll interval, so overlapping calls are skipped
@@ -59,133 +53,181 @@ export function BatchProgress({
     if (progress.phase === 'complete') router.refresh()
   }, [progress.phase, router])
 
+  const photosDone = progress.analysedCount === progress.photoCount
+
   return (
-    <>
-      <div className="stack stack--loose">
-        <div className="stack stack--tight">
-          <h1>{headline(progress)}</h1>
-          <p className="lede">{subhead(progress)}</p>
-        </div>
-
-        <section className="panel">
-          <div className="panel__head">
-            <span className="label">Progress</span>
-            {done ? null : (
-              <span className="working">
-                <span className="working__dot" aria-hidden="true" />
-                Working
-              </span>
-            )}
-          </div>
-          <div className="panel__body">
-            <ul className="coverage">
-              <Step
-                done={progress.analysedCount === progress.photoCount}
-                active={progress.phase === 'analysing'}
-                name="Looking at each photo"
-                value={`${progress.analysedCount} of ${progress.photoCount}`}
-              />
-              <Step
-                done={progress.detectionCount > 0}
-                active={progress.phase === 'analysing' && progress.detectionCount > 0}
-                name="Finding objects"
-                value={progress.detectionCount === 0 ? '-' : String(progress.detectionCount)}
-              />
-              <Step
-                done={progress.phase === 'complete'}
-                active={progress.phase === 'grouping'}
-                name="Matching the same thing across photos"
-                value={
-                  progress.phase === 'complete'
-                    ? `${progress.itemCount} items`
-                    : progress.phase === 'grouping'
-                      ? 'now'
-                      : 'waiting'
-                }
-              />
-            </ul>
-          </div>
-        </section>
-
-        {progress.failedCount > 0 ? (
-          <p className="notice">
-            <span aria-hidden="true">◆</span>
-            <span>
-              {progress.failedCount} of {progress.photoCount}{' '}
-              {progress.failedCount === 1 ? 'photo' : 'photos'} could not be analysed. The rest
-              went through.
-            </span>
-          </p>
-        ) : null}
-
-        {progress.phase === 'failed' ? (
-          <p className="notice notice--danger" role="alert">
-            <span aria-hidden="true">⚠</span>
-            <span>This upload could not be processed. Your photos are still saved.</span>
-          </p>
-        ) : null}
-
-        {progress.phase === 'complete' && progress.multiViewItems ? (
-          <p className="notice notice--accent">
-            <span aria-hidden="true">◆</span>
-            <span>
-              {progress.multiViewItems}{' '}
-              {progress.multiViewItems === 1 ? 'item was' : 'items were'} photographed more than
-              once, so {progress.multiViewItems === 1 ? 'it has' : 'they have'} several views
-              already.
-            </span>
-          </p>
-        ) : null}
+    <div className="stack stack--loose">
+      <div className="stack stack--tight">
+        <Eyebrow phase={progress.phase} />
+        <h1>{headline(progress)}</h1>
+        <p className="lede">{subhead(progress)}</p>
       </div>
 
-      <aside className="actionbar">
-        <span className="actionbar__note">
-          {progress.phase === 'complete'
-            ? 'Bin what you do not want to sell.'
-            : 'You can leave this screen. It keeps going.'}
-        </span>
-        <Link className={progress.phase === 'complete' ? 'btn btn--primary' : 'btn'} href={`/lots/${progress.lotId}`}>
-          {progress.phase === 'complete' ? `See ${progress.itemCount} items` : 'Back to lot'}
+      {progress.phase === 'failed' ? null : (
+        <section className="panel">
+          <ProgressRow
+            name="Looking at each photo"
+            done={photosDone}
+            active={!photosDone}
+            value={`${progress.analysedCount} of ${progress.photoCount}`}
+          />
+          <ProgressRow
+            name="Finding objects"
+            done={photosDone && progress.detectionCount > 0}
+            active={!photosDone && progress.detectionCount > 0}
+            value={progress.detectionCount === 0 ? 'waiting' : String(progress.detectionCount)}
+            pending={progress.detectionCount === 0}
+          />
+          <ProgressRow
+            name="Matching the same thing across photos"
+            done={progress.phase === 'complete'}
+            active={progress.phase === 'grouping'}
+            value={
+              progress.phase === 'complete'
+                ? `${progress.itemCount} items`
+                : progress.phase === 'grouping'
+                  ? 'now'
+                  : 'waiting'
+            }
+            pending={progress.phase !== 'complete' && progress.phase !== 'grouping'}
+          />
+        </section>
+      )}
+
+      {/*
+        The reassurance line, and where the cross-photo grouping work finally
+        surfaces to the person who paid for it in waiting.
+      */}
+      {progress.phase === 'complete' && progress.multiViewItems ? (
+        <p className="notice notice--ok">
+          <span className="notice__glyph" aria-hidden="true">
+            ●
+          </span>
+          <span>
+            {progress.multiViewItems}{' '}
+            {progress.multiViewItems === 1 ? 'item was' : 'items were'} photographed more than
+            once, so {progress.multiViewItems === 1 ? 'it has' : 'they have'} several views
+            already.
+          </span>
+        </p>
+      ) : null}
+
+      {progress.failedCount > 0 ? (
+        <p className="notice notice--warn">
+          <span className="notice__glyph" aria-hidden="true">
+            ▲
+          </span>
+          <span>
+            {progress.failedCount} of {progress.photoCount}{' '}
+            {progress.failedCount === 1 ? 'photo' : 'photos'} could not be analysed. The rest went
+            through.
+          </span>
+        </p>
+      ) : null}
+
+      {/* Failure copy leads with what was not lost. */}
+      {progress.phase === 'failed' ? (
+        <p className="notice notice--danger" role="alert">
+          <span className="notice__glyph" aria-hidden="true">
+            ■
+          </span>
+          <span>Nothing was lost. You can upload the same photos again.</span>
+        </p>
+      ) : null}
+
+      {progress.phase === 'failed' ? (
+        <div className="stack stack--tight">
+          <Link className="btn btn--primary btn--block btn--lg" href={`/lots/${progress.lotId}/capture`}>
+            Upload again
+          </Link>
+          <Link className="btn btn--block" href={`/lots/${progress.lotId}`}>
+            Back to the lot
+          </Link>
+        </div>
+      ) : progress.phase === 'complete' ? (
+        <div className="stack stack--tight">
+          <Link className="btn btn--primary btn--block btn--lg" href={`/lots/${progress.lotId}`}>
+            Open the board
+          </Link>
+        </div>
+      ) : (
+        <Link className="backlink" href={`/lots/${progress.lotId}`}>
+          ‹ Back to the lot, this keeps going
         </Link>
-      </aside>
-    </>
+      )}
+    </div>
   )
 }
 
-function Step({
-  done,
-  active,
+function Eyebrow({ phase }: { phase: Progress['phase'] }) {
+  if (phase === 'complete') {
+    return (
+      <span className="eyebrow eyebrow--ok">
+        <span aria-hidden="true">✓</span> Done
+      </span>
+    )
+  }
+  if (phase === 'failed') {
+    return (
+      <span className="eyebrow eyebrow--danger">
+        <span aria-hidden="true">■</span> Failed
+      </span>
+    )
+  }
+  return (
+    <span className="eyebrow">
+      <span className="working__dot" aria-hidden="true" />
+      Working
+    </span>
+  )
+}
+
+function ProgressRow({
   name,
   value,
+  done,
+  active,
+  pending,
 }: {
-  done: boolean
-  active?: boolean
   name: string
   value: string
+  done: boolean
+  active?: boolean
+  pending?: boolean
 }) {
   return (
-    <li className="coverage__item" data-done={done} data-active={!done && active}>
-      <span className="coverage__mark" aria-hidden="true">
-        {done ? '✓' : active ? '◆' : '○'}
+    <div className="progrow" data-done={done} data-active={!done && active}>
+      <span className="progrow__name" data-pending={pending && !active}>
+        {name}
       </span>
-      <span className="coverage__name">{name}</span>
-      <span className="label">{value}</span>
-    </li>
+      <span className="progrow__value">
+        {done ? (
+          <span className="progrow__mark" aria-hidden="true">
+            ✓
+          </span>
+        ) : active ? (
+          <span className="working__dot" aria-hidden="true" />
+        ) : null}
+        {value}
+      </span>
+    </div>
   )
 }
 
+/* "Reading your photos…" to "Matching things across photos…" to "18 things to
+   sell." The headline is the only place the phase is stated in words. */
 function headline(progress: Progress): string {
   switch (progress.phase) {
     case 'complete':
       return progress.itemCount === 0
-        ? 'Nothing found in those photos'
-        : `${progress.itemCount} things to sell`
+        ? 'Nothing found in those photos.'
+        : `${progress.itemCount} things to sell.`
     case 'failed':
-      return 'That did not work'
+      return 'That did not work.'
     case 'grouping':
-      return 'Working out what is what…'
+      return 'Matching things across photos…'
     default:
-      return 'Going through your photos…'
+      return 'Reading your photos…'
   }
 }
 
@@ -196,9 +238,7 @@ function subhead(progress: Progress): string {
         ? 'Try again with more light, or closer in.'
         : 'Each one is a draft listing. Bin the ones you do not want.'
     case 'failed':
-      return 'Nothing was lost. You can upload the same photos again.'
-    case 'grouping':
-      return 'Matching the same object across the photos it appeared in.'
+      return 'Your photos are still here.'
     default:
       return 'This takes a minute or two. It carries on if you close the app.'
   }

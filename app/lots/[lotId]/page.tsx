@@ -8,6 +8,7 @@ import { listItems } from '@/services/items'
 import { listScansForLot } from '@/services/scans'
 import { requireSessionUser } from '@/server/auth'
 import { getBatchProgress } from '@/services/batches'
+import { blobUrl } from '@/lib/client/api'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,94 +31,102 @@ export default async function LotPage({ params }: { params: Promise<{ lotId: str
 
   return (
     <div className="shell">
-      <AppBar back={{ href: '/', label: 'Lots' }} title={lot.name} />
-
-      <main className="page page--barred">
-        <div className="stack stack--loose">
-          <div className="stack stack--tight">
-            <h1>{lot.name}</h1>
-            <p className="meta">
-              {live.length === 0
-                ? 'Nothing catalogued yet.'
-                : `${live.length} ${live.length === 1 ? 'listing' : 'listings'}`}
-              {binned > 0 ? ` · ${binned} binned` : ''}
-              {lot.locationText ? ` · ${lot.locationText}` : ''}
-            </p>
-          </div>
-
-          {working ? (
-            <Link className="notice notice--accent" href={`/batches/${batch.batchId}`}>
-              <span className="working__dot" aria-hidden="true" />
-              <span>
-                Still sorting {batch.photoCount} photos, {batch.analysedCount} looked at. Watch
-                it →
-              </span>
+      <AppBar
+        back={{ href: '/', label: 'Lots' }}
+        title={lot.name}
+        action={
+          live.length > 0 ? (
+            <Link className="btn btn--quiet btn--sm" href={`/lots/${lot.id}/listings`}>
+              Export
             </Link>
+          ) : null
+        }
+      />
+
+      {/*
+        The strip the progress page collapses into. Full-bleed above the board
+        rather than a card inside it, because it describes work happening to
+        the whole lot, and because pruning is meant to start underneath it
+        while the rest of the batch is still going through.
+      */}
+      {working ? (
+        <Link className="workstrip" href={`/batches/${batch.batchId}`}>
+          <span className="working__dot" aria-hidden="true" />
+          <span className="workstrip__text">
+            Working · {batch.analysedCount} of {batch.photoCount} photos · new items appear below
+            as they finish
+          </span>
+          <span className="workstrip__more">Details ›</span>
+        </Link>
+      ) : null}
+
+      <main className={live.length === 0 ? 'page' : 'page page--wide page--barred'}>
+        <div className="stack stack--loose">
+          {live.length > 0 ? (
+            <div className="boardhead">
+              <span className="label">
+                {live.length} {live.length === 1 ? 'listing' : 'listings'}
+                {binned > 0 ? ` · ${binned} binned` : ''}
+              </span>
+              <span className="meta">
+                Bin what you do not want to sell. Nothing is deleted, binned items can come back.
+              </span>
+            </div>
           ) : null}
 
           {live.length === 0 ? (
             <div className="empty">
-              <p className="label">Empty lot</p>
-              <p className="lede">
-                Walk around the space taking photos of everything. Clearspace turns them into
-                listings.
+              <p className="empty__title">Nothing here yet.</p>
+              <p className="empty__lede">
+                Photograph the space and Clearspace drafts the listings. You just bin what you
+                do not want to sell.
               </p>
-              <Link className="btn btn--primary" href={`/lots/${lot.id}/capture`}>
-                Photograph the space
+              <Link className="btn btn--primary btn--lg" href={`/lots/${lot.id}/capture`}>
+                Add photos
               </Link>
             </div>
           ) : (
-            <InventoryBoard lotId={lot.id} items={live} />
+            <InventoryBoard lotId={lot.id} items={live} captureHref={`/lots/${lot.id}/capture`} />
           )}
 
+          {/*
+            The on-ramp to scan review. It sits below the board rather than in
+            the app bar because it is the rescue hatch, not a main path: you
+            come here only when Clearspace missed something.
+          */}
           {scans.length > 0 ? (
             <section className="panel">
-              <div className="panel__head">
-                <span className="label">Original photos</span>
-                <span className="label">{scans.length}</span>
+              <div className="panel__head panel__head--wrap">
+                <span className="label">Original photos · {scans.length}</span>
+                <span className="meta">
+                  Clearspace missed something? Open the photo it was in and draw a box around it.
+                </span>
               </div>
               <div className="panel__body">
-                <p className="meta">
-                  Clearspace missed something? Open the photo it was in and draw a box around it.
-                </p>
+                <div className="thumbrow">
+                  {scans.map((scan) => (
+                    <Link className="thumbrow__tile" key={scan.id} href={`/scans/${scan.id}`}>
+                      {/* A video scan has no blob of its own; its frames carry the pixels. */}
+                      {scan.blobKey ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={blobUrl(scan.blobKey)} alt="" loading="lazy" />
+                      ) : null}
+                    </Link>
+                  ))}
+                </div>
               </div>
-              {scans.slice(-8).reverse().map((scan) => (
-                <Link className="rowlink" key={scan.id} href={`/scans/${scan.id}`}>
-                  <span className="label" aria-hidden="true">
-                    IMG
-                  </span>
-                  <span className="stack stack--tight">
-                    <span className="rowlink__title">
-                      {new Date(scan.createdAt).toLocaleString(undefined, {
-                        dateStyle: 'medium',
-                        timeStyle: 'short',
-                      })}
-                    </span>
-                    <span className="meta">{scan.status}</span>
-                  </span>
-                  <span className="rowlink__chev" aria-hidden="true">
-                    ›
-                  </span>
-                </Link>
-              ))}
             </section>
           ) : null}
         </div>
       </main>
 
       {/*
-        Only when the board is absent. The board brings its own action bar, and
-        two fixed bars stack: the second one buries the button that moves the
-        user forward, which is the only button on this screen that matters.
+        No action bar on this page at any point. When the board is present it
+        brings its own, and two fixed bars stack: the second buries the button
+        that moves the user forward. When the lot is empty the dashed panel
+        already carries the one action, and a floating bar repeating it is the
+        second primary action on a screen entitled to one.
       */}
-      {live.length === 0 ? (
-        <aside className="actionbar">
-          <span className="actionbar__note">Photograph everything at once.</span>
-          <Link className="btn btn--primary" href={`/lots/${lot.id}/capture`}>
-            Add photos
-          </Link>
-        </aside>
-      ) : null}
     </div>
   )
 }

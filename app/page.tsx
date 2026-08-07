@@ -26,7 +26,6 @@ export default async function LotsPage() {
   return (
     <div className="shell">
       <AppBar
-        action={<NewLotButton />}
         account={
           isAuthEnabled ? (
             <AccountBadge
@@ -42,61 +41,63 @@ export default async function LotsPage() {
         <div className="stack stack--loose">
           <div className="stack stack--tight">
             <h1>Everything you own, sorted.</h1>
-            <p className="lede">
-              Photograph a space from wherever you are standing. Clearspace works out what is in
-              there, matches the same thing across your photos, and writes it up.
+            <p className="lede lede--wide">
+              Point a phone at a room. Get a sellable inventory. A lot is one space you are
+              clearing: a storage unit, a garage, a whole house.
             </p>
           </div>
 
+          {/*
+            A list, not a dashboard. Nobody has a hundred lots, so width buys a
+            wider row (kind, location and counts on one line) rather than
+            columns that would have to be invented to fill it.
+          */}
           {lots.length === 0 ? (
             <div className="empty">
-              <p className="label">No lots yet</p>
-              <p className="lede">
-                A lot is one space you are clearing out: a unit, a garage, a house.
+              <p className="empty__title">No lots yet.</p>
+              <p className="empty__lede">
+                Make one for the space you are clearing, then photograph it. Clearspace turns the
+                photos into draft listings.
               </p>
+              <NewLotButton size="lg" />
             </div>
           ) : (
             <section className="panel">
               <div className="panel__head">
-                <span className="label">Your lots</span>
-                <span className="label">{lots.length}</span>
+                <span className="label">Lots · {lots.length}</span>
+                <NewLotButton />
               </div>
               {lots.map((lot) => (
-                <div className="rowlink rowlink--actions" key={lot.id}>
-                  <span className="label" aria-hidden="true">
-                    {KIND_LABELS[lot.kind]?.slice(0, 2) ?? 'LT'}
-                  </span>
-                  <Link className="linkish stack stack--tight" href={`/lots/${lot.id}`}>
+                <Link className="rowlink" key={lot.id} href={`/lots/${lot.id}`}>
+                  <span className="rowlink__lead">
                     <span className="rowlink__title">{lot.name}</span>
-                    <span className="meta">
+                    <span className="rowlink__meta">
                       {KIND_LABELS[lot.kind] ?? 'Lot'}
-                      {lot.locationText ? ` · ${lot.locationText}` : ''} ·{' '}
-                      {lot.itemCount === 0
-                        ? 'nothing catalogued yet'
-                        : `${lot.itemCount} ${lot.itemCount === 1 ? 'item' : 'items'}`}
+                      {lot.locationText ? ` · ${lot.locationText}` : ''}
                     </span>
-                  </Link>
+                  </span>
+                  <span className="rowlink__count">
+                    {lot.itemCount === 0
+                      ? 'nothing yet'
+                      : `${lot.itemCount} ${lot.itemCount === 1 ? 'item' : 'items'}`}
+                  </span>
                   {lot.actionableCount > 0 ? (
-                    <span className="chip chip--attention">{lot.actionableCount} to do</span>
-                  ) : (
-                    <span />
-                  )}
-                  {/* Adding photos is the whole product; it should not be two
-                      screens deep from the first thing the user sees. */}
-                  <Link className="btn btn--sm btn--primary" href={`/lots/${lot.id}/capture`}>
-                    Add photos
-                  </Link>
-                </div>
+                    <span className="chip chip--todo">{lot.actionableCount} to do</span>
+                  ) : null}
+                  <span className="rowlink__chev" aria-hidden="true">
+                    ›
+                  </span>
+                </Link>
               ))}
             </section>
           )}
 
           <footer className="colophon">
-            <span>Clearspace</span>
+            <span>Clearspace · point a phone at a room, get a sellable inventory.</span>
             <span>
               {user.isAnonymous
-                ? 'Your work is saved to this browser. Log in to keep it.'
-                : 'Your work is saved to your account.'}
+                ? 'Photos stay on this device until you upload a batch. Sign in to keep your work.'
+                : 'Photos stay on this device until you upload a batch.'}
             </span>
           </footer>
         </div>
