@@ -9,7 +9,6 @@ import { needsReview } from '@/domain/item-status'
 import {
   ApiError,
   blobUrl,
-  exportUrl,
   getEnrichmentProgress,
   getExportPreview,
   nudgeQueue,
@@ -17,6 +16,7 @@ import {
   type ExportPreview,
 } from '@/lib/client/api'
 import { StatusChip } from './StatusChip'
+import { ExportButton } from './ExportButton'
 
 const POLL_MS = 2000
 
@@ -230,17 +230,13 @@ export function ListingsReview({
             ? 'This keeps going if you leave.'
             : `${ready.length} approved · ${unreviewed.length} unchecked`}
         </span>
-        <button type="button" className="btn" disabled title="eBay publishing is not built yet">
-          eBay
-        </button>
-        <a
-          className="btn btn--primary"
-          href={exportUrl(lotId)}
-          download
-          aria-disabled={working || (preview?.rowCount ?? 0) === 0}
-        >
-          Export CSV
-        </a>
+        {/*
+          `aria-disabled` on an anchor styles it as unavailable and then lets
+          the click through, which is how a lot with nothing priced downloaded
+          a CSV containing only its header row. The dialog checks what is
+          actually ready before it offers the file.
+        */}
+        <ExportButton lotId={lotId} />
       </aside>
     </>
   )

@@ -69,6 +69,24 @@ describe('buildFacebookFeed', () => {
     expect(result.skipped[0]!.field).toBe('price')
   })
 
+  /*
+   * A whole lot straight off the board has no prices on it yet, so every row
+   * is skipped and the file comes out as a bare header. That is correct, and
+   * it is exactly why the export control has to check `rowCount` before it
+   * offers a download: the seller who clicks anyway gets an empty file and no
+   * idea why.
+   */
+  it('exports nothing at all when nothing has been priced', () => {
+    const result = buildFacebookFeed([
+      { ...base, id: 'item-1', priceCents: null },
+      { ...base, id: 'item-2', priceCents: null },
+      { ...base, id: 'item-3', priceCents: 0 },
+    ])
+    expect(result.rowCount).toBe(0)
+    expect(result.skipped).toHaveLength(3)
+    expect(result.skipped.every((s) => s.field === 'price')).toBe(true)
+  })
+
   it('leaves out an item with no photograph: the feed would reject it anyway', () => {
     const result = buildFacebookFeed([{ ...base, imageUrls: [] }])
     expect(result.rowCount).toBe(0)

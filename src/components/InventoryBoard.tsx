@@ -7,6 +7,7 @@ import type { ItemWithPrimaryPhoto } from '@/services/items'
 import { isDraft, needsReview } from '@/domain/item-status'
 import { ApiError, blobUrl, requestEnrichment, updateItem } from '@/lib/client/api'
 import { StatusChip } from './StatusChip'
+import { ExportButton } from './ExportButton'
 
 interface Binned {
   item: ItemWithPrimaryPhoto
@@ -30,12 +31,10 @@ interface Binned {
 export function InventoryBoard({
   lotId,
   items: initialItems,
-  captureHref,
   initialCursor = 0,
 }: {
   lotId: string
   items: ItemWithPrimaryPhoto[]
-  captureHref: string
   initialCursor?: number
 }) {
   const router = useRouter()
@@ -54,6 +53,9 @@ export function InventoryBoard({
   const reviewable = useMemo(() => items.filter((i) => needsReview(i.status)), [items])
   const selectedItems = items.filter((i) => selected.has(i.id))
   const selectedDrafts = selectedItems.filter((i) => isDraft(i.status))
+  // What the feed would actually carry. An item with no price is left out of
+  // it, so this is the honest count to put next to an Export button.
+  const readyCount = items.filter((i) => i.estimatedValueCents !== null).length
 
   /* Anything that is not binning ends the undo window. */
   const clearUndo = useCallback(() => setBinned([]), [])
@@ -348,10 +350,18 @@ export function InventoryBoard({
             <kbd className="kbd">U</kbd>undo
             <kbd className="kbd">⏎</kbd>open
           </span>
-          <span className="actionbar__note">Shot another wall?</span>
-          <Link className="btn btn--primary" href={captureHref}>
-            Add photos
-          </Link>
+          {/*
+            Export is the next step from here, not adding more photos. The
+            photos are already in: that offer belongs at the start of the loop
+            and in the app bar for a second pass, not in the one slot on the
+            screen reserved for what the seller came to do.
+          */}
+          <span className="actionbar__note">
+            {readyCount > 0
+              ? `${readyCount} ready to export`
+              : 'Write the listings you want to sell, then export.'}
+          </span>
+          <ExportButton lotId={lotId} />
         </aside>
       )}
     </>

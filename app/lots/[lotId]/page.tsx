@@ -46,8 +46,8 @@ export default async function LotPage({
         title={lot.name}
         action={
           live.length > 0 ? (
-            <Link className="btn btn--quiet btn--sm" href={`/lots/${lot.id}/listings`}>
-              Export
+            <Link className="btn btn--sm" href={`/lots/${lot.id}/capture`}>
+              Add photos
             </Link>
           ) : null
         }
@@ -99,7 +99,6 @@ export default async function LotPage({
             <InventoryBoard
               lotId={lot.id}
               items={live}
-              captureHref={`/lots/${lot.id}/capture`}
               initialCursor={Number(cursor ?? 0)}
             />
           )}
