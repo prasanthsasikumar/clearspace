@@ -48,7 +48,7 @@ function sceneSvg(pass = 0): string {
     <rect width="100%" height="100%" fill="#1b2029" />
     <rect y="${HEIGHT * 0.86}" width="100%" height="${HEIGHT * 0.14}" fill="#242b36" />
     <text x="24" y="40" font-family="monospace" font-size="20" fill="#5d6a7e">
-      SORTA — DEMO SCENE ${pass + 1} (not a photograph)
+      CLEARSPACE — DEMO SCENE ${pass + 1} (not a photograph)
     </text>
     ${shapes}
   </svg>`

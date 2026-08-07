@@ -59,7 +59,7 @@ export default async function LotPage({ params }: { params: Promise<{ lotId: str
             <div className="empty">
               <p className="label">Empty lot</p>
               <p className="lede">
-                Walk around the space taking photos of everything. Sorta turns them into
+                Walk around the space taking photos of everything. Clearspace turns them into
                 listings.
               </p>
               <Link className="btn btn--primary" href={`/lots/${lot.id}/capture`}>
@@ -78,7 +78,7 @@ export default async function LotPage({ params }: { params: Promise<{ lotId: str
               </div>
               <div className="panel__body">
                 <p className="meta">
-                  Sorta missed something? Open the photo it was in and draw a box around it.
+                  Clearspace missed something? Open the photo it was in and draw a box around it.
                 </p>
               </div>
               {scans.slice(-8).reverse().map((scan) => (

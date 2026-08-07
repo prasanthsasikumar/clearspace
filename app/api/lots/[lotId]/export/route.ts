@@ -29,8 +29,8 @@ export const GET = route(async (request: NextRequest, { params }: Params) => {
     headers: {
       'Content-Type': 'text/csv; charset=utf-8',
       'Content-Disposition': `attachment; filename="${result.filename}"`,
-      'X-Sorta-Rows': String(result.rowCount),
-      'X-Sorta-Skipped': String(result.skipped.length),
+      'X-Clearspace-Rows': String(result.rowCount),
+      'X-Clearspace-Skipped': String(result.skipped.length),
     },
   })
 })

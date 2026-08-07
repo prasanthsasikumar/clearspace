@@ -392,7 +392,7 @@ export function DetectionReview({
                 ? 'Drag a box around the missed item.'
                 : promotedCount > 0
                   ? `${promotedCount} added to the inventory.`
-                  : 'Tap a box, or add one Sorta missed.'}
+                  : 'Tap a box, or add one Clearspace missed.'}
             </span>
             <button
               type="button"

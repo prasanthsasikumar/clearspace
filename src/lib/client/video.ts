@@ -21,7 +21,7 @@ const BLUR_FLOOR = 0.2
 /**
  * Pulls usable stills out of a walkthrough video, entirely in the browser.
  *
- * Doing this client-side is what lets Sorta accept video at all without an
+ * Doing this client-side is what lets Clearspace accept video at all without an
  * ffmpeg dependency on the server. It also means a 60-second, 90 MB walkthrough
  * never leaves the phone — only the eight or so frames worth analysing do.
  *

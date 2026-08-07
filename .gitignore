@@ -16,3 +16,9 @@ storage/
 coverage/
 test-results/
 playwright-report/
+
+# Vercel CLI
+.vercel/
+.vercel.env
+.vercel
+.env*

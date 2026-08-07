@@ -4,7 +4,7 @@ import { users, type User } from '@/db/schema'
 
 export type AppUser = User
 
-export const LOCAL_USER_EMAIL = 'local@sorta.app'
+export const LOCAL_USER_EMAIL = 'local@clearspace.app'
 
 export interface UserIdentity {
   id: string
@@ -24,15 +24,20 @@ export async function getOrCreateUser(
   db: Database,
   identity: UserIdentity,
 ): Promise<AppUser> {
+  // Normalised again at the database boundary, not only where identities are
+  // parsed. An empty email is a uniqueness collision waiting for the second
+  // anonymous visitor, and this is the last place to stop it.
+  const email = identity.email?.trim() || null
+
   const [existing] = await db.select().from(users).where(eq(users.id, identity.id)).limit(1)
 
   if (existing) {
     // An anonymous account that has just gained an email is the upgrade
     // happening; record it rather than leaving the row stale.
-    if (existing.email !== identity.email || existing.isAnonymous !== identity.isAnonymous) {
+    if (existing.email !== email || existing.isAnonymous !== identity.isAnonymous) {
       const [updated] = await db
         .update(users)
-        .set({ email: identity.email, isAnonymous: identity.isAnonymous })
+        .set({ email, isAnonymous: identity.isAnonymous })
         .where(eq(users.id, identity.id))
         .returning()
       return updated ?? existing
@@ -44,7 +49,7 @@ export async function getOrCreateUser(
     .insert(users)
     .values({
       id: identity.id,
-      email: identity.email,
+      email,
       isAnonymous: identity.isAnonymous,
     })
     .onConflictDoNothing({ target: users.id })

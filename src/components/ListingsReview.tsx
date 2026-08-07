@@ -117,7 +117,7 @@ export function ListingsReview({
           <h1>{working ? 'Writing your listings…' : 'Check before you export'}</h1>
           <p className="lede">
             {working
-              ? `${progress.done} of ${progress.requested} done. Each one is identified, priced against what Sorta can find online, and written up.`
+              ? `${progress.done} of ${progress.requested} done. Each one is identified, priced against what Clearspace can find online, and written up.`
               : 'Every price is an estimate until you say otherwise. Tap a listing to read and edit it.'}
           </p>
         </div>
@@ -202,7 +202,7 @@ export function ListingsReview({
                   <span aria-hidden="true">◆</span>
                   <span>
                     {preview.unconfirmedPrices}{' '}
-                    {preview.unconfirmedPrices === 1 ? 'price is' : 'prices are'} still Sorta’s
+                    {preview.unconfirmedPrices === 1 ? 'price is' : 'prices are'} still Clearspace’s
                     estimate — nobody has checked {preview.unconfirmedPrices === 1 ? 'it' : 'them'}
                     .
                   </span>

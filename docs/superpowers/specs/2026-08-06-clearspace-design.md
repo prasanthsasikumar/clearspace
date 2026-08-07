@@ -1,4 +1,4 @@
-# Sorta — Design Spec
+# Clearspace — Design Spec
 
 **Date:** 2026-08-06
 **Status:** Approved, Phase 1 in implementation
@@ -13,7 +13,7 @@ listing copy costs 10–20 minutes per item. A 60-item storage locker is a
 full weekend of unpaid work, so most people either dump the lot to a
 liquidator at 5c on the dollar or never sell at all.
 
-Sorta collapses that: point a phone at a room, get a reviewed inventory.
+Clearspace collapses that: point a phone at a room, get a reviewed inventory.
 
 ## Product principles
 

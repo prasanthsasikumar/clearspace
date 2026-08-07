@@ -70,7 +70,7 @@ async function main() {
   console.log('Round-tripping a test object…')
   const blobs = getBlobStore()
   const key = `checks/${crypto.randomUUID()}.txt`
-  const payload = Buffer.from('sorta storage check')
+  const payload = Buffer.from('clearspace storage check')
   await blobs.put(key, payload, 'text/plain')
   const read = await blobs.get(key)
   if (!read || !read.data.equals(payload)) {

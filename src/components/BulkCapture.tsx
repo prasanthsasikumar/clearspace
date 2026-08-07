@@ -155,7 +155,7 @@ export function BulkCapture({ lotId }: { lotId: string }) {
         <div className="stack stack--tight">
           <h1>Photograph the whole space.</h1>
           <p className="lede">
-            Walk around and shoot everything. Overlap, repeat yourself, get it wrong — Sorta
+            Walk around and shoot everything. Overlap, repeat yourself, get it wrong — Clearspace
             works out which photos show the same thing.
           </p>
         </div>
@@ -235,7 +235,7 @@ export function BulkCapture({ lotId }: { lotId: string }) {
                 <span aria-hidden="true">◆</span>
                 <span>
                   {blurry} {blurry === 1 ? 'photo looks' : 'photos look'} soft or dark. They
-                  still upload — Sorta will just find less in them.
+                  still upload — Clearspace will just find less in them.
                 </span>
               </p>
             ) : null}
@@ -283,7 +283,7 @@ export function BulkCapture({ lotId }: { lotId: string }) {
           {busy && 'note' in phase
             ? phase.note
             : photos.length > 0
-              ? 'Sorta takes it from here.'
+              ? 'Clearspace takes it from here.'
               : 'Pick everything at once.'}
         </span>
         {photos.length === 0 ? (

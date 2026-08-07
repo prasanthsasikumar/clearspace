@@ -23,7 +23,7 @@ export const captureModes: readonly CaptureMode[] = [
   {
     kind: 'scene',
     title: 'Scan a room',
-    blurb: 'One wide photo. Sorta finds every sellable item in it.',
+    blurb: 'One wide photo. Clearspace finds every sellable item in it.',
     steps: [
       'Open the door and let in as much light as you can.',
       'Stand back far enough to get a whole wall in frame.',
@@ -48,7 +48,7 @@ export const captureModes: readonly CaptureMode[] = [
   {
     kind: 'video',
     title: 'Video walkthrough',
-    blurb: 'Walk the space once. Sorta pulls the sharp frames out.',
+    blurb: 'Walk the space once. Clearspace pulls the sharp frames out.',
     steps: [
       'Walk slowly — about one step every two seconds.',
       'Pause two seconds on anything worth money.',

@@ -1,8 +1,8 @@
-# Sorta
+# Clearspace
 
 Photograph a space. Get listings.
 
-Sorta is for people clearing out storage units, garages, estates, and houses.
+Clearspace is for people clearing out storage units, garages, estates, and houses.
 The bottleneck in liquidation is not selling — it is cataloguing. Photographing,
 identifying, pricing, and writing up each item costs 10–20 minutes, so a 60-item
 unit is a lost weekend, and most people hand the lot to a liquidator for pennies
@@ -123,5 +123,5 @@ one-handed. High ink contrast, hairline structure instead of shadow, 44 px
 minimum targets on touch, one signal colour so "this needs you" is never
 ambiguous, mono labels for catalogue metadata. Tokens in [`tokens.css`](tokens.css).
 
-Specs: [original design](docs/superpowers/specs/2026-08-06-sorta-design.md) ·
-[bulk-capture pivot](docs/superpowers/specs/2026-08-06-sorta-bulk-pivot-design.md).
+Specs: [original design](docs/superpowers/specs/2026-08-06-clearspace-design.md) ·
+[bulk-capture pivot](docs/superpowers/specs/2026-08-06-clearspace-bulk-pivot-design.md).

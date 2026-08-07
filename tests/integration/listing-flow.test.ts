@@ -136,13 +136,13 @@ describe('listings and export', () => {
 
     const result = await buildLotExport(harness.db, {
       lotId,
-      origin: 'https://sorta.test',
+      origin: 'https://clearspace.test',
     })
 
     expect(result.rowCount).toBe(all.length)
     expect(result.unconfirmedPrices).toBe(all.length)
-    expect(result.csv).toContain('https://sorta.test/api/blobs/')
-    expect(result.csv).toContain('https://sorta.test/items/')
+    expect(result.csv).toContain('https://clearspace.test/api/blobs/')
+    expect(result.csv).toContain('https://clearspace.test/items/')
   })
 
   it('stops counting a price as unchecked once the user confirms it', async () => {
@@ -151,7 +151,7 @@ describe('listings and export', () => {
     await drainJobs(harness)
     await updateItem(harness.db, first!.id, { priceUnconfirmed: false })
 
-    const result = await buildLotExport(harness.db, { lotId, origin: 'https://sorta.test' })
+    const result = await buildLotExport(harness.db, { lotId, origin: 'https://clearspace.test' })
     expect(result.unconfirmedPrices).toBe(0)
   })
 
@@ -165,7 +165,7 @@ describe('listings and export', () => {
     await drainJobs(harness)
     await updateItem(harness.db, all[0]!.id, { status: 'discarded' })
 
-    const result = await buildLotExport(harness.db, { lotId, origin: 'https://sorta.test' })
+    const result = await buildLotExport(harness.db, { lotId, origin: 'https://clearspace.test' })
     expect(result.rowCount).toBe(all.length - 1)
   })
 })

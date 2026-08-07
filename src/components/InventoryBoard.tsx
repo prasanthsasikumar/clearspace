@@ -225,7 +225,7 @@ export function InventoryBoard({
       <aside className="actionbar">
         <span className="actionbar__note">
           {selectedDrafts.length > 0
-            ? 'Sorta writes each one and prices it.'
+            ? 'Clearspace writes each one and prices it.'
             : reviewable.length > 0
               ? 'Check the listings, then export.'
               : 'Tap a card to put it back.'}

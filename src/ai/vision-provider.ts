@@ -86,7 +86,7 @@ export interface ListingDraft {
 }
 
 /**
- * The one seam between Sorta and any vision vendor.
+ * The one seam between Clearspace and any vision vendor.
  *
  * Gemini implements it today. A future GroundingDINO + SAM 2 pipeline would
  * implement `detectObjects` alone and compose with Gemini for the reasoning

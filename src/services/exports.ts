@@ -44,7 +44,7 @@ export async function buildLotExport(
       rowCount: 0,
       skipped: [],
       warnings: [],
-      filename: 'sorta-facebook-catalog.csv',
+      filename: 'clearspace-facebook-catalog.csv',
       unconfirmedPrices: 0,
     }
   }
@@ -93,7 +93,7 @@ export async function buildLotExport(
 
   return {
     ...result,
-    filename: 'sorta-facebook-catalog.csv',
+    filename: 'clearspace-facebook-catalog.csv',
     unconfirmedPrices: live.filter(
       (item) => item.priceUnconfirmed && item.estimatedValueCents !== null,
     ).length,

@@ -62,14 +62,14 @@ export async function drain(ctx: JobContext, maxJobs = 100): Promise<number> {
   return processed
 }
 
-const globalForWorker = globalThis as unknown as { __sortaWorker?: NodeJS.Timeout }
+const globalForWorker = globalThis as unknown as { __clearspaceWorker?: NodeJS.Timeout }
 
 /**
  * Starts the in-process poller. Idempotent across Next.js hot reloads, which
  * would otherwise stack a new timer on every file save.
  */
 export function startWorker(ctx: JobContext, intervalMs = 750): void {
-  if (globalForWorker.__sortaWorker) return
+  if (globalForWorker.__clearspaceWorker) return
 
   let running = false
   const tick = async () => {
@@ -88,11 +88,11 @@ export function startWorker(ctx: JobContext, intervalMs = 750): void {
   const timer = setInterval(() => void tick(), intervalMs)
   // Never hold the process open for the sake of an idle poller.
   timer.unref?.()
-  globalForWorker.__sortaWorker = timer
+  globalForWorker.__clearspaceWorker = timer
 }
 
 export function stopWorker(): void {
-  if (!globalForWorker.__sortaWorker) return
-  clearInterval(globalForWorker.__sortaWorker)
-  globalForWorker.__sortaWorker = undefined
+  if (!globalForWorker.__clearspaceWorker) return
+  clearInterval(globalForWorker.__clearspaceWorker)
+  globalForWorker.__clearspaceWorker = undefined
 }

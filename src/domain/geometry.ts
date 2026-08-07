@@ -1,5 +1,5 @@
 /**
- * The single coordinate contract in Sorta.
+ * The single coordinate contract in Clearspace.
  *
  * Every bounding box — whether it came from Gemini, a future SAM 2 adapter, or
  * a finger dragged across a canvas — is stored and passed around as normalized

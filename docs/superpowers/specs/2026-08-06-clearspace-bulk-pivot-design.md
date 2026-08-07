@@ -1,8 +1,8 @@
-# Sorta — Bulk-Capture Pivot
+# Clearspace — Bulk-Capture Pivot
 
 **Date:** 2026-08-06
 **Status:** Approved. Stage A in implementation.
-**Supersedes the core loop in:** [`2026-08-06-sorta-design.md`](2026-08-06-sorta-design.md)
+**Supersedes the core loop in:** [`2026-08-06-clearspace-design.md`](2026-08-06-clearspace-design.md)
 (architecture, ports, and data model from that spec still hold)
 
 ## Why the loop inverts

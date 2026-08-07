@@ -4,7 +4,7 @@ import { env } from '@/config/env'
 /**
  * Supabase Auth clients.
  *
- * Sorta's own data never goes through Supabase's REST API — the app talks to
+ * Clearspace's own data never goes through Supabase's REST API — the app talks to
  * Postgres directly with Drizzle. Supabase is used purely as an identity
  * provider, which keeps the surface small: this reads and refreshes a session
  * cookie and nothing else.
@@ -40,15 +40,21 @@ export interface AuthIdentity {
  * Supabase marks anonymous users with `is_anonymous` on the JWT. Falling back
  * to "no email means anonymous" keeps this correct even if that claim is
  * absent, because an account with no address cannot be signed back into.
+ *
+ * The empty string matters: Supabase reports an anonymous user's email as `''`
+ * rather than omitting it, and `?? null` does not catch that. Postgres permits
+ * many NULLs in a unique index but only one `''`, so letting it through means
+ * the *second* anonymous visitor ever to arrive gets a 500.
  */
 export function toIdentity(user: {
   id: string
   email?: string | null
   is_anonymous?: boolean
 }): AuthIdentity {
+  const email = user.email?.trim() || null
   return {
     id: user.id,
-    email: user.email ?? null,
-    isAnonymous: user.is_anonymous ?? !user.email,
+    email,
+    isAnonymous: user.is_anonymous ?? email === null,
   }
 }

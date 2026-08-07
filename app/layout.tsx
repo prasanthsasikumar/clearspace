@@ -25,10 +25,10 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Sorta',
+  title: 'Clearspace',
   description: 'Point a phone at a room. Get a sellable inventory.',
-  applicationName: 'Sorta',
-  appleWebApp: { capable: true, title: 'Sorta', statusBarStyle: 'default' },
+  applicationName: 'Clearspace',
+  appleWebApp: { capable: true, title: 'Clearspace', statusBarStyle: 'default' },
 }
 
 export const viewport: Viewport = {

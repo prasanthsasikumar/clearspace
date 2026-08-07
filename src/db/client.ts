@@ -53,8 +53,8 @@ export function createPostgresDatabase(url: string): Database {
  * connection is parked on globalThis so reloads reuse it.
  */
 const globalForDb = globalThis as unknown as {
-  __sortaDb?: Database
-  __sortaPglite?: PGlite
+  __clearspaceDb?: Database
+  __clearspacePglite?: PGlite
 }
 
 function initDatabase(): Database {
@@ -63,21 +63,21 @@ function initDatabase(): Database {
   // PGlite creates its data directory but not the parents of it.
   mkdirSync(path.dirname(path.resolve(env.PGLITE_DIR)), { recursive: true })
 
-  const client = globalForDb.__sortaPglite ?? new PGlite(env.PGLITE_DIR)
-  globalForDb.__sortaPglite = client
+  const client = globalForDb.__clearspacePglite ?? new PGlite(env.PGLITE_DIR)
+  globalForDb.__clearspacePglite = client
   return createPgliteDatabase(client)
 }
 
 export function getDb(): Database {
-  if (!globalForDb.__sortaDb) {
-    globalForDb.__sortaDb = initDatabase()
+  if (!globalForDb.__clearspaceDb) {
+    globalForDb.__clearspaceDb = initDatabase()
   }
-  return globalForDb.__sortaDb
+  return globalForDb.__clearspaceDb
 }
 
 /** The raw PGlite handle, when running embedded. Used by the migrator. */
 export function getPgliteClient(): PGlite | undefined {
-  return globalForDb.__sortaPglite
+  return globalForDb.__clearspacePglite
 }
 
 export { schema }

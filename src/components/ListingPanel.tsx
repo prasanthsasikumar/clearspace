@@ -47,7 +47,7 @@ export function ListingPanel({
         </div>
         <div className="panel__body">
           <p className="meta">
-            Not written yet. Select this item on the board and tap Next to have Sorta identify,
+            Not written yet. Select this item on the board and tap Next to have Clearspace identify,
             price, and write it.
           </p>
         </div>
@@ -143,7 +143,7 @@ export function ListingPanel({
           />
           {valuation ? (
             <span className="meta">
-              Sorta suggested {formatMoney(valuation.recommendedCents, item.currency)} — range{' '}
+              Clearspace suggested {formatMoney(valuation.recommendedCents, item.currency)} — range{' '}
               {formatMoney(valuation.lowCents, item.currency)} to{' '}
               {formatMoney(valuation.highCents, item.currency)}.
             </span>

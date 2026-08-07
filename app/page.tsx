@@ -39,7 +39,7 @@ export default async function LotsPage() {
           <div className="stack stack--tight">
             <h1>Everything you own, sorted.</h1>
             <p className="lede">
-              Photograph a space from wherever you are standing. Sorta works out what is in
+              Photograph a space from wherever you are standing. Clearspace works out what is in
               there, matches the same thing across your photos, and writes it up.
             </p>
           </div>
@@ -88,7 +88,7 @@ export default async function LotsPage() {
           )}
 
           <footer className="colophon">
-            <span>Sorta</span>
+            <span>Clearspace</span>
             <span>Photos and inventory stay on this machine.</span>
           </footer>
         </div>

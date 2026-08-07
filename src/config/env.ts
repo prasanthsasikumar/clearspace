@@ -47,7 +47,7 @@ const schema = z.object({
   SUPABASE_URL: z.string().url().optional(),
   /** Service-role key — server-side only. Never expose this to the browser. */
   SUPABASE_SERVICE_KEY: z.string().min(1).optional(),
-  SUPABASE_BUCKET: z.string().default('sorta'),
+  SUPABASE_BUCKET: z.string().default('clearspace'),
 
   /*
    * Auth. These two are public by design — the anon key is a scoped,

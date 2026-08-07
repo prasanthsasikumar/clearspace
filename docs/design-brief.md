@@ -1,4 +1,4 @@
-# Sorta — product brief for a visual designer
+# Clearspace — product brief for a visual designer
 
 ## What it is
 
@@ -11,7 +11,7 @@ description, post it. That's 10–20 minutes each. A storage unit with 60 things
 in it is a lost weekend, so most people give up and sell the whole lot to a
 dealer for almost nothing.
 
-Sorta removes all of that except one decision. You walk around taking photos —
+Clearspace removes all of that except one decision. You walk around taking photos —
 badly, quickly, whatever you can manage. The app finds the individual objects in
 your photos, works out which photos show the same object, and turns each one
 into a finished listing with a title, a description, and a price. Your only job
@@ -112,7 +112,7 @@ one needs a quick look:
 
 - **Approve** on each card, or **Approve all** at the top.
 - A summary at the bottom of what the export will contain, including a warning
-  like *"5 prices are still Sorta's estimate — nobody has checked them."*
+  like *"5 prices are still Clearspace's estimate — nobody has checked them."*
 
 Two buttons at the bottom: **Export CSV**, and **eBay** which is greyed out and
 not built yet.

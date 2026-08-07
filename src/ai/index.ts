@@ -10,21 +10,21 @@ import type { ObjectMatcher } from './object-matcher'
 import type { VisionProvider } from './vision-provider'
 
 const globalForAi = globalThis as unknown as {
-  __sortaGemini?: GeminiClient
-  __sortaVision?: VisionProvider
-  __sortaMatcher?: ObjectMatcher
-  __sortaEnricher?: Enricher
+  __clearspaceGemini?: GeminiClient
+  __clearspaceVision?: VisionProvider
+  __clearspaceMatcher?: ObjectMatcher
+  __clearspaceEnricher?: Enricher
 }
 
 /** One client, shared by every adapter, so retry policy is configured once. */
 function getGeminiClient(): GeminiClient {
-  if (!globalForAi.__sortaGemini) {
-    globalForAi.__sortaGemini = new GeminiClient({
+  if (!globalForAi.__clearspaceGemini) {
+    globalForAi.__clearspaceGemini = new GeminiClient({
       apiKey: env.GEMINI_API_KEY!,
       model: env.GEMINI_MODEL,
     })
   }
-  return globalForAi.__sortaGemini
+  return globalForAi.__clearspaceGemini
 }
 
 /**
@@ -33,30 +33,30 @@ function getGeminiClient(): GeminiClient {
  * before anyone signs up for anything.
  */
 export function getVisionProvider(): VisionProvider {
-  if (!globalForAi.__sortaVision) {
-    globalForAi.__sortaVision = isDemoMode
+  if (!globalForAi.__clearspaceVision) {
+    globalForAi.__clearspaceVision = isDemoMode
       ? new FixtureVisionProvider()
       : new GeminiVisionProvider({ client: getGeminiClient() })
   }
-  return globalForAi.__sortaVision
+  return globalForAi.__clearspaceVision
 }
 
 export function getObjectMatcher(): ObjectMatcher {
-  if (!globalForAi.__sortaMatcher) {
-    globalForAi.__sortaMatcher = isDemoMode
+  if (!globalForAi.__clearspaceMatcher) {
+    globalForAi.__clearspaceMatcher = isDemoMode
       ? new FixtureObjectMatcher()
       : new GeminiObjectMatcher({ client: getGeminiClient() })
   }
-  return globalForAi.__sortaMatcher
+  return globalForAi.__clearspaceMatcher
 }
 
 export function getEnricher(): Enricher {
-  if (!globalForAi.__sortaEnricher) {
-    globalForAi.__sortaEnricher = isDemoMode
+  if (!globalForAi.__clearspaceEnricher) {
+    globalForAi.__clearspaceEnricher = isDemoMode
       ? new FixtureEnricher()
       : new GeminiEnricher({ client: getGeminiClient() })
   }
-  return globalForAi.__sortaEnricher
+  return globalForAi.__clearspaceEnricher
 }
 
 export * from './vision-provider'

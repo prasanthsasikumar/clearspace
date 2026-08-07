@@ -1,4 +1,4 @@
-# Deploying Sorta
+# Deploying Clearspace
 
 Target: **Vercel** for the app, **Supabase** for Postgres and photo storage.
 
@@ -22,7 +22,7 @@ succeed and nothing ever processes them.
 
 ## 1. Supabase
 
-**Storage.** `npm run setup:supabase` creates the private `sorta` bucket and
+**Storage.** `npm run setup:supabase` creates the private `clearspace` bucket and
 round-trips a test object through it. Safe to re-run.
 
 **Database.** Dashboard → **Connect** → **Transaction pooler** (port **6543**,
@@ -48,7 +48,7 @@ No SQL to write — the schema comes from `drizzle/`.
 
 ## 2. Vercel
 
-Import `prasanthsasikumar/sorta`. Framework and build command are detected.
+Import `prasanthsasikumar/clearspace`. Framework and build command are detected.
 
 ### Environment variables
 
@@ -58,7 +58,7 @@ Import `prasanthsasikumar/sorta`. Framework and build command are detected.
 | `BLOB_DRIVER` | `supabase` |
 | `SUPABASE_URL` | `https://<ref>.supabase.co` |
 | `SUPABASE_SERVICE_KEY` | Settings → API → `service_role` |
-| `SUPABASE_BUCKET` | `sorta` |
+| `SUPABASE_BUCKET` | `clearspace` |
 | `GEMINI_API_KEY` | your key — omit to deploy in demo mode |
 | `GEMINI_MODEL` | `gemini-flash-latest` |
 | `CRON_SECRET` | any long random string |
@@ -68,11 +68,20 @@ Import `prasanthsasikumar/sorta`. Framework and build command are detected.
 
 ### The queue
 
-`vercel.json` already registers the cron:
+**The app drives its own queue.** The progress screens nudge
+`/api/jobs/tick` while you are watching, so processing starts immediately.
+That is what makes this independent of cron granularity.
+
+`vercel.json` registers a **daily** cron as the backstop for work nobody is
+watching:
 
 ```json
-{ "crons": [{ "path": "/api/jobs/tick", "schedule": "* * * * *" }] }
+{ "crons": [{ "path": "/api/jobs/tick", "schedule": "0 3 * * *" }] }
 ```
+
+Daily because **Vercel's Hobby plan rejects anything more frequent** — a
+deploy carrying `* * * * *` fails outright. On Pro, raise it to `* * * * *`
+so abandoned work is picked up within a minute rather than overnight.
 
 Vercel sends `Authorization: Bearer $CRON_SECRET`, which the endpoint verifies
 with a constant-time comparison. **Set `CRON_SECRET`** — without it the
@@ -83,11 +92,9 @@ Each invocation drains until the queue is empty or it runs out of time
 about 4s and enrichment about 30s, so a fixed count would either waste the
 invocation or overrun it.
 
-**Expect latency.** Cron granularity is one minute, so a batch may sit up to a
-minute before anything starts, and a 30-photo upload takes a few invocations.
-That is a real cost of the free tier, not a bug. To make it immediate, run the
-same drain loop somewhere always-on (Railway, Fly, a small VM) hitting
-`/api/jobs/tick` every few seconds, and drop the cron.
+A signed-in visitor's nudge starts at most two jobs per call — the session is
+the credential, because `CRON_SECRET` cannot ship to a browser, and the limit
+is what stops it being a lever on your bill.
 
 ## 3. Verify, in this order
 
@@ -113,7 +120,7 @@ reason — grouping does not trigger it.
 
 ## Auth
 
-Anyone can use Sorta without an account; signing in is what makes the work
+Anyone can use Clearspace without an account; signing in is what makes the work
 survive a cleared cache and follow them to another device.
 
 The mechanism: middleware signs a first-time visitor in **anonymously** before

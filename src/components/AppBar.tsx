@@ -27,7 +27,7 @@ export function AppBar({ title, back, action, account }: AppBarProps) {
           </Link>
         ) : (
           <Link className="wordmark" href="/">
-            Sorta
+            Clearspace
           </Link>
         )}
         {title ? <span className="appbar__title">{title}</span> : null}
