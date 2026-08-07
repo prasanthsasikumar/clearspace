@@ -49,7 +49,7 @@ export default async function LotPage({ params }: { params: Promise<{ lotId: str
             <Link className="notice notice--accent" href={`/batches/${batch.batchId}`}>
               <span className="working__dot" aria-hidden="true" />
               <span>
-                Still sorting {batch.photoCount} photos — {batch.analysedCount} looked at. Watch
+                Still sorting {batch.photoCount} photos, {batch.analysedCount} looked at. Watch
                 it →
               </span>
             </Link>
@@ -105,14 +105,19 @@ export default async function LotPage({ params }: { params: Promise<{ lotId: str
         </div>
       </main>
 
-      <aside className="actionbar">
-        <span className="actionbar__note">
-          {live.length === 0 ? 'Photograph everything at once.' : 'Shot another wall?'}
-        </span>
-        <Link className="btn btn--primary" href={`/lots/${lot.id}/capture`}>
-          Add photos
-        </Link>
-      </aside>
+      {/*
+        Only when the board is absent. The board brings its own action bar, and
+        two fixed bars stack: the second one buries the button that moves the
+        user forward, which is the only button on this screen that matters.
+      */}
+      {live.length === 0 ? (
+        <aside className="actionbar">
+          <span className="actionbar__note">Photograph everything at once.</span>
+          <Link className="btn btn--primary" href={`/lots/${lot.id}/capture`}>
+            Add photos
+          </Link>
+        </aside>
+      ) : null}
     </div>
   )
 }

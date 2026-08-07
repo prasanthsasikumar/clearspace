@@ -14,7 +14,7 @@ interface Binned {
 }
 
 /**
- * The triage board — the only screen the user is obliged to touch.
+ * The triage board: the only screen the user is obliged to touch.
  *
  * Everything arrives already selected, because after photographing a space
  * most of what came back is worth keeping and the work should be subtraction,
@@ -230,6 +230,9 @@ export function InventoryBoard({
               ? 'Check the listings, then export.'
               : 'Tap a card to put it back.'}
         </span>
+        <Link className="btn btn--sm btn--quiet" href={`/lots/${lotId}/capture`}>
+          Add photos
+        </Link>
         {selectedDrafts.length > 0 ? (
           <button
             type="button"
