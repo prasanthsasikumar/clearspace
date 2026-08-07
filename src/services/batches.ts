@@ -2,7 +2,9 @@ import { and, count, countDistinct, eq, inArray, isNotNull, sql } from 'drizzle-
 import type { Database } from '@/db/client'
 import { detections, jobs, scans, type Scan } from '@/db/schema'
 import type { BlobStore } from '@/storage'
+import { enqueue } from '@/jobs/queue'
 import { createImageScan, type UploadedFile } from './scans'
+import { touchLot } from './lots'
 
 export interface BatchCreated {
   batchId: string
@@ -27,21 +29,74 @@ export async function createBatch(
   if (input.files.length === 0) throw new Error('A batch needs at least one photo')
 
   const batchId = crypto.randomUUID()
-  const created: Scan[] = []
-  const jobIds: string[] = []
+  const scans = await addToBatch(db, blobs, { lotId: input.lotId, batchId, files: input.files })
+  const jobIds = await sealBatch(db, input.lotId, batchId)
 
+  return { batchId, scans, jobIds }
+}
+
+/**
+ * Adds photos to a batch without starting any analysis.
+ *
+ * A storage unit has one bar of signal, and the whole batch used to go up in a
+ * single request: twenty photos in one POST, so a drop at ninety percent lost
+ * all twenty and the walk around the unit had to be repeated. Photos arrive
+ * one at a time now, and a drop costs the one that was in flight.
+ *
+ * Nothing is enqueued here. The fan-in that starts grouping fires when no
+ * detection jobs remain outstanding for the batch, so a photo analysed while
+ * its siblings are still uploading would group alone and cross-photo matching,
+ * the reason this app exists, would never happen.
+ */
+export async function addToBatch(
+  db: Database,
+  blobs: BlobStore,
+  input: { lotId: string; batchId: string; files: readonly UploadedFile[] },
+): Promise<Scan[]> {
+  const created: Scan[] = []
   for (const file of input.files) {
     const result = await createImageScan(db, blobs, {
       lotId: input.lotId,
       kind: 'photo',
       file,
-      batchId,
+      batchId: input.batchId,
+      defer: true,
     })
     created.push(result.scan)
-    jobIds.push(result.jobId)
+  }
+  return created
+}
+
+/**
+ * Closes a batch and starts analysing all of it at once.
+ *
+ * Safe to call twice: a scan that already has a detection job is skipped, so a
+ * retried seal after a dropped response does not analyse anything twice.
+ */
+export async function sealBatch(
+  db: Database,
+  lotId: string,
+  batchId: string,
+): Promise<string[]> {
+  const pending = await db.select().from(scans).where(eq(scans.batchId, batchId))
+
+  const existing = await db
+    .select({ payload: jobs.payload })
+    .from(jobs)
+    .where(and(eq(jobs.type, 'detect_objects'), sql`${jobs.payload}->>'batchId' = ${batchId}`))
+  const already = new Set(
+    existing.map((row) => (row.payload as { scanId?: string }).scanId).filter(Boolean),
+  )
+
+  const jobIds: string[] = []
+  for (const scan of pending) {
+    if (already.has(scan.id)) continue
+    const job = await enqueue(db, 'detect_objects', { scanId: scan.id, batchId })
+    jobIds.push(job.id)
   }
 
-  return { batchId, scans: created, jobIds }
+  await touchLot(db, lotId)
+  return jobIds
 }
 
 export type BatchPhase = 'analysing' | 'grouping' | 'complete' | 'failed'

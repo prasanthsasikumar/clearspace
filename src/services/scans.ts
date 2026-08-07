@@ -36,8 +36,18 @@ export async function createImageScan(
     file: UploadedFile
     /** Photos uploaded together share a batch and are grouped together. */
     batchId?: string
+    /**
+     * Hold the detection job back.
+     *
+     * A batch uploaded photo by photo would otherwise start grouping the
+     * moment the first photo's detection finished, because the fan-in fires
+     * when no detection jobs remain outstanding. Grouping one photo alone
+     * throws away cross-photo matching, which is the whole product. The
+     * caller seals the batch and enqueues the lot of them together.
+     */
+    defer?: boolean
   },
-): Promise<{ scan: Scan; jobId: string }> {
+): Promise<{ scan: Scan; jobId: string | null }> {
   const normalized = await normalizeUpload(input.file.data)
   const key = makeBlobKey('scans', normalized.contentType)
   const stored = await blobs.put(key, normalized.data, normalized.contentType)
@@ -59,13 +69,15 @@ export async function createImageScan(
 
   if (!scan) throw new Error('Failed to record scan')
 
-  const job = await enqueue(db, 'detect_objects', {
-    scanId: scan.id,
-    ...(input.batchId ? { batchId: input.batchId } : {}),
-  })
+  const job = input.defer
+    ? null
+    : await enqueue(db, 'detect_objects', {
+        scanId: scan.id,
+        ...(input.batchId ? { batchId: input.batchId } : {}),
+      })
   await touchLot(db, input.lotId)
 
-  return { scan, jobId: job.id }
+  return { scan, jobId: job?.id ?? null }
 }
 
 /** Creates the parent row for a video walkthrough; frames arrive separately. */
