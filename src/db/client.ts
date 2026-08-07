@@ -19,8 +19,19 @@ export function createPgliteDatabase(client: PGlite): Database {
   return drizzlePglite(client, { schema }) as unknown as Database
 }
 
+/**
+ * Hosted Postgres, configured for a connection pooler.
+ *
+ * Supabase (and every other serverless-friendly Postgres) puts pgbouncer in
+ * front in transaction mode, where prepared statements are not shared across
+ * pooled connections — leaving `prepare` on produces "prepared statement
+ * already exists" errors under any real concurrency, intermittently, which is
+ * the worst way to find out. `max: 1` because each serverless invocation is
+ * its own short-lived process and holding a pool per invocation is how you
+ * exhaust the pooler.
+ */
 export function createPostgresDatabase(url: string): Database {
-  const sql = postgres(url, { max: 5 })
+  const sql = postgres(url, { max: 1, prepare: false, idle_timeout: 20 })
   return drizzlePostgres(sql, { schema }) as unknown as Database
 }
 

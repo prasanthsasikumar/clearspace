@@ -40,8 +40,14 @@ const schema = z.object({
    */
   GEMINI_MODEL: z.string().default('gemini-flash-latest'),
 
-  BLOB_DRIVER: z.enum(['disk']).default('disk'),
+  BLOB_DRIVER: z.enum(['disk', 'supabase']).default('disk'),
   BLOB_DIR: z.string().default('./storage'),
+
+  /* Supabase Storage. Required when BLOB_DRIVER=supabase. */
+  SUPABASE_URL: z.string().url().optional(),
+  /** Service-role key — server-side only. Never expose this to the browser. */
+  SUPABASE_SERVICE_KEY: z.string().min(1).optional(),
+  SUPABASE_BUCKET: z.string().default('sorta'),
 
   /** Set to use a hosted Postgres; omitted means embedded PGlite. */
   DATABASE_URL: z.string().min(1).optional(),
@@ -58,6 +64,13 @@ if (!parsed.success) {
 }
 
 export const env = parsed.data
+
+if (env.BLOB_DRIVER === 'supabase' && (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY)) {
+  throw new Error(
+    'BLOB_DRIVER=supabase needs SUPABASE_URL and SUPABASE_SERVICE_KEY. ' +
+      'Failing at boot beats failing on the first photo upload.',
+  )
+}
 
 /**
  * True when no Gemini key is configured. The app stays fully explorable in this
