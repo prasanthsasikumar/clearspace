@@ -64,18 +64,40 @@ The decision is isolated behind an `ObjectMatcher` port, so an embedding-based
 matcher (and the vector search the original brief wanted) drops in later without
 touching the service that calls it.
 
-## Enrichment — one call per item
+## Enrichment — two calls per item
 
-Identification, valuation, and listing copy happen in a **single** structured
-call with Google Search grounding. Splitting them would triple cost and latency
-while handing the model the same context three times.
+**This corrects an earlier claim in this document.** The original design said
+one structured call with Google Search grounding would do all three jobs.
+Measured against a real key, it will not:
+
+| Attempt | Result |
+|---|---|
+| `responseSchema`, no search | Clean JSON, **zero sources** — the price is invented |
+| `googleSearch` **and** `responseSchema` | Accepted, clean JSON, **zero grounding chunks, zero web queries** — search silently never ran |
+| `googleSearch` alone | **Real sources and real queries**, but prose rather than JSON |
+
+The middle row is the dangerous one. The API accepts the combination, returns
+perfect JSON, and quietly does no searching — producing a confident price that
+*looks* sourced and is not. That is exactly the failure this project's first
+principle forbids, and nothing in the response indicates it happened.
+
+So enrichment is two calls:
+
+1. **Research** — search on, no schema. Actually queries the web and returns
+   prose plus `groundingMetadata` carrying the pages it read.
+2. **Structure** — schema on, no search. Turns that prose into the listing,
+   instructed to introduce no brand, model, or price the research did not
+   support.
+
+The sources stored against a valuation are therefore pages genuinely retrieved,
+not citations composed after the fact. When the research pass returns nothing,
+the valuation records `unsourced` and the UI says so in those words.
 
 Enrichment is **on demand per lot**, not automatic on grouping. A big lot would
-otherwise bill for sixty listings when the user meant to sell twelve. One tap,
-still lazy, and the user chooses when to spend.
+otherwise bill for sixty listings when the user meant to sell twelve.
 
-Rough cost for a 30-photo lot: 30 detection calls + ~4 grouping calls + ~18
-enrichment calls ≈ **50 calls**, run concurrently through the existing queue.
+Rough cost for a 30-photo lot: 30 detection calls + ~4 grouping calls + ~36
+enrichment calls ≈ **70 calls**, run concurrently through the existing queue.
 
 ## Pricing stays honest
 
