@@ -2286,6 +2286,98 @@ select.field__control {
   }
 }
 
+/* -------------------------------------------------------------------------- */
+/* Scanning film: the photos, being looked through                            */
+/* -------------------------------------------------------------------------- */
+
+.film {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-lg);
+  background: var(--color-graphite);
+  overflow: hidden;
+}
+
+.film__frame {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  transition: opacity var(--dur-med) var(--ease-out);
+}
+
+.film__frame[data-current="true"] {
+  opacity: 1;
+}
+
+/* The flash lays every photo on top of the last, so what reads is the boxes
+   rather than any one picture. */
+.film[data-flash="true"] .film__frame {
+  opacity: 0.35;
+}
+.film[data-flash="true"] .film__frame:last-child {
+  opacity: 1;
+}
+
+.film__frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Drawn, not faded in: a box arriving is the app saying it found a thing. */
+.film__box {
+  position: absolute;
+  border: 2px solid var(--color-accent);
+  border-radius: 4px;
+  background: color-mix(in oklch, var(--color-accent) 14%, transparent);
+  animation: box-draw var(--dur-med) var(--ease-out) both;
+}
+
+/* One pass of light, the length of a photo's turn on screen. */
+.film__sweep {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 40%,
+    color-mix(in oklch, var(--color-accent) 22%, transparent) 50%,
+    transparent 60%
+  );
+  animation: sweep 1.8s var(--ease-in-out) infinite;
+}
+
+@keyframes sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.film__count {
+  position: absolute;
+  inset-inline-start: var(--space-2xs);
+  bottom: var(--space-2xs);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: color-mix(in oklch, var(--color-graphite) 85%, transparent);
+  color: var(--color-graphite-ink);
+}
+
+/* The sweep is decoration and travels the whole width, so it goes entirely.
+   The boxes stay: they are information, and they only need to appear. */
+@media (prefers-reduced-motion: reduce) {
+  .film__sweep {
+    display: none;
+  }
+  .film__box {
+    animation: none;
+  }
+}
+
 .workinghead {
   display: flex;
   align-items: center;

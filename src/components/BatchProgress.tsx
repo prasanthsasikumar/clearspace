@@ -4,9 +4,12 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { BatchProgress as Progress } from '@/services/batches'
-import { getBatch, nudgeQueue } from '@/lib/client/api'
+import { getBatch, getBatchPhotos, nudgeQueue, type BatchPhoto } from '@/lib/client/api'
+import { ScanningFilm } from './ScanningFilm'
 
 const POLL_MS = 1200
+/** Long enough to read as a result, short enough not to be a wait of its own. */
+const FLASH_MS = 1600
 
 /**
  * The waiting screen.
@@ -20,6 +23,9 @@ const POLL_MS = 1200
 export function BatchProgress({ batchId, initial }: { batchId: string; initial: Progress }) {
   const router = useRouter()
   const [progress, setProgress] = useState(initial)
+  const [photos, setPhotos] = useState<BatchPhoto[]>([])
+  // The beat at the end where every box is on at once, before the list.
+  const [flash, setFlash] = useState(false)
   // A tick can outlast the poll interval, so overlapping calls are skipped
   // rather than stacking function invocations on top of each other.
   const ticking = useRef(false)
@@ -28,7 +34,9 @@ export function BatchProgress({ batchId, initial }: { batchId: string; initial: 
 
   const refresh = useCallback(async () => {
     try {
-      setProgress(await getBatch(batchId))
+      const [next, film] = await Promise.all([getBatch(batchId), getBatchPhotos(batchId)])
+      setProgress(next)
+      setPhotos(film.photos)
     } catch {
       // A dropped poll is not worth surfacing; the next tick retries.
     }
@@ -49,9 +57,24 @@ export function BatchProgress({ batchId, initial }: { batchId: string; initial: 
   }, [done, refresh])
 
   useEffect(() => {
+    if (progress.phase !== 'complete') return
     // Once items exist, the lot page behind this screen is stale.
-    if (progress.phase === 'complete') router.refresh()
-  }, [progress.phase, router])
+    router.refresh()
+
+    /*
+     * Hold every box on for a beat, then go. It is the only moment the whole
+     * batch is visible as one thing rather than a list of rows, and it is the
+     * answer to "what did it actually do with my photos".
+     */
+    void getBatchPhotos(batchId)
+      .then((film) => setPhotos(film.photos))
+      .catch(() => {
+        // The film is a flourish; losing it must not strand anyone here.
+      })
+    setFlash(true)
+    const timer = setTimeout(() => router.push(`/lots/${progress.lotId}`), FLASH_MS)
+    return () => clearTimeout(timer)
+  }, [progress.phase, progress.lotId, batchId, router])
 
   const photosDone = progress.analysedCount === progress.photoCount
 
@@ -65,6 +88,10 @@ export function BatchProgress({ batchId, initial }: { batchId: string; initial: 
         </div>
       </div>
       <p className="lede">{subhead(progress)}</p>
+
+      {progress.phase === 'failed' ? null : (
+        <ScanningFilm photos={photos} flash={flash} />
+      )}
 
       {progress.phase === 'failed' ? null : (
         <section className="panel">

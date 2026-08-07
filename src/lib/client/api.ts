@@ -210,6 +210,15 @@ export async function uploadBatch(
   return request(`/api/lots/${lotId}/batches`, { method: 'POST', body: form })
 }
 
+export interface BatchPhoto {
+  id: string
+  blobKey: string
+  boxes: { x: number; y: number; w: number; h: number }[]
+}
+
+export const getBatchPhotos = (batchId: string) =>
+  request<{ photos: BatchPhoto[] }>(`/api/batches/${batchId}/photos`)
+
 export const getBatch = (batchId: string) =>
   request<BatchProgress>(`/api/batches/${batchId}`)
 

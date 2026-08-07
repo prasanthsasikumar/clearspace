@@ -151,6 +151,58 @@ export async function sealBatch(
   return jobIds
 }
 
+export interface BatchPhoto {
+  id: string
+  blobKey: string
+  /** Normalised boxes, empty until this photo has been looked at. */
+  boxes: { x: number; y: number; w: number; h: number }[]
+}
+
+/**
+ * The photos of a batch and whatever has been found in them so far.
+ *
+ * The waiting screen shows these rather than a bare spinner. They are the
+ * user's own photographs of their own unit, which is the one thing on that
+ * screen nobody has to be told the meaning of, and watching the boxes arrive
+ * is the difference between believing the app is working and hoping it is.
+ */
+export async function listBatchPhotos(
+  db: Database,
+  batchId: string,
+  limit = 12,
+): Promise<BatchPhoto[]> {
+  const rows = await db
+    .select()
+    .from(scans)
+    .where(and(eq(scans.batchId, batchId), isNotNull(scans.blobKey)))
+    .limit(limit)
+
+  if (rows.length === 0) return []
+
+  const found = await db
+    .select({ scanId: detections.scanId, bbox: detections.bbox })
+    .from(detections)
+    .where(
+      inArray(
+        detections.scanId,
+        rows.map((r) => r.id),
+      ),
+    )
+
+  const byScan = new Map<string, BatchPhoto['boxes']>()
+  for (const row of found) {
+    const bucket = byScan.get(row.scanId) ?? []
+    bucket.push(row.bbox as BatchPhoto['boxes'][number])
+    byScan.set(row.scanId, bucket)
+  }
+
+  return rows.map((scan) => ({
+    id: scan.id,
+    blobKey: scan.blobKey!,
+    boxes: byScan.get(scan.id) ?? [],
+  }))
+}
+
 export type BatchPhase = 'analysing' | 'grouping' | 'complete' | 'failed'
 
 export interface BatchProgress {
