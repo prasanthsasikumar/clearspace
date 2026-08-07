@@ -18,7 +18,21 @@ const ALLOWED_TRANSITIONS: Record<ItemStatus, readonly ItemStatus[]> = {
   confirmed: ['listed', 'needs_confirmation', 'discarded'],
   listed: ['sold', 'confirmed', 'discarded'],
   sold: [],
-  discarded: ['photos_needed'],
+  /*
+   * Everything binning can be reached from, because undo restores the status
+   * the item actually held and nothing else. Allowing only `photos_needed`
+   * out of the bin meant that binning a draft and pressing U failed the
+   * transition check, so the board promised "binned items can come back" and
+   * then could not bring them back.
+   */
+  discarded: [
+    'detected',
+    'photos_needed',
+    'ai_identified',
+    'needs_confirmation',
+    'confirmed',
+    'listed',
+  ],
 }
 
 export const statusLabels: Record<ItemStatus, string> = {

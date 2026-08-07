@@ -39,6 +39,31 @@ describe('canTransition', () => {
     expect(canTransition('confirmed', 'confirmed')).toBe(true)
   })
 
+  /*
+   * The board says "Nothing is deleted, binned items can come back", and undo
+   * restores the status the item actually held rather than some safe default.
+   * The bin used to lead only to `photos_needed`, so binning a draft and
+   * pressing U failed the transition check and the app could not keep the
+   * promise printed above the grid.
+   *
+   * Written as a sweep rather than a list: anything that gains a route into
+   * the bin later needs a route back out, and this fails if it does not get
+   * one.
+   */
+  it('can undo a bin from every status that can reach the bin', () => {
+    const binnable = statusOrder.filter((status) => canTransition(status, 'discarded'))
+    expect(binnable.length).toBeGreaterThan(0)
+    for (const status of binnable) {
+      expect(canTransition('discarded', status)).toBe(true)
+    }
+  })
+
+  it('restores a binned draft, which is the case undo actually hits', () => {
+    expect(canTransition('discarded', 'detected')).toBe(true)
+    expect(canTransition('discarded', 'needs_confirmation')).toBe(true)
+    expect(canTransition('discarded', 'confirmed')).toBe(true)
+  })
+
   it('lets a discarded item be picked back up', () => {
     expect(canTransition('discarded', 'photos_needed')).toBe(true)
   })
