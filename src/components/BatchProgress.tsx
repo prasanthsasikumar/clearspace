@@ -31,6 +31,9 @@ export function BatchProgress({ batchId, initial }: { batchId: string; initial: 
   const ticking = useRef(false)
 
   const done = progress.phase === 'complete' || progress.phase === 'failed'
+  // Anything worth stopping for at the end: an admission, or the cross-photo
+  // result that only this screen ever states.
+  const hasNews = progress.failedCount > 0 || (progress.multiViewItems ?? 0) > 0
 
   const refresh = useCallback(async () => {
     try {
@@ -72,9 +75,22 @@ export function BatchProgress({ batchId, initial }: { batchId: string; initial: 
         // The film is a flourish; losing it must not strand anyone here.
       })
     setFlash(true)
+
+    /*
+     * Only leave on its own when there is nothing to say.
+     *
+     * Photos that could not be analysed, and objects found in more than one
+     * photo, are both things this screen is the right place to report: one is
+     * an admission, the other is where the cross-photo work finally surfaces
+     * to the person who paid for it in waiting. Sliding either past in a
+     * second and a half would be the app deciding the user did not need to
+     * know. When it has nothing to add, it gets out of the way.
+     */
+    if (hasNews) return
+
     const timer = setTimeout(() => router.push(`/lots/${progress.lotId}`), FLASH_MS)
     return () => clearTimeout(timer)
-  }, [progress.phase, progress.lotId, batchId, router])
+  }, [progress.phase, progress.lotId, batchId, hasNews, router])
 
   const photosDone = progress.analysedCount === progress.photoCount
 
@@ -183,7 +199,7 @@ export function BatchProgress({ batchId, initial }: { batchId: string; initial: 
       ) : progress.phase === 'complete' ? (
         <div className="stack stack--tight">
           <Link className="btn btn--primary btn--block btn--lg" href={`/lots/${progress.lotId}`}>
-            Open the board
+            {hasNews ? `See ${progress.itemCount} listings` : 'Open the board'}
           </Link>
         </div>
       ) : (
