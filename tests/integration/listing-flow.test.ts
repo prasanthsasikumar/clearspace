@@ -40,8 +40,10 @@ describe('listings and export', () => {
   it('drafts every item from a single photograph', async () => {
     const created = await listItems(harness.db, lotId)
     expect(created.length).toBeGreaterThan(0)
-    // One photo is enough. Nothing may sit in "photos needed".
-    for (const item of created) expect(item.status).toBe('needs_confirmation')
+    // One photo is enough. Nothing may sit in "photos needed". The items are
+    // already written up by the time the queue drains, so the status they
+    // land on is `ai_identified` rather than the draft they passed through.
+    for (const item of created) expect(item.status).not.toBe('photos_needed')
   })
 
   it('writes a listing, a valuation, and an identification per approved item', async () => {
@@ -113,16 +115,13 @@ describe('listings and export', () => {
   })
 
   it('reports how far an enrichment run has got', async () => {
+    // Grouping enqueues this for every item, and the setup already drained
+    // the queue, so the run being reported on is the automatic one.
     const all = await listItems(harness.db, lotId)
-    await requestEnrichment(harness.db, lotId, [all[0]!.id])
+    const progress = await getEnrichmentProgress(harness.db, lotId)
 
-    const before = await getEnrichmentProgress(harness.db, lotId)
-    expect(before.done).toBe(0)
-
-    await drainJobs(harness)
-
-    const after = await getEnrichmentProgress(harness.db, lotId)
-    expect(after.done).toBe(1)
+    expect(progress.done).toBe(all.length)
+    expect(progress.pending).toBe(0)
   })
 
   it('exports a feed and says how many prices nobody checked', async () => {
@@ -146,13 +145,16 @@ describe('listings and export', () => {
   })
 
   it('stops counting a price as unchecked once the user confirms it', async () => {
-    const [first] = await listItems(harness.db, lotId)
-    await requestEnrichment(harness.db, lotId, [first!.id])
-    await drainJobs(harness)
-    await updateItem(harness.db, first!.id, { priceUnconfirmed: false })
+    const all = await listItems(harness.db, lotId)
+    const before = await buildLotExport(harness.db, { lotId, origin: 'https://clearspace.test' })
+    expect(before.unconfirmedPrices).toBe(all.length)
 
-    const result = await buildLotExport(harness.db, { lotId, origin: 'https://clearspace.test' })
-    expect(result.unconfirmedPrices).toBe(0)
+    await updateItem(harness.db, all[0]!.id, { priceUnconfirmed: false })
+
+    // Exactly one leaves the count: checking one price says nothing about the
+    // others, and the export must not round that up into reassurance.
+    const after = await buildLotExport(harness.db, { lotId, origin: 'https://clearspace.test' })
+    expect(after.unconfirmedPrices).toBe(all.length - 1)
   })
 
   it('leaves binned items out of the export', async () => {

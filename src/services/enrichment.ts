@@ -180,9 +180,14 @@ export interface EnrichmentRunProgress {
 /**
  * Queues research for the items the user approved.
  *
- * Enrichment is explicitly not automatic. A sixty-item lot would otherwise
- * research sixty listings the moment grouping finished, when the seller only
- * meant to sell twelve, and each one is two model calls.
+ * Grouping now enqueues this for every item it creates, so an item arrives
+ * written up and priced and the seller only edits what they disagree with.
+ * This remains for the cases automatic cannot cover: an item whose enrichment
+ * failed, and one the seller wants written again after changing its title or
+ * category.
+ *
+ * It stays a no-op on anything already reviewed. Re-running over a listing a
+ * person has edited would overwrite their words with a fresh guess.
  */
 export async function requestEnrichment(
   db: Database,

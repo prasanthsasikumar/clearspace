@@ -64,6 +64,31 @@ describe('bulk batch → grouped listings', () => {
     expect(progress!.multiViewItems).toBe(8)
   })
 
+  /*
+   * The board used to fill with cards reading "Not yet priced", and nothing on
+   * it said a price was something you had to go and ask for. Every symptom
+   * traced back here: the export produced an empty file, an approved item
+   * claimed it was ready, and the seller had no way to know why. An estimate
+   * that arrives on its own can be disagreed with; one that has to be
+   * requested is one nobody knows to request.
+   */
+  it('writes up and prices every item it creates, without being asked', async () => {
+    await uploadPhotos(3)
+
+    const created = await listItems(harness.db, lotId)
+    expect(created).toHaveLength(8)
+
+    for (const item of created) {
+      expect(item.estimatedValueCents).not.toBeNull()
+      expect(item.estimatedValueCents!).toBeGreaterThan(0)
+    }
+
+    // Written up, not merely priced: the description is what the seller pastes
+    // into Marketplace, and the export carries it.
+    const detail = await getItemDetail(harness.db, created[0]!.id)
+    expect(detail!.item.status).not.toBe('needs_confirmation')
+  })
+
   it('hangs every view of an object off its listing', async () => {
     await uploadPhotos(3)
 

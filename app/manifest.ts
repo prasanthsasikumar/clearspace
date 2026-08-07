@@ -9,7 +9,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Clearspace',
     short_name: 'Clearspace',
-    description: 'Point a phone at a room. Get a sellable inventory.',
+    description: 'Photograph the space. AI splits it into items, writes each listing, and gets them ready for Facebook Marketplace and eBay.',
     start_url: '/',
     display: 'standalone',
     background_color: '#f7f8fb',

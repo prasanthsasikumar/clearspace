@@ -26,7 +26,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: 'Clearspace',
-  description: 'Point a phone at a room. Get a sellable inventory.',
+  description: 'Photograph the space. AI splits it into items, writes each listing, and gets them ready for Facebook Marketplace and eBay.',
   applicationName: 'Clearspace',
   appleWebApp: { capable: true, title: 'Clearspace', statusBarStyle: 'default' },
 }

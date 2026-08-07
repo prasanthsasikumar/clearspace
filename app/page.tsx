@@ -40,10 +40,10 @@ export default async function LotsPage() {
       <main className="page">
         <div className="stack stack--loose">
           <div className="stack stack--tight">
-            <h1>Everything you own, sorted.</h1>
+            <h1>List everything in minutes, not weekends.</h1>
             <p className="lede lede--wide">
-              Point a phone at a room. Get a sellable inventory. A lot is one space you are
-              clearing: a storage unit, a garage, a whole house.
+              Photograph the space. AI splits it into items, writes each listing, and gets them
+              ready for Facebook Marketplace and eBay.
             </p>
           </div>
 
@@ -56,8 +56,8 @@ export default async function LotsPage() {
             <div className="empty">
               <p className="empty__title">No lots yet.</p>
               <p className="empty__lede">
-                Make one for the space you are clearing, then photograph it. Clearspace turns the
-                photos into draft listings.
+                A lot is one space you are clearing: a storage unit, a garage, a whole house.
+                Make one, photograph it, and Clearspace writes the listings.
               </p>
               <NewLotButton size="lg" />
             </div>
@@ -93,7 +93,7 @@ export default async function LotsPage() {
           )}
 
           <footer className="colophon">
-            <span>Clearspace · point a phone at a room, get a sellable inventory.</span>
+            <span>Clearspace · list everything in minutes, not weekends.</span>
             <span>
               {user.isAnonymous
                 ? 'Photos stay on this device until you upload a batch. Sign in to keep your work.'

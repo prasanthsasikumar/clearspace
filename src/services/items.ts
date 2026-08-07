@@ -113,6 +113,10 @@ export async function promoteDetection(
     .set({ promotedItemId: item.id })
     .where(eq(detections.id, detectionId))
 
+  // Same promise as a grouped item: it arrives written up and priced. An item
+  // rescued by hand from scan review is not a lesser one.
+  await enqueue(db, 'enrich_item', { itemId: item.id })
+
   await touchLot(db, row.lotId)
   return item
 }

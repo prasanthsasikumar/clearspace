@@ -10,6 +10,7 @@ import {
 import { isItemCategory } from '@/domain/types'
 import { noMatches, type MatchCandidate, type ObjectMatcher } from '@/ai/object-matcher'
 import type { BlobStore } from '@/storage'
+import { enqueue } from '@/jobs/queue'
 import { touchLot } from './lots'
 
 export interface GroupingResult {
@@ -69,12 +70,32 @@ export async function groupBatchIntoItems(
   const rawGroups = await proposeGroups(blobs, matcher, groupable, cropByDetection)
   const groups = applyGrouping(groupable, rawGroups)
 
-  let created = 0
+  const createdIds: string[] = []
   for (const group of groups) {
-    await createItemFromGroup(db, input.lotId, group, cropByDetection)
-    created += 1
+    const item = await createItemFromGroup(db, input.lotId, group, cropByDetection)
+    createdIds.push(item.id)
   }
 
+  /*
+   * Write every item up as soon as it exists.
+   *
+   * This used to wait to be asked, on the reasoning that researching sixty
+   * listings when the seller only means to sell twelve is money spent on
+   * forty-eight they were going to bin anyway. The cost is real, and it was
+   * the wrong trade: it left the board full of cards saying "Not yet priced"
+   * with nothing explaining that a price was something you had to go and ask
+   * for, so the export produced an empty file and the seller had no idea why.
+   *
+   * An estimate that arrives on its own can be changed by anyone who
+   * disagrees with it. One that has to be requested is one nobody knows to
+   * request. Each item is two model calls, and they run on the queue, so a
+   * lot writes itself while the seller is still binning.
+   */
+  for (const id of createdIds) {
+    await enqueue(db, 'enrich_item', { itemId: id })
+  }
+
+  const created = createdIds.length
   await touchLot(db, input.lotId)
 
   return {
