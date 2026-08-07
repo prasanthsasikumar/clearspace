@@ -91,6 +91,9 @@ export const updateItemSchema = z.object({
   serialNumber: z.string().trim().max(120).nullish(),
   userNotes: z.string().trim().max(4000).nullish(),
   status: itemStatusSchema.optional(),
+  estimatedValueCents: z.number().int().min(0).max(100_000_000).nullish(),
+  // Set false when a person has actually looked at the suggested price.
+  priceUnconfirmed: z.boolean().optional(),
 })
 
 export const updateDetectionSchema = z.object({

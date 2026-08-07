@@ -67,7 +67,7 @@ export default async function LotPage({ params }: { params: Promise<{ lotId: str
               </Link>
             </div>
           ) : (
-            <InventoryBoard items={live} />
+            <InventoryBoard lotId={lot.id} items={live} />
           )}
 
           {scans.length > 0 ? (

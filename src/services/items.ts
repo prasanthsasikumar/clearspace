@@ -91,7 +91,7 @@ export async function promoteDetection(
       lotId: row.lotId,
       title: toTitle(row.detection.label),
       category: category && isItemCategory(category) ? category : null,
-      status: 'photos_needed',
+      status: 'needs_confirmation',
       createdFromDetectionId: row.detection.id,
     })
     .returning()
@@ -275,7 +275,7 @@ export async function createItem(
       model: input.model?.trim() || null,
       condition: input.condition ?? null,
       userNotes: input.userNotes?.trim() || null,
-      status: 'photos_needed',
+      status: 'needs_confirmation',
     })
     .returning()
 
@@ -295,6 +295,8 @@ export interface UpdateItemInput {
   serialNumber?: string | null
   userNotes?: string | null
   status?: ItemStatus
+  estimatedValueCents?: number | null
+  priceUnconfirmed?: boolean
 }
 
 export async function updateItem(
@@ -328,6 +330,12 @@ export async function updateItem(
         ? { userNotes: input.userNotes?.trim() || null }
         : {}),
       ...(input.status !== undefined ? { status: input.status } : {}),
+      ...(input.estimatedValueCents !== undefined
+        ? { estimatedValueCents: input.estimatedValueCents }
+        : {}),
+      ...(input.priceUnconfirmed !== undefined
+        ? { priceUnconfirmed: input.priceUnconfirmed }
+        : {}),
       updatedAt: new Date(),
     })
     .where(eq(items.id, itemId))
@@ -446,9 +454,7 @@ export async function recomputeItemStatus(
   const detail = await getItemDetail(db, itemId)
   if (!detail) return null
 
-  const next = deriveStatus(detail.item.status, {
-    coverageComplete: detail.coverage.isListable,
-  })
+  const next = deriveStatus(detail.item.status)
   if (next === detail.item.status) return detail.item
 
   const [updated] = await db

@@ -72,6 +72,40 @@ export class GeminiClient {
   }
 
   /**
+   * A grounded call: search on, no response schema.
+   *
+   * The two are mutually exclusive in practice — supplying a schema makes the
+   * model stop searching without saying so — so this returns prose plus the
+   * pages it actually retrieved, and a second structuring call turns that into
+   * data. See `gemini/enrichment.ts` for the measurement behind this.
+   */
+  async generateGrounded(
+    parts: readonly Part[],
+    providerName: string,
+  ): Promise<{ text: string; sources: Array<{ title: string; url: string }>; queries: string[] }> {
+    const { extractSources } = await import('./enrichment')
+
+    return this.withRetry(async () => {
+      const response = await this.client.models.generateContent({
+        model: this.model,
+        contents: [{ role: 'user', parts: [...parts] }],
+        config: {
+          tools: [{ googleSearch: {} }],
+          temperature: 0.2,
+        },
+      })
+
+      const text = response.text
+      if (!text) {
+        throw new VisionProviderError('Gemini returned an empty response', providerName)
+      }
+
+      const { sources, queries } = extractSources(response.candidates?.[0])
+      return { text, sources, queries }
+    }, providerName)
+  }
+
+  /**
    * Retries transport failures only. A schema mismatch is a bug or a prompt
    * problem, and re-sending an identical request cannot fix it — those
    * propagate immediately instead of burning quota three times over.

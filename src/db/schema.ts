@@ -163,6 +163,8 @@ export const items = pgTable('items', {
   userNotes: text('user_notes'),
   /** Null until the Phase 3 pricing pipeline runs. Never guessed. */
   estimatedValueCents: integer('estimated_value_cents'),
+  /** True until a human has actually looked at the suggested price. */
+  priceUnconfirmed: boolean('price_unconfirmed').notNull().default(true),
   currency: text('currency').notNull().default('USD'),
   status: itemStatus('status').notNull().default('detected'),
   createdFromDetectionId: uuid('created_from_detection_id'),
@@ -305,6 +307,9 @@ export type Detection = typeof detections.$inferSelect
 export type Item = typeof items.$inferSelect
 export type NewItem = typeof items.$inferInsert
 export type ItemPhoto = typeof itemPhotos.$inferSelect
+export type Identification = typeof identifications.$inferSelect
+export type Valuation = typeof valuations.$inferSelect
+export type Listing = typeof listings.$inferSelect
 export type Job = typeof jobs.$inferSelect
 
 export type ItemStatus = (typeof itemStatus.enumValues)[number]

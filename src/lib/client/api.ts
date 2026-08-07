@@ -13,6 +13,7 @@ import type {
 import type { LotSummary } from '@/services/lots'
 import type { ItemWithPrimaryPhoto } from '@/services/items'
 import type { BatchProgress } from '@/services/batches'
+import type { EnrichmentRunProgress } from '@/services/enrichment'
 
 /**
  * Carries the server's own error message to the UI.
@@ -184,6 +185,28 @@ export async function uploadItemPhoto(
 
 export const deletePhoto = (photoId: string) =>
   request<{ deleted: boolean }>(`/api/photos/${photoId}`, { method: 'DELETE' })
+
+/* --- Enrichment ------------------------------------------------------------ */
+
+export const requestEnrichment = (lotId: string, itemIds: readonly string[]) =>
+  request<EnrichmentRunProgress>(`/api/lots/${lotId}/enrich`, json('POST', { itemIds }))
+
+export const getEnrichmentProgress = (lotId: string) =>
+  request<EnrichmentRunProgress>(`/api/lots/${lotId}/enrich`)
+
+/* --- Export ---------------------------------------------------------------- */
+
+export interface ExportPreview {
+  rowCount: number
+  skipped: Array<{ itemId: string; field: string; message: string }>
+  warnings: Array<{ itemId: string; field: string; message: string }>
+  unconfirmedPrices: number
+}
+
+export const getExportPreview = (lotId: string) =>
+  request<ExportPreview>(`/api/lots/${lotId}/export/preview`)
+
+export const exportUrl = (lotId: string) => `/api/lots/${lotId}/export`
 
 /* --- Blobs ----------------------------------------------------------------- */
 

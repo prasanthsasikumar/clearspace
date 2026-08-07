@@ -10,12 +10,17 @@ import { jobs, type Job } from '@/db/schema'
  * survives a process restart, and lifts to a standalone worker later without
  * changing a single call site.
  */
-export type JobType = 'detect_objects' | 'assess_photo' | 'group_objects'
+export type JobType =
+  | 'detect_objects'
+  | 'assess_photo'
+  | 'group_objects'
+  | 'enrich_item'
 
 export interface JobPayloads {
   detect_objects: { scanId: string; frameId?: string; batchId?: string }
   assess_photo: { photoId: string }
   group_objects: { batchId: string; lotId: string }
+  enrich_item: { itemId: string }
 }
 
 export interface EnqueueOptions {

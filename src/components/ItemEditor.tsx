@@ -17,6 +17,8 @@ import {
 } from '@/lib/client/api'
 import { prepareImage } from '@/lib/client/image'
 import { StatusChip } from './StatusChip'
+import { ListingPanel } from './ListingPanel'
+import type { Identification, Listing, Valuation } from '@/db/schema'
 
 const CONDITIONS = [
   { value: '', label: 'Not assessed' },
@@ -53,23 +55,29 @@ interface Draft {
 }
 
 /**
- * Item detail — fields, photos, and the checklist that says what is missing.
+ * Item detail — the generated listing, the photos, and the fields behind them.
  *
- * The checklist is the point of the screen. An item with a front photo and no
- * label shot is an item that will sit unsold, and the seller has no way to
- * know that from looking at it. Sorta says which photo is missing and why it
- * changes the price.
+ * The shot list lower down is advice now, not a gate. Someone with five
+ * minutes in a unit often has exactly one photograph of a thing and needs a
+ * listing from it; the checklist still says which extra shot would help and
+ * why, but nothing here waits for it.
  */
 export function ItemEditor({
   item: initialItem,
   photos: initialPhotos,
   coverage: initialCoverage,
+  listing: initialListing,
+  valuation: initialValuation,
+  identification,
   lotId,
   lotName,
 }: {
   item: Item
   photos: ItemPhoto[]
   coverage: CoverageResult
+  listing: Listing | null
+  valuation: Valuation | null
+  identification: Identification | null
   lotId: string
   lotName: string
 }) {
@@ -81,6 +89,8 @@ export function ItemEditor({
   const [photos, setPhotos] = useState(initialPhotos)
   const [coverage, setCoverage] = useState(initialCoverage)
   const [draft, setDraft] = useState<Draft>(toDraft(initialItem))
+  const [listing] = useState(initialListing)
+  const [valuation] = useState(initialValuation)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -182,12 +192,14 @@ export function ItemEditor({
         <div className="stack stack--tight">
           <div className="row">
             <StatusChip status={item.status} />
-            <span className="label">{percent}% photographed</span>
+            {percent < 100 ? (
+              <span className="label">{percent}% photographed</span>
+            ) : null}
           </div>
           <h1>{item.title}</h1>
           <p className="meta">
             {item.estimatedValueCents === null
-              ? 'Not yet priced — pricing research arrives with listing generation.'
+              ? 'Not yet priced — select it on the board and tap Next.'
               : formatMoney(item.estimatedValueCents, item.currency)}
           </p>
         </div>
@@ -198,6 +210,24 @@ export function ItemEditor({
             <span>{error}</span>
           </p>
         ) : null}
+
+        <ListingPanel
+          item={item}
+          photos={photos}
+          draft={
+            listing
+              ? {
+                  title: listing.title,
+                  description: listing.description,
+                  priceCents: item.estimatedValueCents,
+                }
+              : null
+          }
+          valuation={valuation}
+          identification={identification}
+          onPriceChange={(cents) => void save({ estimatedValueCents: cents })}
+          onConfirmPrice={() => void save({ priceUnconfirmed: false })}
+        />
 
         {/* --- Photos ----------------------------------------------------- */}
 

@@ -5,7 +5,7 @@ import { getDb } from '../src/db/client'
 import { applyMigrations } from '../src/db/migrate'
 import { registerJobHandlers } from '../src/jobs/handlers'
 import { drain } from '../src/jobs/worker'
-import { getObjectMatcher, getVisionProvider } from '../src/ai'
+import { getEnricher, getObjectMatcher, getVisionProvider } from '../src/ai'
 import { getBlobStore } from '../src/storage'
 import { createLot, listLots } from '../src/services/lots'
 import { getCurrentUser } from '../src/services/user'
@@ -94,7 +94,7 @@ async function main() {
   console.log(
     `Detecting with "${vision.name}" and matching with "${matcher.name}" across ${files.length} photos…`,
   )
-  await drain({ db, blobs, vision, matcher }, 50)
+  await drain({ db, blobs, vision, matcher, enricher: getEnricher() }, 50)
 
   const progress = await getBatchProgress(db, batch.batchId)
   console.log(

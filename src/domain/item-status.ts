@@ -10,7 +10,10 @@ import type { ItemStatus } from '@/db/schema'
 const ALLOWED_TRANSITIONS: Record<ItemStatus, readonly ItemStatus[]> = {
   detected: ['photos_needed', 'needs_confirmation', 'discarded'],
   photos_needed: ['ai_identified', 'needs_confirmation', 'discarded'],
-  ai_identified: ['needs_confirmation', 'photos_needed', 'discarded'],
+  // Approving a written listing is the main act on the listings screen, so it
+  // goes straight to `confirmed` — routing it back through a second draft
+  // state would mean two taps to say yes once.
+  ai_identified: ['confirmed', 'needs_confirmation', 'photos_needed', 'discarded'],
   needs_confirmation: ['confirmed', 'photos_needed', 'ai_identified', 'discarded'],
   confirmed: ['listed', 'needs_confirmation', 'discarded'],
   listed: ['sold', 'confirmed', 'discarded'],
@@ -19,22 +22,22 @@ const ALLOWED_TRANSITIONS: Record<ItemStatus, readonly ItemStatus[]> = {
 }
 
 export const statusLabels: Record<ItemStatus, string> = {
-  detected: 'Detected',
-  photos_needed: 'Photos needed',
-  ai_identified: 'AI identified',
-  needs_confirmation: 'Needs confirmation',
-  confirmed: 'Ready to list',
-  listed: 'Listed',
+  detected: 'Draft',
+  photos_needed: 'Add photos',
+  ai_identified: 'Review listing',
+  needs_confirmation: 'Draft',
+  confirmed: 'Ready to export',
+  listed: 'Exported',
   sold: 'Sold',
-  discarded: 'Discarded',
+  discarded: 'Binned',
 }
 
-/** Dashboard ordering: what needs the seller's attention comes first. */
+/** Board ordering: what needs the seller's attention comes first. */
 export const statusOrder: readonly ItemStatus[] = [
-  'photos_needed',
-  'needs_confirmation',
   'ai_identified',
+  'needs_confirmation',
   'detected',
+  'photos_needed',
   'confirmed',
   'listed',
   'sold',
@@ -60,36 +63,34 @@ export function assertTransition(from: ItemStatus, to: ItemStatus): void {
   if (!canTransition(from, to)) throw new InvalidStatusTransitionError(from, to)
 }
 
-export interface StatusSignals {
-  /** True when every required view for the item's category has been captured. */
-  coverageComplete: boolean
-}
-
 /**
- * Suggests a status after an item's photos change.
+ * Promotes a freshly grouped item to a reviewable draft.
  *
- * This deliberately only moves items between machine-owned states. Once a
- * person has confirmed, listed, or sold an item, adding a photo must not
- * quietly walk it backwards — the user's decision outranks the heuristic.
+ * Photo coverage deliberately no longer decides status. Someone standing in a
+ * unit with five minutes often has exactly one photograph of a thing, and an
+ * app that answers that with "Photos needed" has refused to do the one job it
+ * exists for. The shot list survives as advice on the item screen — adding a
+ * label shot genuinely helps a listing sell — but it never blocks anything.
+ *
+ * Only the two machine-owned drafting states move here. Once a person has
+ * reviewed, exported, or sold an item, nothing automatic may walk it backwards.
  */
-export function deriveStatus(current: ItemStatus, signals: StatusSignals): ItemStatus {
-  const machineOwned: readonly ItemStatus[] = [
-    'detected',
-    'photos_needed',
-    'ai_identified',
-    'needs_confirmation',
-  ]
-  if (!machineOwned.includes(current)) return current
-
-  return signals.coverageComplete ? 'needs_confirmation' : 'photos_needed'
+export function deriveStatus(current: ItemStatus): ItemStatus {
+  const drafting: readonly ItemStatus[] = ['detected', 'photos_needed']
+  return drafting.includes(current) ? 'needs_confirmation' : current
 }
 
-/** Statuses whose items still need work before they can be listed. */
+/** Items the board should preselect for the user to approve in bulk. */
+export function isDraft(status: ItemStatus): boolean {
+  return status === 'detected' || status === 'photos_needed' || status === 'needs_confirmation'
+}
+
+/** Items carrying a generated listing that the user has not yet checked. */
+export function needsReview(status: ItemStatus): boolean {
+  return status === 'ai_identified'
+}
+
+/** Statuses whose items still want something from the seller. */
 export function isActionable(status: ItemStatus): boolean {
-  return (
-    status === 'detected' ||
-    status === 'photos_needed' ||
-    status === 'ai_identified' ||
-    status === 'needs_confirmation'
-  )
+  return isDraft(status) || needsReview(status)
 }

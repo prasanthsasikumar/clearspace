@@ -155,7 +155,7 @@ async function createItemFromGroup(
       lotId,
       title: toTitle(group.label),
       category: group.category && isItemCategory(group.category) ? group.category : null,
-      status: 'photos_needed',
+      status: 'needs_confirmation',
       createdFromDetectionId: group.representative.id,
     })
     .returning()

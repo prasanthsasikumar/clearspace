@@ -81,7 +81,8 @@ describe('capture → detect → promote', () => {
 
     expect(item.title).toBe('Mesh office chair')
     expect(item.category).toBe('furniture')
-    expect(item.status).toBe('photos_needed')
+    // One photograph is enough to produce a reviewable draft.
+    expect(item.status).toBe('needs_confirmation')
     // Nothing may claim a price before the pricing pipeline exists.
     expect(item.estimatedValueCents).toBeNull()
 
@@ -152,7 +153,7 @@ describe('capture → detect → promote', () => {
     expect(detailAfter!.item.status).toBe('needs_confirmation')
   })
 
-  it('sends an item back to photos-needed when a required photo is deleted', async () => {
+  it('keeps the shot list advisory — deleting a photo never blocks the item', async () => {
     const detail = await scanARoom()
     const item = await promoteDetection(
       harness.db,
@@ -175,8 +176,10 @@ describe('capture → detect → promote', () => {
     await deleteItemPhoto(harness.db, harness.blobs, added[0]!.id)
 
     const after = await getItemDetail(harness.db, item.id)
+    // Coverage still reports the gap, so the item screen can suggest the shot…
     expect(after!.coverage.isListable).toBe(false)
-    expect(after!.item.status).toBe('photos_needed')
+    // …but the item stays a usable draft rather than being held hostage to it.
+    expect(after!.item.status).toBe('needs_confirmation')
   })
 
   it('does not walk a confirmed item backwards when photos change', async () => {
@@ -215,7 +218,7 @@ describe('capture → detect → promote', () => {
     const item = await promoteDetection(harness.db, harness.blobs, detail.detections[0]!.id)
 
     await expect(updateItem(harness.db, item.id, { status: 'sold' })).rejects.toThrow(
-      /Photos needed.*Sold/,
+      /Draft.*Sold/,
     )
   })
 

@@ -1,7 +1,9 @@
 import { env, isDemoMode } from '@/config/env'
 import { FixtureVisionProvider } from './fixture-provider'
 import { FixtureObjectMatcher } from './fixture-matcher'
+import { FixtureEnricher, type Enricher } from './enricher'
 import { GeminiClient } from './gemini/client'
+import { GeminiEnricher } from './gemini/enrichment'
 import { GeminiObjectMatcher } from './gemini/matcher'
 import { GeminiVisionProvider } from './gemini/provider'
 import type { ObjectMatcher } from './object-matcher'
@@ -11,6 +13,7 @@ const globalForAi = globalThis as unknown as {
   __sortaGemini?: GeminiClient
   __sortaVision?: VisionProvider
   __sortaMatcher?: ObjectMatcher
+  __sortaEnricher?: Enricher
 }
 
 /** One client, shared by every adapter, so retry policy is configured once. */
@@ -47,8 +50,18 @@ export function getObjectMatcher(): ObjectMatcher {
   return globalForAi.__sortaMatcher
 }
 
+export function getEnricher(): Enricher {
+  if (!globalForAi.__sortaEnricher) {
+    globalForAi.__sortaEnricher = isDemoMode
+      ? new FixtureEnricher()
+      : new GeminiEnricher({ client: getGeminiClient() })
+  }
+  return globalForAi.__sortaEnricher
+}
+
 export * from './vision-provider'
 export * from './object-matcher'
+export * from './enricher'
 export { FixtureVisionProvider } from './fixture-provider'
 export { FixtureObjectMatcher, groupByLabel } from './fixture-matcher'
 export { GeminiVisionProvider } from './gemini/provider'

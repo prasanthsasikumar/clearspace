@@ -1,0 +1,1 @@
+ALTER TABLE "items" ADD COLUMN "price_unconfirmed" boolean DEFAULT true NOT NULL;

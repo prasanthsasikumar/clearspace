@@ -3,6 +3,7 @@ import { AppBar } from '@/components/AppBar'
 import { ItemEditor } from '@/components/ItemEditor'
 import { getAppContext } from '@/server/context'
 import { getItemDetail } from '@/services/items'
+import { getEnrichment } from '@/services/enrichment'
 import { getLot } from '@/services/lots'
 import { getCurrentUser } from '@/services/user'
 
@@ -19,6 +20,8 @@ export default async function ItemPage({ params }: { params: Promise<{ itemId: s
   const lot = await getLot(db, user.id, detail.item.lotId)
   if (!lot) notFound()
 
+  const enrichment = await getEnrichment(db, detail.item.id)
+
   return (
     <div className="shell">
       <AppBar back={{ href: `/lots/${lot.id}`, label: lot.name }} title="Item" />
@@ -27,6 +30,9 @@ export default async function ItemPage({ params }: { params: Promise<{ itemId: s
           item={detail.item}
           photos={detail.photos}
           coverage={detail.coverage}
+          listing={enrichment.listing}
+          valuation={enrichment.valuation}
+          identification={enrichment.identification}
           lotId={lot.id}
           lotName={lot.name}
         />
