@@ -1,7 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { cookies } from 'next/headers'
-import { createServerAuthClient } from '@/auth/supabase'
+import { createServerAuthClient, toIdentity } from '@/auth/supabase'
 import { isAuthEnabled } from '@/config/env'
+import { CLAIM_COOKIE, readClaim } from '@/server/claim'
+import { getAppContext } from '@/server/context'
+import { getOrCreateUser, transferAnonymousWork } from '@/services/user'
 
 /** Provider codes are echoed back to the user, so only known-shaped ones pass. */
 const SAFE_CODE = /^[a-z_]{1,64}$/
@@ -52,9 +55,38 @@ export async function GET(request: NextRequest) {
     },
   })
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code)
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code)
   if (error) {
     return NextResponse.redirect(signinUrl(url.origin, 'exchange_failed', destination))
+  }
+
+  /*
+   * Spend the claim ticket, if there is one.
+   *
+   * Signing in is always a plain sign-in now, never an upgrade in place, so
+   * the account someone lands on is whichever one owns the identity. That is
+   * what makes signing in work every time, and it is also what would strand a
+   * lot photographed five minutes ago on the anonymous account behind it. The
+   * transfer is the other half of that trade, and it runs before the redirect
+   * so the board is already right when the page loads.
+   *
+   * A failure here must not cost the user the sign-in they just completed, so
+   * it is logged and swallowed: worst case the work stays where it was and the
+   * ticket expires on its own.
+   */
+  const claimed = readClaim(store.get(CLAIM_COOKIE)?.value)
+  store.delete(CLAIM_COOKIE)
+
+  const signedInId = data.user?.id
+  if (claimed && signedInId && claimed !== signedInId) {
+    try {
+      const { db } = getAppContext()
+      const identity = toIdentity(data.user!)
+      const target = await getOrCreateUser(db, identity)
+      await transferAnonymousWork(db, claimed, target.id)
+    } catch (cause) {
+      console.error('[auth] could not move anonymous work', cause)
+    }
   }
 
   return NextResponse.redirect(new URL(destination, url.origin))

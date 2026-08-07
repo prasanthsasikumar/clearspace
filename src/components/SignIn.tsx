@@ -10,32 +10,20 @@ type Phase =
   | { name: 'failed'; message: string }
 
 /**
- * Sign-in, for someone who already has work in the app.
+ * Sign-in.
  *
- * Both routes upgrade the anonymous account in place rather than creating a
- * second one (`updateUser` for email, `linkIdentity` for Google), so the lot
- * they just photographed is still theirs afterwards. Signing in normally is
- * the fallback for a visitor arriving on a new device.
+ * Always a plain sign-in, never an upgrade in place. Linking the identity onto
+ * the anonymous session was the tidier idea and it worked exactly once per
+ * account: every later visit arrived as a fresh anonymous user, Supabase
+ * refused to attach an identity it had already given away, and there was no
+ * way back in. Signing in normally cannot collide with anything.
  *
- * `directSignIn` turns the linking off. It is set in the two cases where
- * linking cannot succeed: this browser has nothing to keep, so the visitor is
- * somebody returning on a new device, or Supabase has already refused because
- * the identity belongs to another account. Linking again would refuse again,
- * forever, which is what made signing in work exactly once per account.
- *
- * `warnWorkStays` is separate on purpose. It is only true when there is work
- * in this browser that signing in elsewhere would leave behind, and saying so
- * to someone with an empty session would be a warning about nothing.
+ * What that gives up is the free upgrade, where the lot you just photographed
+ * was already yours because the id never changed. `/api/auth/claim` buys it
+ * back: it tickets this anonymous session before the browser leaves, and the
+ * callback moves the work across once the sign-in lands.
  */
-export function SignIn({
-  next = '/',
-  directSignIn = false,
-  warnWorkStays = false,
-}: {
-  next?: string
-  directSignIn?: boolean
-  warnWorkStays?: boolean
-}) {
+export function SignIn({ next = '/' }: { next?: string }) {
   const [email, setEmail] = useState('')
   const [phase, setPhase] = useState<Phase>({ name: 'idle' })
 
@@ -56,18 +44,7 @@ export function SignIn({
     const supabase = createBrowserAuthClient()
 
     try {
-      const { data } = await supabase.auth.getUser()
-
-      // An anonymous visitor with work in this browser gets that account
-      // upgraded, so nothing they have already done is stranded somewhere they
-      // cannot reach. With nothing here to keep, upgrading would only collide
-      // with the account that already owns the address.
-      if (data.user?.is_anonymous && !directSignIn) {
-        const { error } = await supabase.auth.updateUser({ email: address })
-        if (error) throw error
-        setPhase({ name: 'sent', email: address })
-        return
-      }
+      await ticketAnonymousWork()
 
       const { error } = await supabase.auth.signInWithOtp({
         email: address,
@@ -88,16 +65,7 @@ export function SignIn({
     const supabase = createBrowserAuthClient()
 
     try {
-      const { data } = await supabase.auth.getUser()
-
-      if (data.user?.is_anonymous && !directSignIn) {
-        const { error } = await supabase.auth.linkIdentity({
-          provider: 'google',
-          options: { redirectTo },
-        })
-        if (error) throw error
-        return
-      }
+      await ticketAnonymousWork()
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -137,22 +105,14 @@ export function SignIn({
 
   return (
     <div className="stack stack--loose">
-      <div className="stack stack--tight">
-        <button
-          type="button"
-          className="btn btn--block"
-          onClick={() => void withGoogle()}
-          disabled={phase.name === 'sending'}
-        >
-          Continue with Google
-        </button>
-        {warnWorkStays ? (
-          <span className="meta">
-            This opens the account that Google is already connected to. Photos taken in this
-            browser stay on the account you are in now.
-          </span>
-        ) : null}
-      </div>
+      <button
+        type="button"
+        className="btn btn--block"
+        onClick={() => void withGoogle()}
+        disabled={phase.name === 'sending'}
+      >
+        Continue with Google
+      </button>
 
       <div className="row row--between">
         <span className="rule" style={{ flex: 1 }} />
@@ -198,4 +158,20 @@ export function SignIn({
       </form>
     </div>
   )
+}
+
+/**
+ * Tickets this browser's anonymous work so the callback can move it across.
+ *
+ * Best-effort on purpose. A visitor with nothing to move gets no ticket, and a
+ * failure here must never block the sign-in itself: losing the transfer is a
+ * disappointment, losing the sign-in is the bug this whole change exists to
+ * fix.
+ */
+async function ticketAnonymousWork(): Promise<void> {
+  try {
+    await fetch('/api/auth/claim', { method: 'POST' })
+  } catch {
+    // Offline, or the endpoint is unreachable. Sign-in still proceeds.
+  }
 }

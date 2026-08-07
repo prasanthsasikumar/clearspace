@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm'
 import type { Database } from '@/db/client'
-import { users, type User } from '@/db/schema'
+import { lots, users, type User } from '@/db/schema'
 
 export type AppUser = User
 
@@ -96,3 +96,38 @@ export async function getLocalUser(db: Database): Promise<AppUser> {
 
 /** Kept for the seed script and tests, which have no HTTP session. */
 export const getCurrentUser = getLocalUser
+
+/**
+ * Moves everything an anonymous visitor made onto the account they just signed
+ * in to, and reports how many lots moved.
+ *
+ * `lots.user_id` is the only place ownership is recorded. Items, scans,
+ * photos, and detections all hang off a lot, so moving the lots moves the
+ * whole tree and there is no second table to keep in step.
+ *
+ * The source must still be anonymous. That check is the security boundary, not
+ * a tidiness one: without it a valid ticket for any id whatsoever would empty
+ * a real account into the caller's, and the ticket is only ever as trustworthy
+ * as the narrowest thing it can be used for.
+ */
+export async function transferAnonymousWork(
+  db: Database,
+  fromUserId: string,
+  toUserId: string,
+): Promise<number> {
+  if (!fromUserId || !toUserId || fromUserId === toUserId) return 0
+
+  const [source] = await db.select().from(users).where(eq(users.id, fromUserId)).limit(1)
+  if (!source || !source.isAnonymous || source.email !== null) return 0
+
+  const [target] = await db.select().from(users).where(eq(users.id, toUserId)).limit(1)
+  if (!target) return 0
+
+  const moved = await db
+    .update(lots)
+    .set({ userId: toUserId, updatedAt: new Date() })
+    .where(eq(lots.userId, fromUserId))
+    .returning({ id: lots.id })
+
+  return moved.length
+}
