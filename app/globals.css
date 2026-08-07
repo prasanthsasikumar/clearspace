@@ -232,6 +232,121 @@ textarea {
   }
 }
 
+/* -------------------------------------------------------------------------- */
+/* Account menu                                                               */
+/* -------------------------------------------------------------------------- */
+
+.account {
+  position: relative;
+}
+
+.account__button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  min-height: 36px;
+  padding: 0 var(--space-2xs);
+  border: var(--rule-hair) solid transparent;
+  border-radius: var(--radius-full);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-short) var(--ease-out),
+    border-color var(--dur-short) var(--ease-out);
+}
+
+.account__button:hover,
+.account__button[aria-expanded="true"] {
+  background: var(--color-paper-2);
+  border-color: var(--color-rule);
+}
+
+.account__button:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* A disc with one letter, the shape everyone already reads as "you". */
+.account__initial {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: var(--radius-full);
+  background: var(--color-graphite);
+  color: var(--color-graphite-ink);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 500;
+}
+
+.account__name {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--color-ink-2);
+}
+
+/* The disc alone is enough where width is scarce. */
+@media (max-width: 30rem) {
+  .account__name {
+    display: none;
+  }
+}
+
+.account__menu {
+  position: absolute;
+  inset-inline-end: 0;
+  top: calc(100% + var(--space-3xs));
+  z-index: var(--z-sheet);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-3xs);
+  min-width: 13rem;
+  padding: var(--space-2xs);
+  border: var(--rule-hair) solid var(--color-rule-2);
+  border-radius: var(--radius-md);
+  background: var(--color-paper);
+  /* The action bar owns the system's only shadow, so this earns its edge with
+     a hairline and sits on paper instead. */
+  animation: enter var(--dur-short) var(--ease-out) both;
+}
+
+.account__email {
+  padding: var(--space-3xs) var(--space-2xs);
+  font-size: var(--text-xs);
+  color: var(--color-ink-3);
+  overflow-wrap: anywhere;
+}
+
+.account__item {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--space-2xs);
+  border: 0;
+  border-top: var(--rule-hair) solid var(--color-rule);
+  border-radius: 0;
+  background: transparent;
+  font-size: var(--text-md);
+  color: var(--color-ink);
+  text-align: start;
+  cursor: pointer;
+  transition: background-color var(--dur-short) var(--ease-out);
+}
+
+.account__item:hover {
+  background: var(--color-paper-2);
+}
+
+.account__item:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
 .backlink {
   display: inline-flex;
   align-items: center;
