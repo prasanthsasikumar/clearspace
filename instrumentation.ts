@@ -19,5 +19,10 @@ export async function register() {
     ])
 
   await applyMigrations(getDb(), env.DATABASE_URL ? 'postgres' : 'pglite')
-  startWorker(getAppContext())
+
+  // On a serverless host nothing survives between requests, so an in-process
+  // poller is dead weight that also holds a database connection open for
+  // nothing. There, /api/jobs/tick is the queue's heartbeat instead.
+  const mode = env.WORKER_MODE ?? (process.env.VERCEL || process.env.NETLIFY ? 'external' : 'inline')
+  if (mode === 'inline') startWorker(getAppContext())
 }

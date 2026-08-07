@@ -49,6 +49,20 @@ const schema = z.object({
   SUPABASE_SERVICE_KEY: z.string().min(1).optional(),
   SUPABASE_BUCKET: z.string().default('sorta'),
 
+  /**
+   * Shared secret for /api/jobs/tick. Unset is fine locally; on any host with
+   * a scheduler in front of it this must be set, or anyone can make the app
+   * spend money on model calls.
+   */
+  CRON_SECRET: z.string().min(1).optional(),
+
+  /**
+   * `inline` runs the queue in-process (local dev). `external` expects
+   * something to call /api/jobs/tick — the only thing that works on a
+   * serverless host, where no process survives between requests.
+   */
+  WORKER_MODE: z.enum(['inline', 'external']).optional(),
+
   /** Set to use a hosted Postgres; omitted means embedded PGlite. */
   DATABASE_URL: z.string().min(1).optional(),
   PGLITE_DIR: z.string().default('./.data/pgdata'),

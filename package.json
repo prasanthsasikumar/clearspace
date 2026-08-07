@@ -13,7 +13,8 @@
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:push": "tsx scripts/migrate.ts",
-    "seed": "tsx scripts/seed.ts"
+    "seed": "tsx scripts/seed.ts",
+    "setup:supabase": "tsx scripts/setup-supabase.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.4",
