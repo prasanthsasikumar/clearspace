@@ -154,6 +154,14 @@ export async function sealBatch(
 export interface BatchPhoto {
   id: string
   blobKey: string
+  /*
+   * The photo's own shape. Boxes are fractions of the image, so anything
+   * drawing them has to lay them over the image at its real proportions: a
+   * portrait photo cropped to fit a landscape frame puts every box in the
+   * wrong place.
+   */
+  width: number | null
+  height: number | null
   /** Normalised boxes, empty until this photo has been looked at. */
   boxes: { x: number; y: number; w: number; h: number }[]
 }
@@ -199,6 +207,8 @@ export async function listBatchPhotos(
   return rows.map((scan) => ({
     id: scan.id,
     blobKey: scan.blobKey!,
+    width: scan.width,
+    height: scan.height,
     boxes: byScan.get(scan.id) ?? [],
   }))
 }

@@ -45,23 +45,34 @@ export function ScanningFilm({
           data-current={flash ? true : i === index}
           aria-hidden={i === index ? undefined : true}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={blobUrl(photo.blobKey)} alt="" />
-          {photo.boxes.map((box, b) => (
-            <span
-              className="film__box"
-              key={`${photo.id}-${b}`}
-              style={{
-                left: `${box.x * 100}%`,
-                top: `${box.y * 100}%`,
-                width: `${box.w * 100}%`,
-                height: `${box.h * 100}%`,
-                // Staggered, so a photo with nine things in it reads as nine
-                // findings rather than one flash of clutter.
-                animationDelay: `${Math.min(b, 8) * 70}ms`,
-              }}
-            />
-          ))}
+          {/*
+            The boxes are fractions of the photo, so they have to be laid over
+            something shaped like the photo. This inner element carries the
+            image's own ratio and shrinks to fit the frame, which is what keeps
+            a portrait shot from having every box in the wrong place.
+          */}
+          <span
+            className="film__stage"
+            style={{ aspectRatio: photo.width && photo.height ? `${photo.width}/${photo.height}` : '4/3' }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={blobUrl(photo.blobKey)} alt="" />
+            {photo.boxes.map((box, b) => (
+              <span
+                className="film__box"
+                key={`${photo.id}-${b}`}
+                style={{
+                  left: `${box.x * 100}%`,
+                  top: `${box.y * 100}%`,
+                  width: `${box.w * 100}%`,
+                  height: `${box.h * 100}%`,
+                  // Staggered, so a photo with nine things in it reads as nine
+                  // findings rather than one flash of clutter.
+                  animationDelay: `${Math.min(b, 8) * 70}ms`,
+                }}
+              />
+            ))}
+          </span>
         </figure>
       ))}
 

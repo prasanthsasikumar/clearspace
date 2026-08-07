@@ -213,6 +213,8 @@ export async function uploadBatch(
 export interface BatchPhoto {
   id: string
   blobKey: string
+  width: number | null
+  height: number | null
   boxes: { x: number; y: number; w: number; h: number }[]
 }
 

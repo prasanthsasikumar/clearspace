@@ -2290,9 +2290,11 @@ select.field__control {
 /* Scanning film: the photos, being looked through                            */
 /* -------------------------------------------------------------------------- */
 
+/* Square on a phone, where a batch is as likely to be portrait as landscape
+   and a 4:3 frame would letterbox half of them into a strip. */
 .film {
   position: relative;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 1 / 1;
   border: var(--rule-hair) solid var(--color-rule);
   border-radius: var(--radius-lg);
   background: var(--color-graphite);
@@ -2303,8 +2305,21 @@ select.field__control {
   position: absolute;
   inset: 0;
   margin: 0;
+  display: grid;
+  place-items: center;
   opacity: 0;
   transition: opacity var(--dur-med) var(--ease-out);
+}
+
+/* Shaped like the photograph, sized to fit the frame. The boxes are
+   positioned against this, never against the frame, because a box is a
+   fraction of an image and the frame is a fraction of a layout. */
+.film__stage {
+  position: relative;
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: hidden;
 }
 
 .film__frame[data-current="true"] {
@@ -2320,10 +2335,12 @@ select.field__control {
   opacity: 1;
 }
 
-.film__frame img {
+/* `contain` rather than `cover`: cropping the photo would move every box on
+   it, which is exactly the bug this replaced. */
+.film__stage img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 /* Drawn, not faded in: a box arriving is the app saying it found a thing. */
@@ -2354,6 +2371,12 @@ select.field__control {
   }
   to {
     transform: translateX(100%);
+  }
+}
+
+@media (min-width: 48rem) {
+  .film {
+    aspect-ratio: 4 / 3;
   }
 }
 
