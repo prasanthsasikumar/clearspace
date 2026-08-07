@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { ItemWithPrimaryPhoto } from '@/services/items'
@@ -12,6 +12,7 @@ import {
   exportUrl,
   getEnrichmentProgress,
   getExportPreview,
+  nudgeQueue,
   updateItem,
   type ExportPreview,
 } from '@/lib/client/api'
@@ -43,6 +44,7 @@ export function ListingsReview({
   const [preview, setPreview] = useState<ExportPreview | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const ticking = useRef(false)
 
   const working = progress.pending > 0
 
@@ -53,6 +55,14 @@ export function ListingsReview({
       if (next.pending === 0) router.refresh()
     } catch {
       // A dropped poll is not worth surfacing; the next tick retries.
+    }
+
+    if (ticking.current) return
+    ticking.current = true
+    try {
+      await nudgeQueue()
+    } finally {
+      ticking.current = false
     }
   }, [lotId, router])
 

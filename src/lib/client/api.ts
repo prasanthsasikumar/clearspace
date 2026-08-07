@@ -208,6 +208,28 @@ export const getExportPreview = (lotId: string) =>
 
 export const exportUrl = (lotId: string) => `/api/lots/${lotId}/export`
 
+/* --- Queue ----------------------------------------------------------------- */
+
+/**
+ * Nudges the queue while the user is watching.
+ *
+ * On a serverless host nothing drains the queue between requests, and a
+ * scheduler's granularity is a minute at best — a day on Vercel's Hobby plan.
+ * Since the progress screens already poll, they may as well do the work: this
+ * makes processing start the instant somebody is waiting for it.
+ *
+ * Failures are swallowed on purpose. This is an optimisation over the
+ * scheduler, not a dependency, and a red error about a background nudge would
+ * be noise the user can do nothing about.
+ */
+export async function nudgeQueue(): Promise<void> {
+  try {
+    await fetch('/api/jobs/tick', { method: 'POST' })
+  } catch {
+    /* the scheduler remains the backstop */
+  }
+}
+
 /* --- Blobs ----------------------------------------------------------------- */
 
 export const blobUrl = (key: string) => `/api/blobs/${key}`

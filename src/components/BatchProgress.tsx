@@ -1,10 +1,10 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { BatchProgress as Progress } from '@/services/batches'
-import { getBatch } from '@/lib/client/api'
+import { getBatch, nudgeQueue } from '@/lib/client/api'
 
 const POLL_MS = 1200
 
@@ -26,6 +26,9 @@ export function BatchProgress({
 }) {
   const router = useRouter()
   const [progress, setProgress] = useState(initial)
+  // A tick can outlast the poll interval, so overlapping calls are skipped
+  // rather than stacking function invocations on top of each other.
+  const ticking = useRef(false)
 
   const done = progress.phase === 'complete' || progress.phase === 'failed'
 
@@ -34,6 +37,14 @@ export function BatchProgress({
       setProgress(await getBatch(batchId))
     } catch {
       // A dropped poll is not worth surfacing; the next tick retries.
+    }
+
+    if (ticking.current) return
+    ticking.current = true
+    try {
+      await nudgeQueue()
+    } finally {
+      ticking.current = false
     }
   }, [batchId])
 
