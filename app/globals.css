@@ -2252,6 +2252,46 @@ select.field__control {
 /* Phase eyebrow + progress rows                                              */
 /* -------------------------------------------------------------------------- */
 
+/*
+ * The one thing on the waiting screen that moves continuously.
+ *
+ * Counts tick, but they can sit still for twenty seconds while a photo is
+ * being looked at, and stillness on a screen that says "working" reads as a
+ * hang. A slow ring is enough: it is drawn as an arc of the same grid the mark
+ * is built from, turns once every two and a half seconds, and carries no
+ * information, which is why it is allowed to be decorative.
+ */
+.spinner {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: var(--radius-full);
+  border: 3px solid var(--color-paper-3);
+  border-top-color: var(--color-accent);
+  animation: spin 2.5s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Reduced motion loses the turn and keeps the pulse, which says the same
+   thing without moving anything across the screen. */
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: pulse 1.6s var(--ease-in-out) infinite;
+    border-top-color: var(--color-accent);
+  }
+}
+
+.workinghead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
 .eyebrow {
   display: inline-flex;
   align-items: center;

@@ -37,7 +37,20 @@ export const GET = route(async (request: NextRequest) => handle(request))
 export const POST = route(async (request: NextRequest) => handle(request))
 
 /** A visitor-driven tick starts only a couple of jobs; a scheduler drains. */
-const VISITOR_JOB_LIMIT = 2
+/*
+ * No cap. A visitor's nudge drains until the function runs out of time, the
+ * same as the scheduled run.
+ *
+ * The cap existed because a browser cannot hold CRON_SECRET, so "is signed in"
+ * is the only credential it has, and this app signs everyone in the moment
+ * they arrive: two jobs a knock was what stopped an anonymous visitor spending
+ * someone else's model budget in a loop. That protection is now traded for
+ * speed, deliberately. A lot that fills in over several minutes reads as a
+ * poor system regardless of why.
+ *
+ * The time deadline below is what still bounds a single call.
+ */
+const VISITOR_JOB_LIMIT = Number.POSITIVE_INFINITY
 
 async function handle(request: NextRequest): Promise<NextResponse> {
   const scheduled = hasSchedulerSecret(request)

@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { adviceFor } from '@/domain/image-quality'
 import { ApiError, uploadBatch } from '@/lib/client/api'
 import { prepareImage, type PreparedImage } from '@/lib/client/image'
-import { extractKeyframes } from '@/lib/client/video'
 
 type Phase =
   | { name: 'idle' }
@@ -24,14 +23,13 @@ const MAX_PHOTOS = 60
  * to name: pick everything, tap once, walk away. Anything that asks the user to
  * think about an individual object belongs after grouping, not before it.
  *
- * A video walkthrough lands in the same place: frames are pulled out on the
- * phone and uploaded as ordinary photos, so grouping treats a walkthrough and a
- * pile of stills identically.
+ * Video is switched off for now. The keyframe extractor still works and still
+ * has its tests; nothing calls it, because a walkthrough is the slowest way
+ * into the app and the fastest path to a first listing is a handful of stills.
  */
 export function BulkCapture({ lotId }: { lotId: string }) {
   const router = useRouter()
   const photoInput = useRef<HTMLInputElement>(null)
-  const videoInput = useRef<HTMLInputElement>(null)
 
   const [phase, setPhase] = useState<Phase>({ name: 'idle' })
   const [photos, setPhotos] = useState<PreparedImage[]>([])
@@ -93,45 +91,6 @@ export function BulkCapture({ lotId }: { lotId: string }) {
     await ingest(dropped)
   }
 
-  async function onVideo(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0]
-    event.target.value = ''
-    if (!file) return
-
-    try {
-      setPhase({ name: 'reading', note: 'Reading the walkthrough…' })
-      const frames = await extractKeyframes(file, {
-        maxFrames: 12,
-        onProgress: (done, total) =>
-          setPhase({ name: 'reading', note: `Checking frame ${done} of ${total}…` }),
-      })
-      if (frames.length === 0) {
-        setPhase({
-          name: 'failed',
-          message: 'Every frame was too blurry to use. Try walking more slowly.',
-        })
-        return
-      }
-
-      // Frames become ordinary photos, so a walkthrough and a pile of stills
-      // travel the exact same path from here on.
-      const prepared: PreparedImage[] = []
-      for (const [index, frame] of frames.entries()) {
-        prepared.push(
-          await prepareImage(
-            new File([frame.blob], `frame-${index}.jpg`, { type: 'image/jpeg' }),
-          ),
-        )
-      }
-      setPhotos((prev) => [...prev, ...prepared])
-      setPhase({ name: 'ready' })
-    } catch (error) {
-      setPhase({
-        name: 'failed',
-        message: error instanceof Error ? error.message : 'Could not read that video.',
-      })
-    }
-  }
 
   async function upload() {
     setPhase({ name: 'uploading', note: `Uploading ${photos.length} photos…` })
@@ -241,20 +200,9 @@ export function BulkCapture({ lotId }: { lotId: string }) {
                 >
                   Select photos
                 </button>
-                <button
-                  type="button"
-                  className="btn"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    videoInput.current?.click()
-                  }}
-                  disabled={busy}
-                >
-                  Upload a video walkthrough
-                </button>
               </div>
               <span className="label dropzone__limit">
-                Up to {MAX_PHOTOS} photos per batch · a 90MB walkthrough uploads as ~8 frames
+                Up to {MAX_PHOTOS} photos per batch
               </span>
             </div>
 
@@ -273,15 +221,6 @@ export function BulkCapture({ lotId }: { lotId: string }) {
                 <CameraMark />
                 <span className="bigtarget__title">Photograph the space</span>
                 <span className="bigtarget__note">Opens the rear camera · multi-shot</span>
-              </button>
-              <button
-                type="button"
-                className="bigtarget"
-                onClick={() => videoInput.current?.click()}
-                disabled={busy}
-              >
-                <span className="bigtarget__title">Record a video walkthrough</span>
-                <span className="bigtarget__note">A 90MB video uploads as ~8 sharp frames</span>
               </button>
               <span className="label bigtargets__limit">Up to {MAX_PHOTOS} photos per batch</span>
             </div>
@@ -343,14 +282,6 @@ export function BulkCapture({ lotId }: { lotId: string }) {
           accept="image/*"
           multiple
           onChange={onPhotos}
-        />
-        <input
-          ref={videoInput}
-          className="visually-hidden"
-          type="file"
-          accept="video/*"
-          capture="environment"
-          onChange={onVideo}
         />
       </div>
 

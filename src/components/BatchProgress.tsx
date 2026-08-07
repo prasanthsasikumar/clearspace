@@ -57,11 +57,14 @@ export function BatchProgress({ batchId, initial }: { batchId: string; initial: 
 
   return (
     <div className="stack stack--loose">
-      <div className="stack stack--tight">
-        <Eyebrow phase={progress.phase} />
-        <h1>{headline(progress)}</h1>
-        <p className="lede">{subhead(progress)}</p>
+      <div className="workinghead">
+        {done ? null : <span className="spinner" aria-hidden="true" />}
+        <div className="stack stack--tight">
+          <Eyebrow phase={progress.phase} />
+          <h1>{headline(progress)}</h1>
+        </div>
       </div>
+      <p className="lede">{subhead(progress)}</p>
 
       {progress.phase === 'failed' ? null : (
         <section className="panel">

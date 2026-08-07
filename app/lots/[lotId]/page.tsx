@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { AppBar } from '@/components/AppBar'
 import { InventoryBoard } from '@/components/InventoryBoard'
+import { AddPhotosButton } from '@/components/AddPhotosButton'
 import { getAppContext } from '@/server/context'
 import { getLot } from '@/services/lots'
 import { listItems } from '@/services/items'
@@ -46,9 +47,7 @@ export default async function LotPage({
         title={lot.name}
         action={
           live.length > 0 ? (
-            <Link className="btn btn--sm" href={`/lots/${lot.id}/capture`}>
-              Add photos
-            </Link>
+            <AddPhotosButton lotId={lot.id} />
           ) : null
         }
       />
@@ -91,9 +90,7 @@ export default async function LotPage({
                 Photograph the space and Clearspace drafts the listings. You just bin what you
                 do not want to sell.
               </p>
-              <Link className="btn btn--primary btn--lg" href={`/lots/${lot.id}/capture`}>
-                Add photos
-              </Link>
+              <AddPhotosButton lotId={lot.id} className="btn btn--primary btn--lg" />
             </div>
           ) : (
             <InventoryBoard
