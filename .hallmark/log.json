@@ -3,7 +3,7 @@
     "date": "2026-08-06",
     "macrostructure": "Workbench",
     "theme": "Cobalt",
-    "enrichment": "none — the user's own photographs are the imagery",
+    "enrichment": "none, the user's own photographs are the imagery",
     "nav": "N9 edge-aligned minimal",
     "footer": "Ft2 inline single line (index only)",
     "brief": "Clearspace · mobile-first PWA that turns a room photo into a sellable inventory"

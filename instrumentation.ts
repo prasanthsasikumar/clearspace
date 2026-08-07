@@ -1,7 +1,7 @@
 /**
  * Boot hook. Runs once per server process, before the first request.
  *
- * Migrations run here so a fresh clone works with `npm run dev` alone — there
+ * Migrations run here so a fresh clone works with `npm run dev` alone: there
  * is no database to provision and no setup step to forget. The worker starts
  * here too, which keeps job processing alive without a second process during
  * development.

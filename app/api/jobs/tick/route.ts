@@ -10,7 +10,7 @@ import { getIdentity } from '@/server/auth'
  * The queue's heartbeat when there is no long-lived process to run it.
  *
  * Locally an in-process poller drains the queue. On a serverless host nothing
- * stays alive between requests, so jobs would be enqueued and never run — and
+ * stays alive between requests, so jobs would be enqueued and never run, and
  * the failure is silent: the UI sits at "Analysing…" forever with no error.
  * This endpoint is what a scheduler calls instead.
  *
@@ -25,7 +25,7 @@ import { getIdentity } from '@/server/auth'
  *     work nobody is watching.
  *   - A **signed-in visitor** drains a couple of jobs per call. The progress
  *     screens are already polling, so this makes work happen the moment
- *     somebody is waiting for it — which also means the app does not depend
+ *     somebody is waiting for it, which also means the app does not depend
  *     on cron granularity at all. That matters: Vercel's Hobby plan only runs
  *     cron once per day, and a daily queue drain is no queue.
  */
@@ -70,8 +70,8 @@ async function handle(request: NextRequest): Promise<NextResponse> {
 }
 
 /**
- * A signed-in visitor may nudge the queue. They cannot hold CRON_SECRET — it
- * would have to ship to the browser — so the session is the credential, and
+ * A signed-in visitor may nudge the queue. They cannot hold CRON_SECRET (it
+ * would have to ship to the browser), so the session is the credential, and
  * the job limit above is what keeps it from being a lever on someone else's
  * bill.
  */

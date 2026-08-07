@@ -64,7 +64,7 @@ async function main() {
     await applyMigrations(getDb(), 'postgres')
     console.log('  done')
   } else {
-    console.log('Migrations skipped — no DATABASE_URL set yet.')
+    console.log('Migrations skipped: no DATABASE_URL set yet.')
   }
 
   console.log('Round-tripping a test object…')

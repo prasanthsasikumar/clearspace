@@ -95,7 +95,7 @@ export const detectionSource = pgEnum('detection_source', ['model', 'user'])
  * the anonymous-to-registered upgrade free: Supabase keeps the same id when a
  * visitor adds an email or links Google, so nothing here has to move.
  *
- * `email` is null for anonymous visitors — they are real, persisted users who
+ * `email` is null for anonymous visitors; they are real, persisted users who
  * simply cannot sign back in yet.
  */
 export const users = pgTable('users', {
@@ -193,7 +193,7 @@ export const detections = pgTable('detections', {
   bbox: jsonb('bbox').$type<BoundingBox>().notNull(),
   /**
    * The isolated object, cut out during detection. It is what the matcher
-   * compares and what becomes the item's view — cutting it twice would be
+   * compares and what becomes the item's view; cutting it twice would be
    * wasted work on every single detection.
    */
   cropBlobKey: text('crop_blob_key'),

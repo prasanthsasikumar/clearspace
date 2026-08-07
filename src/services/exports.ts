@@ -5,7 +5,7 @@ import { buildFacebookFeed, type ExportResult, type ExportableItem } from '@/dom
 
 export interface BuildExportInput {
   lotId: string
-  /** Absolute origin, e.g. http://192.168.1.19:3300 — feeds need real URLs. */
+  /** Absolute origin, e.g. http://192.168.1.19:3300; feeds need real URLs. */
   origin: string
   itemIds?: readonly string[]
 }

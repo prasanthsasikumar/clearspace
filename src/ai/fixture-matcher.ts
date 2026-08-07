@@ -10,7 +10,7 @@ export type MatchStrategy = (candidates: readonly MatchCandidate[]) => string[][
  * distinguish, which means the guard rails in `domain/grouping.ts` are the only
  * thing standing between it and a mess. Tests running against this matcher are
  * therefore testing the guard rails hard, which is exactly what should be
- * tested hardest — the model's judgement can improve, but a lost item is lost.
+ * tested hardest: the model's judgement can improve, but a lost item is lost.
  */
 export const groupByLabel: MatchStrategy = (candidates) => {
   const byLabel = new Map<string, string[]>()

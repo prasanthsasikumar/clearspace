@@ -27,7 +27,7 @@ export interface GroupingResult {
  * object; `domain/grouping` decides how much of that answer to believe.
  *
  * Detections already promoted or dismissed are skipped, which makes the whole
- * operation safe to run twice — a duplicate grouping job finds nothing left to
+ * operation safe to run twice: a duplicate grouping job finds nothing left to
  * assign and does nothing.
  */
 export async function groupBatchIntoItems(
@@ -137,8 +137,8 @@ async function proposeGroups(
 /**
  * Creates one item and hangs every view of the object off it.
  *
- * The representative's crop becomes the primary photo — the one that shows on
- * the listing card — and the rest follow in the order they were grouped. Views
+ * The representative's crop becomes the primary photo (the one that shows on
+ * the listing card), and the rest follow in the order they were grouped. Views
  * are tagged `other` rather than guessed at: an automatic crop is a picture of
  * the object, not a considered front-on listing photo, and the shot list should
  * still ask for those.

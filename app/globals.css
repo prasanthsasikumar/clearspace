@@ -2,7 +2,7 @@
 
 /* Hallmark · genre: modern-minimal · macrostructure: Workbench · theme: Cobalt
  * nav: N9 edge-aligned minimal · action: C4 sticky bottom bar · footer: Ft2 (index only)
- * tone: utilitarian · enrichment: none — the user's own photographs are the imagery
+ * tone: utilitarian · enrichment: none, the user's own photographs are the imagery
  * motion: box-draw · press-tick · row-insert (3 primitives, all reduced-motion safe)
  * pre-emit critique: P5 H5 E4 S5 R5 V4
  */
@@ -238,7 +238,7 @@ textarea {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Mono label — the machine-readout voice                                     */
+/* Mono label: the machine-readout voice                                     */
 /* -------------------------------------------------------------------------- */
 
 .label {
@@ -267,7 +267,7 @@ textarea {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Buttons — all eight states                                                 */
+/* Buttons: all eight states                                                 */
 /* -------------------------------------------------------------------------- */
 
 .btn {
@@ -462,7 +462,7 @@ select.field__control {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Surfaces — hairlines, never shadows                                        */
+/* Surfaces: hairlines, never shadows                                        */
 /* -------------------------------------------------------------------------- */
 
 .panel {
@@ -538,7 +538,7 @@ select.field__control {
   line-height: 1;
 }
 
-/* A button that reads as text — used where a row's title opens a detail view
+/* A button that reads as text, used where a row's title opens a detail view
    but the row also carries its own controls. */
 .linkish {
   padding: 0;
@@ -570,7 +570,7 @@ select.field__control {
 
 /* Status is a glyph plus a word. The glyph carries the hue and the word
    carries the meaning, so the chip is still readable to the ~8% of men who
-   cannot separate the hues — and in a storage unit lit by one bulb. */
+   cannot separate the hues, and in a storage unit lit by one bulb. */
 .chip {
   display: inline-flex;
   align-items: center;
@@ -614,7 +614,7 @@ select.field__control {
   color: var(--color-warn);
 }
 
-/* Sold is the one that inverts — it is the end of the road, and it should
+/* Sold is the one that inverts: it is the end of the road, and it should
    look settled rather than pending. */
 .chip--done {
   background: var(--color-graphite);
@@ -670,7 +670,7 @@ select.field__control {
 }
 
 /* Only draw mode claims the gesture. Outside it the page must still scroll
-   under a finger — a review screen you cannot scroll past is worse than one
+   under a finger: a review screen you cannot scroll past is worse than one
    without drawing at all. */
 .stage[data-draw="true"] {
   touch-action: none;
@@ -912,7 +912,7 @@ select.field__control {
 /* -------------------------------------------------------------------------- */
 
 /* Two across on a phone, so a fifteen-item lot is one thumb-scroll to triage
-   rather than fifteen. The picture has to stay big enough to judge from —
+   rather than fifteen. The picture has to stay big enough to judge from:
    that is the whole basis of the decision being made here. */
 .board {
   display: grid;
@@ -1091,7 +1091,7 @@ select.field__control {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Drop zone — the primary gesture with a mouse                               */
+/* Drop zone: the primary gesture with a mouse                               */
 /* -------------------------------------------------------------------------- */
 
 .dropzone {
@@ -1126,7 +1126,7 @@ select.field__control {
   color: var(--color-ink);
 }
 
-/* Two plain rectangles — a drawn photo-stack, not a stock icon. */
+/* Two plain rectangles: a drawn photo-stack, not a stock icon. */
 .dropzone__mark {
   position: relative;
   width: 46px;
@@ -1261,7 +1261,7 @@ select.field__control {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Toast — failures only. Success is silent.                                  */
+/* Toast: failures only. Success is silent.                                  */
 /* -------------------------------------------------------------------------- */
 
 .toast {
@@ -1299,7 +1299,7 @@ select.field__control {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Progress — indeterminate work                                              */
+/* Progress: indeterminate work                                              */
 /* -------------------------------------------------------------------------- */
 
 .working {

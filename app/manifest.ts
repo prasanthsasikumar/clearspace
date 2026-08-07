@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
 
 /**
- * Installing Clearspace to the home screen is not a nicety — a storage unit has bad
+ * Installing Clearspace to the home screen is not a nicety: a storage unit has bad
  * signal and a tab that reloads mid-scan loses the user's place. Standalone
  * display keeps the capture flow intact across app switches.
  */

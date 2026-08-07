@@ -43,7 +43,7 @@ export async function getIdentity(): Promise<AuthIdentity | null> {
     },
   })
 
-  // getUser revalidates against Supabase rather than trusting the cookie —
+  // getUser revalidates against Supabase rather than trusting the cookie;
   // getSession would hand back whatever the browser claimed.
   const { data, error } = await supabase.auth.getUser()
   if (error || !data.user) return null

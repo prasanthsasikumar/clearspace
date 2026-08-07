@@ -16,7 +16,7 @@ const defaultSleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
  * JSON, retry only what retrying can fix, and parse defensively.
  *
  * Kept separate from the adapters so the detection provider and the object
- * matcher cannot drift apart on retry policy or error handling — two copies of
+ * matcher cannot drift apart on retry policy or error handling; two copies of
  * this logic is exactly how one of them ends up silently retrying a schema
  * mismatch forever.
  */
@@ -74,8 +74,8 @@ export class GeminiClient {
   /**
    * A grounded call: search on, no response schema.
    *
-   * The two are mutually exclusive in practice — supplying a schema makes the
-   * model stop searching without saying so — so this returns prose plus the
+   * The two are mutually exclusive in practice (supplying a schema makes the
+   * model stop searching without saying so), so this returns prose plus the
    * pages it actually retrieved, and a second structuring call turns that into
    * data. See `gemini/enrichment.ts` for the measurement behind this.
    */
@@ -107,7 +107,7 @@ export class GeminiClient {
 
   /**
    * Retries transport failures only. A schema mismatch is a bug or a prompt
-   * problem, and re-sending an identical request cannot fix it — those
+   * problem, and re-sending an identical request cannot fix it: those
    * propagate immediately instead of burning quota three times over.
    */
   private async withRetry<T>(operation: () => Promise<T>, providerName: string): Promise<T> {

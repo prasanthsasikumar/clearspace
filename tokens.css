@@ -1,7 +1,7 @@
 /* Hallmark · genre: modern-minimal · theme: Cobalt (app-surface adaptation)
  * paper: oklch(98.5% 0.004 250) cool near-white · accent: oklch(58% 0.20 256) electric cobalt
  * display: Space Grotesk · body: Inter · mono: JetBrains Mono
- * axes — paper band: light · display style: grotesk-sans · accent hue: cool
+ * axes · paper band: light · display style: grotesk-sans · accent hue: cool
  *
  * Clearspace is used one-handed, in a storage unit lit by one bulb, by someone in a
  * hurry. Every value below is chosen for legibility under those conditions:
@@ -12,7 +12,7 @@
 :root {
   /* --- Colour ----------------------------------------------------------- */
 
-  /* Cool engineered near-white. Never #fff — flat white glares under a work
+  /* Cool engineered near-white. Never #fff: flat white glares under a work
      light and gives photos nothing to sit against. */
   --color-paper: oklch(98.5% 0.004 250);
   --color-paper-2: oklch(96.6% 0.005 250);
@@ -37,7 +37,7 @@
 
   --color-focus: oklch(58% 0.20 256);
 
-  /* Status. Each is paired with an icon or a word in the UI — never colour
+  /* Status. Each is paired with an icon or a word in the UI, never colour
      alone, which ~8% of men cannot read. */
   --color-danger: oklch(52% 0.19 26);
   --color-danger-soft: oklch(95% 0.03 26);
@@ -59,7 +59,7 @@
   --text-lg: 1.0625rem;
   --text-xl: 1.375rem;
   --text-2xl: 1.75rem;
-  /* Display steps 30px on a 390 phone to 44px on desktop — the design's
+  /* Display steps 30px on a 390 phone to 44px on desktop: the design's
      headline sizes, reached fluidly rather than at a breakpoint. */
   --text-display-s: clamp(1.375rem, 2vw + 0.75rem, 1.75rem);
   --text-display: clamp(1.875rem, 2.2vw + 1.2rem, 2.75rem);
@@ -99,7 +99,7 @@
   /* Depth comes from hairlines, not blur. The one lift in the system is the
      bottom action bar, which must read as floating above scrolled content. */
   /* The system's only shadow, under sticky bottom bars. Everything else is
-     hairlines — one floating layer, and it is always the same one. */
+     hairlines: one floating layer, and it is always the same one. */
   --shadow-bar: 0 -1px 0 var(--color-rule), 0 -8px 24px oklch(24% 0.02 258 / 0.06);
 
   --z-base: 1;

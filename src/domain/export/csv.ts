@@ -3,7 +3,7 @@
  *
  * Listing descriptions routinely contain commas, quotes, and newlines, and a
  * feed that breaks on the first apostrophe wastes the whole upload. Quoting is
- * unconditional rather than conditional — it is always valid, and it removes an
+ * unconditional rather than conditional: it is always valid, and it removes an
  * entire class of "worked on my data" bug.
  */
 export function csvCell(value: string | number | null | undefined): string {

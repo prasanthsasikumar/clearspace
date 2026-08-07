@@ -26,7 +26,7 @@ export interface Harness extends JobContext {
  * A complete application context backed by an in-memory Postgres.
  *
  * PGlite runs real Postgres in-process, so integration tests exercise the
- * actual SQL, the actual constraints, and the actual enum types — no database
+ * actual SQL, the actual constraints, and the actual enum types: no database
  * is mocked and no query is exercised in a dialect the app never speaks.
  */
 export async function createHarness(

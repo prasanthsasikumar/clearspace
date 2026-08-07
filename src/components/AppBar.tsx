@@ -5,14 +5,14 @@ interface AppBarProps {
   title?: string
   back?: { href: string; label: string }
   action?: React.ReactNode
-  /** Who is signed in — shown on every screen so the state is never a mystery. */
+  /** Who is signed in, shown on every screen so the state is never a mystery. */
   account?: React.ReactNode
 }
 
 /**
  * N9 · Edge-aligned minimal, adapted for an app shell.
  *
- * One thing on the left — where you came from, or the wordmark — and at most
+ * One thing on the left (where you came from, or the wordmark) and at most
  * one on the right. No link row: on a phone held one-handed in a storage unit,
  * a row of five destinations is five chances to leave by accident.
  */

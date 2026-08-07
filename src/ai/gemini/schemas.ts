@@ -10,7 +10,7 @@ import { itemCategories } from '@/domain/types'
  * The schema handed to Gemini. Structured output makes the model emit valid
  * JSON of this shape; the Zod schema below still re-validates it, because
  * "valid JSON of the right shape" and "values we can trust" are different
- * claims — a box of `[0,0,0,0]` satisfies both the type and nothing else.
+ * claims: a box of `[0,0,0,0]` satisfies both the type and nothing else.
  */
 export const detectionResponseSchema: Schema = {
   type: Type.OBJECT,

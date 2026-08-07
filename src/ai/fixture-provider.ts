@@ -31,7 +31,7 @@ export interface FixtureResponses {
  * This backs two things that would otherwise be separate code paths: the whole
  * test suite runs without a network or an API key, and the app stays fully
  * explorable in demo mode when GEMINI_API_KEY is unset. Demo mode exercising
- * the same job queue, crop pipeline, and UI as production is the point — a
+ * the same job queue, crop pipeline, and UI as production is the point: a
  * demo that shortcuts the real path proves nothing.
  */
 export class FixtureVisionProvider implements VisionProvider {

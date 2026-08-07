@@ -3,7 +3,7 @@
 Photograph a space. Get listings.
 
 Clearspace is for people clearing out storage units, garages, estates, and houses.
-The bottleneck in liquidation is not selling — it is cataloguing. Photographing,
+The bottleneck in liquidation is not selling: it is cataloguing. Photographing,
 identifying, pricing, and writing up each item costs 10–20 minutes, so a 60-item
 unit is a lost weekend, and most people hand the lot to a liquidator for pennies
 instead.
@@ -26,9 +26,9 @@ photos in ──▶ detect per photo ──▶ match the same object across phot
 | A | Bulk capture, cross-photo grouping, auto-created drafts | **Built** |
 | B | Identification, sourced pricing, written listings | **Built** |
 | C | Facebook catalogue CSV, iOS share sheet | **Built** |
-| — | eBay publishing, photo ZIP, offline queue, auth | Not built |
+| - | eBay publishing, photo ZIP, offline queue, auth | Not built |
 
-167 tests — pure domain logic plus integration against real in-process Postgres.
+167 tests: pure domain logic plus integration against real in-process Postgres.
 
 ## Running it
 
@@ -55,9 +55,9 @@ npm test && npm run typecheck && npm run build
 
 ```
 Browser (mobile-first PWA)
-  ├─ Capture — bulk photo picker · video decomposed to keyframes on-device
-  ├─ Board   — two-up triage, preselected, tap to drop
-  ├─ Listings— progress, approve, provenance, export
+  ├─ Capture:  bulk photo picker · video decomposed to keyframes on-device
+  ├─ Board:    two-up triage, preselected, tap to drop
+  ├─ Listings: progress, approve, provenance, export
   └─ fetch → Route Handlers
         │
    src/services/   orchestration
@@ -72,7 +72,7 @@ Browser (mobile-first PWA)
 
 **Grounding and structured output cannot be combined.** Gemini accepts
 `googleSearch` and `responseSchema` in one request and then silently does not
-search — flawless JSON, zero sources, an invented price wearing the costume of a
+search: flawless JSON, zero sources, an invented price wearing the costume of a
 researched one. Enrichment is therefore two calls: a grounded research pass, then
 a structuring pass over what it found. Sources stored against a valuation are
 pages actually retrieved. When research finds nothing, the item says `unsourced`
@@ -93,7 +93,7 @@ no Docker and no signup. `DATABASE_URL` swaps in Neon with no other change. The
 cost: single-process, so it is a development and MVP database.
 
 **Everything expensive happens on the phone.** Images are decoded, downscaled,
-scored for sharpness, and re-encoded to JPEG before upload — which also solves
+scored for sharpness, and re-encoded to JPEG before upload, which also solves
 iPhone HEIC. Video is seeked and drawn to a canvas, so a 90 MB walkthrough
 uploads as eight sharp frames and there is no ffmpeg dependency.
 
@@ -105,10 +105,10 @@ catalogue feed and needs a business catalogue.
 
 So there are two paths, and the app is explicit about which is which:
 
-- **Share** (per item) — photos plus the generated copy into the iOS share
+- **Share** (per item): photos plus the generated copy into the iOS share
   sheet. Save to Photos, or send straight into the Facebook app and paste. This
   is the real one-tap route for a private seller.
-- **Export CSV** (per lot) — Facebook's catalogue feed to its documented spec.
+- **Export CSV** (per lot): Facebook's catalogue feed to its documented spec.
   Useful if you have a Commerce Manager catalogue. Unpriced and photo-less items
   are skipped rather than exported at zero, and the export reports how many
   prices nobody has checked.

@@ -19,7 +19,7 @@ import type { EnrichmentRunProgress } from '@/services/enrichment'
  * Carries the server's own error message to the UI.
  *
  * The API writes its messages for the person holding the phone, so surfacing
- * them verbatim is better than a generic "something went wrong" — "That file
+ * them verbatim is better than a generic "something went wrong": "That file
  * is larger than 25 MB" tells the user what to do next.
  */
 export class ApiError extends Error {
@@ -214,7 +214,7 @@ export const exportUrl = (lotId: string) => `/api/lots/${lotId}/export`
  * Nudges the queue while the user is watching.
  *
  * On a serverless host nothing drains the queue between requests, and a
- * scheduler's granularity is a minute at best — a day on Vercel's Hobby plan.
+ * scheduler's granularity is a minute at best, a day on Vercel's Hobby plan.
  * Since the progress screens already poll, they may as well do the work: this
  * makes processing start the instant somebody is waiting for it.
  *

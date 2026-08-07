@@ -24,7 +24,7 @@ export function createPgliteDatabase(client: PGlite): Database {
  *
  * Supabase (and every other serverless-friendly Postgres) puts pgbouncer in
  * front in transaction mode, where prepared statements are not shared across
- * pooled connections — leaving `prepare` on produces "prepared statement
+ * pooled connections; leaving `prepare` on produces "prepared statement
  * already exists" errors under any real concurrency, intermittently, which is
  * the worst way to find out. `max: 1` because each serverless invocation is
  * its own short-lived process and holding a pool per invocation is how you
@@ -37,7 +37,7 @@ export function createPostgresDatabase(url: string): Database {
     idle_timeout: 20,
     // Idempotent DDL emits "already exists, skipping" NOTICEs on every boot.
     // postgres.js prints those to stderr, where they read exactly like
-    // failures — which is how people learn to ignore the log that will
+    // failures, which is how people learn to ignore the log that will
     // eventually carry a real one.
     onnotice: (notice) => {
       if (notice.severity === 'NOTICE' && notice.code?.startsWith('42P')) return

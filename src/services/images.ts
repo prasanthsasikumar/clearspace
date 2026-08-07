@@ -42,7 +42,7 @@ export interface CropResult {
  *
  * This is what makes tap-to-promote feel instant: the new item already has a
  * usable picture of itself before the user has taken a single photo of it.
- * `.rotate()` runs first so EXIF orientation is baked in — without it, a crop
+ * `.rotate()` runs first so EXIF orientation is baked in; without it, a crop
  * taken from a portrait phone photo lands on the wrong part of the image.
  */
 export async function cropRegion(

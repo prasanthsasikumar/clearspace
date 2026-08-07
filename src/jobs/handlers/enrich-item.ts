@@ -7,7 +7,7 @@ const payloadSchema = z.object({ itemId: z.string().uuid() })
 
 /**
  * Researches and writes one listing. Two model calls, so it belongs on the
- * queue rather than in a request — a fifteen-item lot is thirty calls and
+ * queue rather than in a request: a fifteen-item lot is thirty calls and
  * several minutes.
  */
 export const enrichItemHandler: JobHandler = async (ctx: JobContext, job: Job) => {

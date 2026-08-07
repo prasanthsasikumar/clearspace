@@ -12,7 +12,7 @@ const POLL_MS = 1200
  * The waiting screen.
  *
  * Thirty photos take a minute or two to work through, and a bare spinner over
- * that span reads as broken — people close the tab. So the counts move: photos
+ * that span reads as broken: people close the tab. So the counts move: photos
  * analysed, objects found, and finally items made. Each number is a promise
  * being kept in public, and the phase line names what is happening now rather
  * than showing a percentage nobody believes.
@@ -89,7 +89,7 @@ export function BatchProgress({
                 done={progress.detectionCount > 0}
                 active={progress.phase === 'analysing' && progress.detectionCount > 0}
                 name="Finding objects"
-                value={progress.detectionCount === 0 ? '—' : String(progress.detectionCount)}
+                value={progress.detectionCount === 0 ? '-' : String(progress.detectionCount)}
               />
               <Step
                 done={progress.phase === 'complete'}
@@ -142,7 +142,7 @@ export function BatchProgress({
         <span className="actionbar__note">
           {progress.phase === 'complete'
             ? 'Bin what you do not want to sell.'
-            : 'You can leave this screen — it keeps going.'}
+            : 'You can leave this screen. It keeps going.'}
         </span>
         <Link className={progress.phase === 'complete' ? 'btn btn--primary' : 'btn'} href={`/lots/${progress.lotId}`}>
           {progress.phase === 'complete' ? `See ${progress.itemCount} items` : 'Back to lot'}

@@ -63,7 +63,7 @@ export async function getOrCreateUser(
 }
 
 /**
- * The single implicit user for runs with no auth configured — local
+ * The single implicit user for runs with no auth configured: local
  * development, the seed script, and the test suite. A fresh clone should be
  * fully usable before anyone signs up for anything.
  */

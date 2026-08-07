@@ -61,7 +61,7 @@ describe('toIdGroups', () => {
     expect(toIdGroups([{ image_numbers: [2.0] }], candidates)).toEqual([['b']])
   })
 
-  it('does not add back ids the model omitted — that repair belongs downstream', () => {
+  it('does not add back ids the model omitted: that repair belongs downstream', () => {
     expect(toIdGroups([{ image_numbers: [1] }], candidates)).toEqual([['a']])
   })
 })

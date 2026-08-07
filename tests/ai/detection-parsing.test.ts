@@ -85,7 +85,7 @@ describe('isRetryable', () => {
     expect(isRetryable({ status: 401 })).toBe(false)
   })
 
-  it('never retries a schema mismatch — resending cannot fix it', () => {
+  it('never retries a schema mismatch: resending cannot fix it', () => {
     expect(isRetryable(new VisionProviderError('bad shape', 'gemini'))).toBe(false)
   })
 })

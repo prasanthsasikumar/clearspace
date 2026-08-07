@@ -9,7 +9,7 @@ import { createServerClient } from '@supabase/ssr'
  * step. A first-time visitor is signed in anonymously before the page renders,
  * so their lot, photos, and listings are persisted server-side from the very
  * first upload. Adding an email or linking Google later keeps the same
- * Supabase user id, so nothing has to be migrated at the moment they commit —
+ * Supabase user id, so nothing has to be migrated at the moment they commit,
  * which is precisely the moment you cannot afford to lose someone's work.
  *
  * Middleware is the right place because it is the only one that can both read
@@ -42,7 +42,7 @@ export async function middleware(request: NextRequest) {
 
   if (!data.user) {
     // If anonymous sign-ins are disabled in the project, this fails and the
-    // request simply continues unauthenticated — the app then shows the
+    // request simply continues unauthenticated. The app then shows the
     // sign-in screen rather than breaking.
     const { error } = await supabase.auth.signInAnonymously()
     if (error) {

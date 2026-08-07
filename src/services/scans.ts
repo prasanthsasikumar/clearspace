@@ -91,8 +91,8 @@ export interface FrameUpload extends UploadedFile {
 /**
  * Attaches keyframes pulled out of a walkthrough video.
  *
- * Extraction happens in the browser — seeking a `<video>` element and drawing
- * to a canvas — which avoids an ffmpeg dependency entirely and means only
+ * Extraction happens in the browser (seeking a `<video>` element and drawing
+ * to a canvas), which avoids an ffmpeg dependency entirely and means only
  * sharp, distinct frames ever leave the phone. Each frame is detected
  * independently; duplicates across frames are the user's to dismiss, since
  * only they know whether two similar chairs are one chair seen twice.

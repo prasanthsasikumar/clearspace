@@ -1,4 +1,4 @@
-# Clearspace — Bulk-Capture Pivot
+# Clearspace: Bulk-Capture Pivot
 
 **Date:** 2026-08-06
 **Status:** Approved. Stage A in implementation.
@@ -9,7 +9,7 @@
 
 Phase 1 asked the user to tap every object worth selling. That is one deliberate
 decision per item, and people clearing out a storage unit do not want to make
-sixty deliberate decisions — they want to walk around taking photos and be
+sixty deliberate decisions; they want to walk around taking photos and be
 handed something finished.
 
 So the obligatory action moves from **selecting** to **pruning**. Everything the
@@ -28,16 +28,16 @@ user does now subtracts from a result rather than assembling one.
 One genuinely new problem: **the same physical object appears in several
 photos.** A chair shot from the doorway, again from the side, again while the
 user was aiming at the shelf behind it is *one listing with three views*, not
-three listings. Getting this wrong in either direction is bad — over-merging
+three listings. Getting this wrong in either direction is bad: over-merging
 loses inventory, under-merging produces a duplicate-riddled list that is worse
 than no list.
 
 ### Approach: shard cheaply, adjudicate with the model
 
-**Stage 1 — bucket by category.** Only compare a chair to a chair. Turns an
+**Stage 1: bucket by category.** Only compare a chair to a chair. Turns an
 O(n²) visual comparison into small independent buckets and costs nothing.
 
-**Stage 2 — Gemini adjudicates each bucket.** Send the numbered crops in one
+**Stage 2: Gemini adjudicates each bucket.** Send the numbered crops in one
 call: *"which of these are the same physical object photographed more than
 once?"* The model returns groups of indices.
 
@@ -55,7 +55,7 @@ chunks merge transitively.
 
 ### Why not embeddings
 
-Google's multimodal embedding endpoint is Vertex-only — it needs a GCP project
+Google's multimodal embedding endpoint is Vertex-only: it needs a GCP project
 and a service account, not the API key this project runs on. A local CLIP via
 transformers.js is a ~90 MB download and slow on CPU for fifty crops. Gemini is
 already looking at these images and is good at this comparison.
@@ -64,7 +64,7 @@ The decision is isolated behind an `ObjectMatcher` port, so an embedding-based
 matcher (and the vector search the original brief wanted) drops in later without
 touching the service that calls it.
 
-## Enrichment — two calls per item
+## Enrichment: two calls per item
 
 **This corrects an earlier claim in this document.** The original design said
 one structured call with Google Search grounding would do all three jobs.
@@ -72,20 +72,20 @@ Measured against a real key, it will not:
 
 | Attempt | Result |
 |---|---|
-| `responseSchema`, no search | Clean JSON, **zero sources** — the price is invented |
-| `googleSearch` **and** `responseSchema` | Accepted, clean JSON, **zero grounding chunks, zero web queries** — search silently never ran |
+| `responseSchema`, no search | Clean JSON, **zero sources**; the price is invented |
+| `googleSearch` **and** `responseSchema` | Accepted, clean JSON, **zero grounding chunks, zero web queries**; search silently never ran |
 | `googleSearch` alone | **Real sources and real queries**, but prose rather than JSON |
 
 The middle row is the dangerous one. The API accepts the combination, returns
-perfect JSON, and quietly does no searching — producing a confident price that
+perfect JSON, and quietly does no searching, producing a confident price that
 *looks* sourced and is not. That is exactly the failure this project's first
 principle forbids, and nothing in the response indicates it happened.
 
 So enrichment is two calls:
 
-1. **Research** — search on, no schema. Actually queries the web and returns
+1. **Research**: search on, no schema. Actually queries the web and returns
    prose plus `groundingMetadata` carrying the pages it read.
-2. **Structure** — schema on, no search. Turns that prose into the listing,
+2. **Structure**: schema on, no search. Turns that prose into the listing,
    instructed to introduce no brand, model, or price the research did not
    support.
 
@@ -101,11 +101,11 @@ enrichment calls ≈ **70 calls**, run concurrently through the existing queue.
 
 ## Pricing stays honest
 
-Search-grounded price estimates are informed guesses, not verified comparables —
+Search-grounded price estimates are informed guesses, not verified comparables;
 sold-listing data is thin in a general web index. The app says so:
 
 - Every `valuation` stores its `method` and its `comparables` with URLs.
-- The UI shows *"Suggested $450 — 4 sources"*, and the sources are tappable.
+- The UI shows *"Suggested $450, 4 sources"*, and the sources are tappable.
 - An item carries `listingUnconfirmed` until the user has opened it.
 - Lot-level CSV export reports how many prices were never checked.
 
@@ -141,7 +141,7 @@ Additive to the Phase 1 model. The `identifications`, `valuations`, and
 | Change | Purpose |
 |---|---|
 | `scans.batch_id` (uuid, indexed) | Photos uploaded together group together. Grouping runs per batch. |
-| `detections.crop_blob_key` | The crop is cut once, during detection. It feeds the matcher *and* becomes the item's view — cutting it twice would be waste. |
+| `detections.crop_blob_key` | The crop is cut once, during detection. It feeds the matcher *and* becomes the item's view; cutting it twice would be waste. |
 | `item_photos.source_detection_id` | A view traces back to the crop and photo it came from, so "where did this picture come from" is answerable. |
 | `items.listing_unconfirmed` (bool) | Stage B. Gates the honesty badge and the export warning. |
 
@@ -170,32 +170,32 @@ Everything structural: the ports, the job queue, the coordinate contract, the
 crop pipeline, the status machine, the coverage rules, the whole test suite.
 
 The **scan review canvas is demoted, not deleted.** It stops being the main path
-and becomes "fix a miss on this photo" — reachable from a batch when the user
+and becomes "fix a miss on this photo", reachable from a batch when the user
 notices something absent. Deleting it would re-open the failure the original
 design called out: a pipeline that dead-ends when the detector misses something.
 Tap-to-promote still works there; it is simply no longer required.
 
 ## Build order
 
-**Stage A — the new core loop.** Bulk capture, cross-photo grouping,
+**Stage A: the new core loop.** Bulk capture, cross-photo grouping,
 auto-created items carrying every view. This is the risky stage: if grouping is
 unreliable the premise wobbles, so it ships first and gets looked at against
 real photographs before anything is built on top of it.
 
-**Stage B — enrichment.** Identify, price, write copy. One call per item,
+**Stage B: enrichment.** Identify, price, write copy. One call per item,
 on demand per lot, sourced and labelled.
 
-**Stage C — export.** Share sheet, eBay File Exchange CSV, generic CSV, ZIP.
+**Stage C: export.** Share sheet, eBay File Exchange CSV, generic CSV, ZIP.
 
 ## Testing
 
-- **Grouping domain logic** — pure unit tests over the guard rails: same-photo
+- **Grouping domain logic**: pure unit tests over the guard rails: same-photo
   splitting, cross-category rejection, transitive merging across chunks,
   malformed model output (missing indices, duplicated indices, out-of-range).
-- **Batch pipeline** — integration against real Postgres: upload N photos,
+- **Batch pipeline**: integration against real Postgres: upload N photos,
   drain the queue, assert one item per distinct object with the right number of
   views attached, and assert two objects in the same photo stay separate.
-- **Matcher adapter** — parsing and index-mapping against recorded fixtures.
+- **Matcher adapter**: parsing and index-mapping against recorded fixtures.
 
 ## Deliberate omissions in Stage A
 

@@ -25,7 +25,7 @@ interface DetectionReviewProps {
 const POLL_MS = 1500
 
 /**
- * The detection review screen — the one that has to be right.
+ * The detection review screen: the one that has to be right.
  *
  * Three things make it usable in the field. Tapping a box promotes it and the
  * box turns green immediately, before the request finishes, because waiting

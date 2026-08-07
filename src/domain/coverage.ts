@@ -5,8 +5,8 @@ import type { ItemCategory } from './types'
  * Which photos an item needs before it is worth listing.
  *
  * This is a lookup table rather than a model call on purpose. The rules are
- * stable, category-level facts about how second-hand goods sell — a serial
- * number matters on a drill and is meaningless on a coffee table — and a table
+ * stable, category-level facts about how second-hand goods sell (a serial
+ * number matters on a drill and is meaningless on a coffee table), and a table
  * is instant, free, deterministic, and testable. The model's judgement is
  * better spent on whether a given photo is any *good*, which is a different
  * question and does go to Gemini.

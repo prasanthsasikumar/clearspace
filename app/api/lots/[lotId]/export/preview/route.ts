@@ -8,7 +8,7 @@ import { buildLotExport } from '@/services/exports'
 type Params = { params: Promise<{ lotId: string }> }
 
 /**
- * What the export would contain, without downloading it — so the UI can warn
+ * What the export would contain, without downloading it, so the UI can warn
  * about missing prices and unchecked figures before the seller commits.
  */
 export const GET = route(async (request: NextRequest, { params }: Params) => {

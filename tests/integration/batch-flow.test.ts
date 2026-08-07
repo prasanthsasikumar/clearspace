@@ -15,7 +15,7 @@ import { getCurrentUser } from '@/services/user'
  *
  * The vision provider and matcher are recorded rather than mocked, and the
  * matcher used here (group everything sharing a label) is deliberately the
- * worst plausible one — it merges every chair in the lot into a single object.
+ * worst plausible one: it merges every chair in the lot into a single object.
  * If the guard rails hold against that, they hold against a real model having
  * an off day.
  */
@@ -96,7 +96,7 @@ describe('bulk batch → grouped listings', () => {
 
   it('keeps two identical objects in one photo apart', async () => {
     // The hardest case in a storage unit: matching furniture. The matcher will
-    // happily merge these — the same-photo rule is what saves them.
+    // happily merge these; the same-photo rule is what saves them.
     const twinChairs: DetectedObject[] = [
       {
         label: 'dining chair',
@@ -155,7 +155,7 @@ describe('bulk batch → grouped listings', () => {
       const lot = await createLot(twins.db, user.id, { name: 'Dining room', kind: 'home' })
       await uploadPhotos(2, twins, lot.id)
 
-      // Two chairs seen in two photos is two listings with two views each —
+      // Two chairs seen in two photos is two listings with two views each,
       // not one listing with four, and not four listings with one.
       const created = await listItems(twins.db, lot.id)
       expect(created).toHaveLength(2)
@@ -201,8 +201,8 @@ describe('bulk batch → grouped listings', () => {
       const lot = await createLot(broken.db, user.id, { name: 'Garage', kind: 'garage' })
       await uploadPhotos(2, broken, lot.id)
 
-      // Duplicates the user can see and bin, rather than a failed batch or —
-      // far worse — items silently merged away.
+      // Duplicates the user can see and bin, rather than a failed batch or,
+      // far worse, items silently merged away.
       const created = await listItems(broken.db, lot.id)
       expect(created).toHaveLength(16)
     } finally {

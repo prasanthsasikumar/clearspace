@@ -25,7 +25,7 @@ const POLL_MS = 2000
  *
  * Two things are load-bearing here. Every price is labelled as an estimate
  * until a person says otherwise, and the export tells you how many you never
- * looked at — the moment of export is the last chance the app has to admit
+ * looked at: the moment of export is the last chance the app has to admit
  * that a number came from a model rather than a decision, and staying quiet
  * then would be its most consequential silence.
  */
@@ -203,7 +203,7 @@ export function ListingsReview({
                   <span>
                     {preview.unconfirmedPrices}{' '}
                     {preview.unconfirmedPrices === 1 ? 'price is' : 'prices are'} still Clearspace’s
-                    estimate — nobody has checked {preview.unconfirmedPrices === 1 ? 'it' : 'them'}
+                    estimate. Nobody has checked {preview.unconfirmedPrices === 1 ? 'it' : 'them'}
                     .
                   </span>
                 </p>
@@ -216,7 +216,7 @@ export function ListingsReview({
               <p className="meta">
                 This is Facebook’s <strong>catalogue feed</strong> format, which needs a
                 Commerce Manager business catalogue. Selling privately on Marketplace? Open an
-                item and use <strong>Share</strong> — photos and copy go straight into the
+                item and use <strong>Share</strong>: photos and copy go straight into the
                 Facebook app.
               </p>
             </div>

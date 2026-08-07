@@ -52,7 +52,7 @@ export default async function LotsPage() {
             <div className="empty">
               <p className="label">No lots yet</p>
               <p className="lede">
-                A lot is one space you are clearing out — a unit, a garage, a house.
+                A lot is one space you are clearing out: a unit, a garage, a house.
               </p>
             </div>
           ) : (

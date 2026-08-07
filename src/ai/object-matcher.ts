@@ -5,7 +5,7 @@ export interface MatchCandidate {
 }
 
 export interface MatchObjectsInput {
-  /** All from one category bucket — the matcher never sees a mixed set. */
+  /** All from one category bucket; the matcher never sees a mixed set. */
   candidates: readonly MatchCandidate[]
   categoryHint?: string
 }
@@ -19,7 +19,7 @@ export interface MatchObjectsInput {
  * it would not change a line.
  *
  * The contract: return groups of candidate ids. Ids may be omitted (they become
- * single-view objects), and the caller repairs duplicates and unknown ids —
+ * single-view objects), and the caller repairs duplicates and unknown ids;
  * see `domain/grouping.ts`. A matcher is never trusted with correctness, only
  * with judgement.
  */

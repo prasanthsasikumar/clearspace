@@ -48,7 +48,7 @@ function sceneSvg(pass = 0): string {
     <rect width="100%" height="100%" fill="#1b2029" />
     <rect y="${HEIGHT * 0.86}" width="100%" height="${HEIGHT * 0.14}" fill="#242b36" />
     <text x="24" y="40" font-family="monospace" font-size="20" fill="#5d6a7e">
-      CLEARSPACE — DEMO SCENE ${pass + 1} (not a photograph)
+      CLEARSPACE DEMO SCENE ${pass + 1} (not a photograph)
     </text>
     ${shapes}
   </svg>`
@@ -70,7 +70,7 @@ async function main() {
 
   const existing = await listLots(db, user.id)
   if (existing.some((lot) => lot.name === 'Storage Unit #23')) {
-    console.log('Demo lot already exists — nothing to do.')
+    console.log('Demo lot already exists, nothing to do.')
     process.exit(0)
   }
 
@@ -80,7 +80,7 @@ async function main() {
     locationText: 'Bay 12, Fremont',
   })
 
-  // Three passes at the same space — the thing the bulk loop exists to handle.
+  // Three passes at the same space: the thing the bulk loop exists to handle.
   const files = []
   for (let pass = 0; pass < 3; pass += 1) {
     files.push({

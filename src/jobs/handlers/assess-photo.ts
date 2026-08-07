@@ -15,7 +15,7 @@ export interface AssessPhotoResult {
  * Second-pass photo assessment.
  *
  * The browser already scored sharpness and exposure before upload; this asks
- * the harder question the client cannot answer — is the thing this photo was
+ * the harder question the client cannot answer: is the thing this photo was
  * meant to show actually legible? A serial-number close-up can be perfectly
  * sharp and still useless because the sticker is out of frame.
  */
@@ -44,7 +44,7 @@ export const assessPhotoHandler: JobHandler = async (
     itemTitle: row.itemTitle,
   })
 
-  // The client's measured blur and exposure are kept — they are physical
+  // The client's measured blur and exposure are kept; they are physical
   // measurements, and the model's estimate of them is a guess. Only the
   // model's judgement about the subject is merged in.
   const merged = {

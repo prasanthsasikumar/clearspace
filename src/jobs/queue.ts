@@ -51,7 +51,7 @@ export async function enqueue<T extends JobType>(
 /**
  * Atomically takes the next due job.
  *
- * `FOR UPDATE SKIP LOCKED` is what makes it safe to run more than one poller —
+ * `FOR UPDATE SKIP LOCKED` is what makes it safe to run more than one poller;
  * two workers racing for the same row will never both win it. PGlite is
  * single-process today, so this costs nothing now and is the difference
  * between working and not once a real worker fleet exists.

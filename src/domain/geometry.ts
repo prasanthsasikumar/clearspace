@@ -1,8 +1,8 @@
 /**
  * The single coordinate contract in Clearspace.
  *
- * Every bounding box — whether it came from Gemini, a future SAM 2 adapter, or
- * a finger dragged across a canvas — is stored and passed around as normalized
+ * Every bounding box, whether it came from Gemini, a future SAM 2 adapter, or
+ * a finger dragged across a canvas, is stored and passed around as normalized
  * fractions of the image dimensions, origin top-left, y growing downward.
  *
  * Keeping boxes resolution-independent means the same row survives a thumbnail,
@@ -144,7 +144,7 @@ export interface DedupeCandidate {
 /**
  * Non-maximum suppression over detections.
  *
- * Vision models routinely return the same chair three times — as "chair",
+ * Vision models routinely return the same chair three times: as "chair",
  * "office chair", and "furniture". Showing all three turns the review screen
  * into a game of whack-a-mole, so overlapping boxes collapse to the most
  * confident one. Ties break toward the larger box, which is more likely to
@@ -194,8 +194,8 @@ export function boxContains(box: BoundingBox, point: { x: number; y: number }): 
 }
 
 /**
- * Which box did the user mean to tap? Boxes nest constantly — a toolbox sits
- * inside a shelving unit — so a tap inside several boxes resolves to the
+ * Which box did the user mean to tap? Boxes nest constantly (a toolbox sits
+ * inside a shelving unit), so a tap inside several boxes resolves to the
  * smallest, which is the one whose edges are nearest the finger.
  */
 export function pickBoxAt<T extends { bbox: BoundingBox }>(

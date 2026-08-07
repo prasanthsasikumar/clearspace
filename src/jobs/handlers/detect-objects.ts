@@ -23,7 +23,7 @@ export interface DetectObjectsResult {
  * records both.
  *
  * Detections are written even when the model returns nothing, so the review
- * screen can distinguish "we looked and found nothing" from "still working" —
+ * screen can distinguish "we looked and found nothing" from "still working":
  * an empty result is a real answer and gets its own coaching copy.
  */
 export const detectObjectsHandler: JobHandler = async (
@@ -161,7 +161,7 @@ async function finalizeScanStatus(
 /**
  * Fan-in for a batch: grouping can only run once every photo has been looked
  * at, so the last detection job out of the door starts it. Racing workers are
- * safe here — the check and the enqueue both go through the queue's own
+ * safe here: the check and the enqueue both go through the queue's own
  * transaction, and a duplicate grouping job would find every detection already
  * assigned and do nothing.
  */

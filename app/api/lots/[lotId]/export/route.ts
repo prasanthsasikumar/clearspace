@@ -11,7 +11,7 @@ type Params = { params: Promise<{ lotId: string }> }
  * Downloads the Facebook catalogue feed.
  *
  * The origin is taken from the request so `image_link` and `link` are absolute
- * and match however the user reached the app — a feed full of `localhost` URLs
+ * and match however the user reached the app: a feed full of `localhost` URLs
  * would be silently useless to anyone but the machine that made it.
  */
 export const GET = route(async (request: NextRequest, { params }: Params) => {

@@ -69,7 +69,7 @@ describe('buildFacebookFeed', () => {
     expect(result.skipped[0]!.field).toBe('price')
   })
 
-  it('leaves out an item with no photograph — the feed would reject it anyway', () => {
+  it('leaves out an item with no photograph: the feed would reject it anyway', () => {
     const result = buildFacebookFeed([{ ...base, imageUrls: [] }])
     expect(result.rowCount).toBe(0)
     expect(result.skipped[0]!.field).toBe('image_link')

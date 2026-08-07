@@ -12,9 +12,9 @@ of them fail silently:
 
 | Local | Serverless | Fix |
 |---|---|---|
-| PGlite writes to `./.data` | Filesystem is ephemeral — the database vanishes | `DATABASE_URL` → Supabase |
-| Photos write to `./storage` | Same — uploads disappear | `BLOB_DRIVER=supabase` |
-| Queue is a `setInterval` | Nothing survives between requests, so jobs are **enqueued and never run** — the UI sits at "Analysing…" forever with no error | Vercel Cron → `/api/jobs/tick` |
+| PGlite writes to `./.data` | Filesystem is ephemeral; the database vanishes | `DATABASE_URL` → Supabase |
+| Photos write to `./storage` | Same; uploads disappear | `BLOB_DRIVER=supabase` |
+| Queue is a `setInterval` | Nothing survives between requests, so jobs are **enqueued and never run**; the UI sits at "Analysing…" forever with no error | Vercel Cron → `/api/jobs/tick` |
 
 The third is the one worth understanding. Detection, grouping, and enrichment
 all happen on a queue. Without something calling `/api/jobs/tick`, uploads
@@ -39,7 +39,7 @@ Then apply the schema:
 npm run setup:supabase     # bucket + migrations + verification
 ```
 
-No SQL to write — the schema comes from `drizzle/`.
+No SQL to write: the schema comes from `drizzle/`.
 
 > The client is configured with `prepare: false` and `max: 1`. pgbouncer in
 > transaction mode does not share prepared statements across pooled
@@ -59,7 +59,7 @@ Import `prasanthsasikumar/clearspace`. Framework and build command are detected.
 | `SUPABASE_URL` | `https://<ref>.supabase.co` |
 | `SUPABASE_SERVICE_KEY` | Settings → API → `service_role` |
 | `SUPABASE_BUCKET` | `clearspace` |
-| `GEMINI_API_KEY` | your key — omit to deploy in demo mode |
+| `GEMINI_API_KEY` | your key; omit to deploy in demo mode |
 | `GEMINI_MODEL` | `gemini-flash-latest` |
 | `CRON_SECRET` | any long random string |
 
@@ -79,20 +79,20 @@ watching:
 { "crons": [{ "path": "/api/jobs/tick", "schedule": "0 3 * * *" }] }
 ```
 
-Daily because **Vercel's Hobby plan rejects anything more frequent** — a
+Daily because **Vercel's Hobby plan rejects anything more frequent**: a
 deploy carrying `* * * * *` fails outright. On Pro, raise it to `* * * * *`
 so abandoned work is picked up within a minute rather than overnight.
 
 Vercel sends `Authorization: Bearer $CRON_SECRET`, which the endpoint verifies
-with a constant-time comparison. **Set `CRON_SECRET`** — without it the
+with a constant-time comparison. **Set `CRON_SECRET`**: without it the
 endpoint is open, and every job it runs can spend money on model calls.
 
 Each invocation drains until the queue is empty or it runs out of time
-(50s of a 60s budget), rather than a fixed number of jobs — detection takes
+(50s of a 60s budget), rather than a fixed number of jobs: detection takes
 about 4s and enrichment about 30s, so a fixed count would either waste the
 invocation or overrun it.
 
-A signed-in visitor's nudge starts at most two jobs per call — the session is
+A signed-in visitor's nudge starts at most two jobs per call: the session is
 the credential, because `CRON_SECRET` cannot ship to a browser, and the limit
 is what stops it being a lever on your bill.
 
@@ -108,7 +108,7 @@ is what stops it being a lever on your bill.
    → `{"processed":2,...}`.
 5. The batch screen reaches **complete** and items appear.
 
-If step 5 stalls at "Analysing…", the queue is not being called — check
+If step 5 stalls at "Analysing…", the queue is not being called: check
 `CRON_SECRET` matches and the cron is registered under Vercel → Settings →
 Cron Jobs.
 
@@ -116,7 +116,7 @@ Cron Jobs.
 
 A 30-photo lot is roughly 30 detection calls + ~4 grouping calls, then ~2 calls
 per item you ask it to write up. Enrichment is deliberately on demand for this
-reason — grouping does not trigger it.
+reason: grouping does not trigger it.
 
 ## Auth
 
@@ -126,17 +126,17 @@ survive a cleared cache and follow them to another device.
 The mechanism: middleware signs a first-time visitor in **anonymously** before
 anything renders, so their lot is persisted server-side from the first upload.
 Adding an email or linking Google later keeps the **same Supabase user id**, so
-nothing is migrated at the moment they commit — which is exactly the moment you
+nothing is migrated at the moment they commit, which is exactly the moment you
 cannot afford to lose someone's work.
 
 ### Dashboard toggles
 
 | Where | Setting | Needed |
 |---|---|---|
-| Authentication → Sign In / Providers | **Anonymous sign-ins** → on | Yes — without it, first-time visitors hit the sign-in wall instead of the app |
+| Authentication → Sign In / Providers | **Anonymous sign-ins** → on | Yes; without it, first-time visitors hit the sign-in wall instead of the app |
 | Authentication → Sign In / Providers | **Email** | Already on |
 | Authentication → Sign In / Providers | **Google** → on, + client ID/secret from Google Cloud | Only for the Google button |
-| Authentication → URL Configuration | **Redirect URLs** → add `http://localhost:3300/auth/callback` and `https://<app>/auth/callback` | Yes — the magic link and OAuth both return here |
+| Authentication → URL Configuration | **Redirect URLs** → add `http://localhost:3300/auth/callback` and `https://<app>/auth/callback` | Yes; the magic link and OAuth both return here |
 
 Google needs an OAuth client from Google Cloud Console (Web application), with
 `https://<ref>.supabase.co/auth/v1/callback` as the authorised redirect URI.
@@ -146,7 +146,7 @@ than failing silently.
 ### Environment
 
 Auth is off unless both of these are set, and with it off the app runs as a
-single implicit local user — which is what keeps a fresh clone usable:
+single implicit local user, which is what keeps a fresh clone usable:
 
 | Name | Value |
 |---|---|
@@ -155,8 +155,8 @@ single implicit local user — which is what keeps a fresh clone usable:
 
 ## Not done
 
-- **eBay publishing** — the button exists and is disabled.
-- **Photo ZIP export** — the Facebook CSV and per-item share sheet are built.
-- **Passwords** — email sign-in is a magic link only. Nothing to invent or
+- **eBay publishing**: the button exists and is disabled.
+- **Photo ZIP export**: the Facebook CSV and per-item share sheet are built.
+- **Passwords**: email sign-in is a magic link only. Nothing to invent or
   forget, and no password reset flow to build.
-- **Account deletion / export** — no self-serve way to remove an account yet.
+- **Account deletion / export**: no self-serve way to remove an account yet.

@@ -18,7 +18,7 @@ import {
 
 /**
  * The Phase 1 loop, end to end, against real Postgres and real image
- * processing. Only the vision vendor is replaced — with recorded responses,
+ * processing. Only the vision vendor is replaced, with recorded responses,
  * not a mock, so the parsing and coordinate conversion under test are the same
  * code the live provider runs.
  */
@@ -92,7 +92,7 @@ describe('capture → detect → promote', () => {
     expect(await harness.blobs.get(withPhotos!.photos[0]!.blobKey)).not.toBeNull()
   })
 
-  it('is idempotent — a double tap does not create two items', async () => {
+  it('is idempotent: a double tap does not create two items', async () => {
     const detail = await scanARoom()
     const target = detail.detections[0]!
 
@@ -153,7 +153,7 @@ describe('capture → detect → promote', () => {
     expect(detailAfter!.item.status).toBe('needs_confirmation')
   })
 
-  it('keeps the shot list advisory — deleting a photo never blocks the item', async () => {
+  it('keeps the shot list advisory: deleting a photo never blocks the item', async () => {
     const detail = await scanARoom()
     const item = await promoteDetection(
       harness.db,
@@ -240,7 +240,7 @@ describe('capture → detect → promote', () => {
       const detail = await getScanDetail(failing.db, scan.id)
       expect(detail!.detections).toHaveLength(0)
       expect(detail!.scan.error).toContain('model unavailable')
-      // Still `processing`, not `complete` — the queue has retries left.
+      // Still `processing`, not `complete`: the queue has retries left.
       expect(detail!.scan.status).toBe('processing')
     } finally {
       await failing.close()

@@ -16,7 +16,7 @@ export interface Enricher {
 
 /**
  * A recorded enrichment, so demo mode and the test suite exercise the whole
- * write path — identification, valuation, listing, status — without a network.
+ * write path (identification, valuation, listing, status) without a network.
  *
  * It reports `unsourced: true` and says so in `priceBasis`, because a fixture
  * price is exactly the kind of number the app promises never to dress up as
@@ -47,7 +47,7 @@ export class FixtureEnricher implements Enricher {
       lowCents: 2000,
       highCents: 6000,
       recommendedCents: 4000,
-      priceBasis: 'Demo mode — this figure is a placeholder, not research.',
+      priceBasis: 'Demo mode: this figure is a placeholder, not research.',
       confidence: 0.4,
       sources: [],
       searchQueries: [],

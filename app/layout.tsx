@@ -51,7 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <span className="demostrip__glyph" aria-hidden="true">
               ◇
             </span>
-            Demo mode — detections come from a recording, not a live model.
+            Demo mode: detections come from a recording, not a live model.
           </div>
         ) : null}
         {children}

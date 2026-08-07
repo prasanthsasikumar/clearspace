@@ -10,7 +10,7 @@ export interface PreparedImage {
 }
 
 const MAX_EDGE = 2048
-/** Sharpness is measured on a small copy — the kernel is O(pixels). */
+/** Sharpness is measured on a small copy; the kernel is O(pixels). */
 const ANALYSIS_EDGE = 320
 
 /**
@@ -19,7 +19,7 @@ const ANALYSIS_EDGE = 320
  * Everything here happens before a single byte goes over the wire, which is
  * the point: a storage unit has one bar of signal, and re-encoding an 12 MB
  * HEIC to a 400 KB JPEG on-device turns a 40-second upload into a 2-second
- * one. Decoding through the browser also solves HEIC — iOS decodes its own
+ * one. Decoding through the browser also solves HEIC: iOS decodes its own
  * format natively, so the server only ever sees JPEG.
  */
 export async function prepareImage(file: File, maxEdge = MAX_EDGE): Promise<PreparedImage> {
@@ -78,7 +78,7 @@ export function measureQuality(source: CanvasImageSource & { width: number; heig
   const grey = new Float32Array(w * h)
   let luminanceSum = 0
   for (let i = 0, p = 0; i < data.length; i += 4, p += 1) {
-    // Rec. 601 luma — matches how the eye weights the channels.
+    // Rec. 601 luma: matches how the eye weights the channels.
     const value =
       0.299 * (data[i] ?? 0) + 0.587 * (data[i + 1] ?? 0) + 0.114 * (data[i + 2] ?? 0)
     grey[p] = value

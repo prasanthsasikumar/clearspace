@@ -64,7 +64,7 @@ export function ListingPanel({
   /**
    * One tap: photos and copy into the iOS share sheet, from which the seller
    * saves to Photos or drops straight into the Facebook app. There is no
-   * public API to post a personal Marketplace listing, so this — not a CSV —
+   * public API to post a personal Marketplace listing, so this, not a CSV,
    * is the real "one click" for a private seller.
    */
   async function share() {
@@ -143,7 +143,7 @@ export function ListingPanel({
           />
           {valuation ? (
             <span className="meta">
-              Clearspace suggested {formatMoney(valuation.recommendedCents, item.currency)} — range{' '}
+              Clearspace suggested {formatMoney(valuation.recommendedCents, item.currency)}, range{' '}
               {formatMoney(valuation.lowCents, item.currency)} to{' '}
               {formatMoney(valuation.highCents, item.currency)}.
             </span>
@@ -211,7 +211,7 @@ export function ListingPanel({
         </div>
 
         <p className="meta">
-          Share puts the photos and this text into your phone’s share sheet — save them to
+          Share puts the photos and this text into your phone’s share sheet. Save them to
           Photos, or send them straight to the Facebook app and paste.
         </p>
       </div>

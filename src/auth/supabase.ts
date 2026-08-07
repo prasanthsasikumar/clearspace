@@ -4,7 +4,7 @@ import { env } from '@/config/env'
 /**
  * Supabase Auth clients.
  *
- * Clearspace's own data never goes through Supabase's REST API — the app talks to
+ * Clearspace's own data never goes through Supabase's REST API; the app talks to
  * Postgres directly with Drizzle. Supabase is used purely as an identity
  * provider, which keeps the surface small: this reads and refreshes a session
  * cookie and nothing else.

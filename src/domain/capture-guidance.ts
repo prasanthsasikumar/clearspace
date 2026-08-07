@@ -27,7 +27,7 @@ export const captureModes: readonly CaptureMode[] = [
     steps: [
       'Open the door and let in as much light as you can.',
       'Stand back far enough to get a whole wall in frame.',
-      'Keep the camera level — angled shots hide what is behind things.',
+      'Keep the camera level. Angled shots hide what is behind things.',
       'Shoot one wall at a time rather than one photo of everything.',
     ],
     accept: 'image/*',
@@ -36,7 +36,7 @@ export const captureModes: readonly CaptureMode[] = [
   {
     kind: 'photo',
     title: 'Multiple photos',
-    blurb: 'Several photos at once — one per shelf, corner, or pile.',
+    blurb: 'Several photos at once, one per shelf, corner, or pile.',
     steps: [
       'Work around the space in order so you do not miss a corner.',
       'Move closer for shelves and bins; small items need the frame.',
@@ -50,7 +50,7 @@ export const captureModes: readonly CaptureMode[] = [
     title: 'Video walkthrough',
     blurb: 'Walk the space once. Clearspace pulls the sharp frames out.',
     steps: [
-      'Walk slowly — about one step every two seconds.',
+      'Walk slowly, about one step every two seconds.',
       'Pause two seconds on anything worth money.',
       'Sweep low and high; the top shelf is where the good stuff hides.',
       'Thirty to sixty seconds is plenty.',
@@ -79,7 +79,7 @@ export function detectionFeedback(count: number): string | null {
     return 'Only one item found. If there is more in the room, take a wider shot or scan the next wall.'
   }
   if (count >= 20) {
-    return 'Lots found. Promote the ones worth selling and dismiss the rest — you can rescan any wall in more detail.'
+    return 'Lots found. Promote the ones worth selling and dismiss the rest. You can rescan any wall in more detail.'
   }
   return null
 }

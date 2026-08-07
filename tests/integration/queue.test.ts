@@ -111,7 +111,7 @@ describe('job queue', () => {
   })
 
   it('fails a job whose type has no handler instead of losing it silently', async () => {
-    // Bypass the typed helper — this is the shape a stale enqueue leaves behind.
+    // Bypass the typed helper: this is the shape a stale enqueue leaves behind.
     const [job] = await harness.db
       .insert(jobs)
       .values({ type: 'retired_job_type', payload: {} })

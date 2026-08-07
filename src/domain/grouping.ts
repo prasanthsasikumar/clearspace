@@ -50,7 +50,7 @@ export interface Bucket {
  * nothing, and makes the cross-category constraint structural rather than
  * something the model has to remember.
  *
- * Uncategorised detections share one bucket rather than being excluded — the
+ * Uncategorised detections share one bucket rather than being excluded; the
  * model failing to categorise something is no reason to strand it.
  */
 export function bucketByCategory(
@@ -81,7 +81,7 @@ export function bucketByCategory(
  *
  * When a proposed group breaks that rule the model is wrong about at least one
  * member, and there is no honest way to know which. Rather than discard the
- * whole group — which throws away the correct pairings inside it — members are
+ * whole group, which throws away the correct pairings inside it, members are
  * dealt into the fewest slots that satisfy the constraint, first-fit. A group
  * of `a(photo1), b(photo1), c(photo2)` becomes `[a, c]` and `[b]`: still two
  * objects, still one of them carrying its second view.
@@ -165,7 +165,7 @@ export function mergeTransitive(groups: readonly (readonly string[])[]): string[
 /**
  * Turns a matcher's raw reply into groups that can be trusted.
  *
- * Model replies are malformed in predictable ways — ids that were never sent,
+ * Model replies are malformed in predictable ways: ids that were never sent,
  * the same id in two groups, whole detections simply left out. Each is repaired
  * rather than treated as an error, because a bad reply must never cost the user
  * an object they photographed:
@@ -207,7 +207,7 @@ export function applyGrouping(
  * Picks the crop that best represents the object and the name to call it.
  *
  * The representative is the most confident detection, breaking ties toward the
- * largest box — the view where the object fills the most frame is the one worth
+ * largest box: the view where the object fills the most frame is the one worth
  * showing on the listing card. The label is whichever name recurred most
  * across the views, which quietly corrects a single odd reading.
  */

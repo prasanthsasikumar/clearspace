@@ -11,7 +11,7 @@ const NAME = 'gemini-enrichment'
 /* -------------------------------------------------------------------------- */
 
 /**
- * Gemini will accept `googleSearch` and `responseSchema` in the same request —
+ * Gemini will accept `googleSearch` and `responseSchema` in the same request,
  * and then silently not search. Measured against a real key: the response comes
  * back as flawless JSON with zero grounding chunks and zero web queries. The
  * price in it is invented, and nothing in the reply says so.
@@ -19,9 +19,9 @@ const NAME = 'gemini-enrichment'
  * That is the single worst failure this app could ship: a fabricated number
  * wearing the costume of a researched one. So enrichment is two calls.
  *
- *   1. RESEARCH — search on, no schema. Actually queries the web and returns
+ *   1. RESEARCH: search on, no schema. Actually queries the web and returns
  *      prose plus `groundingMetadata` carrying the URLs it read.
- *   2. STRUCTURE — schema on, no search. Turns that prose into the listing,
+ *   2. STRUCTURE: schema on, no search. Turns that prose into the listing,
  *      and is explicitly told to use only what the research found.
  *
  * The sources attached to a valuation are therefore pages that were genuinely
@@ -128,7 +128,7 @@ export function buildResearchPrompt(input: EnrichmentInput): string {
     input.userNotes ? `They said: "${input.userNotes}"` : undefined,
     '',
     'Do two things:',
-    '1. Identify the item as precisely as the photographs allow. Give the brand and model ONLY if you can actually read or recognise them — say "unknown" otherwise. A wrong model number on a listing becomes a dispute.',
+    '1. Identify the item as precisely as the photographs allow. Give the brand and model ONLY if you can actually read or recognise them; say "unknown" otherwise. A wrong model number on a listing becomes a dispute.',
     '2. Search the web for what this actually sells for used, and report the range you found with the prices you saw.',
     '',
     'Then state, in plain sentences:',

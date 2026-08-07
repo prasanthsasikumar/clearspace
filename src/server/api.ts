@@ -31,7 +31,7 @@ export function fail(
  *
  * Domain errors carry messages written for the person holding the phone, so
  * they are passed through verbatim. Anything unrecognised is logged in full
- * and reported generically — an internal stack trace is not something a
+ * and reported generically: an internal stack trace is not something a
  * marketplace app should hand to its client.
  */
 export function toErrorResponse(error: unknown): NextResponse<ApiErrorBody> {

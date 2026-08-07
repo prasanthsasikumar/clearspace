@@ -29,7 +29,7 @@ function getGeminiClient(): GeminiClient {
 
 /**
  * Resolves the vision provider. With no API key configured the app falls back
- * to recorded fixtures rather than failing — a fresh clone should be explorable
+ * to recorded fixtures rather than failing; a fresh clone should be explorable
  * before anyone signs up for anything.
  */
 export function getVisionProvider(): VisionProvider {

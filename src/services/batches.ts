@@ -16,7 +16,7 @@ export interface BatchCreated {
  * The batch is what makes cross-photo grouping possible: photos taken in one
  * walk around a space belong together, and an object appearing in three of them
  * is one listing. Each photo still gets its own scan row and its own detection
- * job — they run concurrently and fail independently — but they share a batch
+ * job (they run concurrently and fail independently), but they share a batch
  * id, and the last job to finish starts the grouping pass.
  */
 export async function createBatch(

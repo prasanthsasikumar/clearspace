@@ -55,7 +55,7 @@ interface Draft {
 }
 
 /**
- * Item detail — the generated listing, the photos, and the fields behind them.
+ * Item detail: the generated listing, the photos, and the fields behind them.
  *
  * The shot list lower down is advice now, not a gate. Someone with five
  * minutes in a unit often has exactly one photograph of a thing and needs a
@@ -199,7 +199,7 @@ export function ItemEditor({
           <h1>{item.title}</h1>
           <p className="meta">
             {item.estimatedValueCents === null
-              ? 'Not yet priced — select it on the board and tap Next.'
+              ? 'Not yet priced. Select it on the board and tap Next.'
               : formatMoney(item.estimatedValueCents, item.currency)}
           </p>
         </div>

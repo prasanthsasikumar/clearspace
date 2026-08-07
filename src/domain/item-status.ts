@@ -4,14 +4,14 @@ import type { ItemStatus } from '@/db/schema'
  * The item lifecycle.
  *
  * Statuses are the vocabulary the inventory dashboard groups by, so they are
- * phrased from the seller's point of view — "what do I still have to do with
- * this?" — rather than as pipeline internals.
+ * phrased from the seller's point of view ("what do I still have to do with
+ * this?") rather than as pipeline internals.
  */
 const ALLOWED_TRANSITIONS: Record<ItemStatus, readonly ItemStatus[]> = {
   detected: ['photos_needed', 'needs_confirmation', 'discarded'],
   photos_needed: ['ai_identified', 'needs_confirmation', 'discarded'],
   // Approving a written listing is the main act on the listings screen, so it
-  // goes straight to `confirmed` — routing it back through a second draft
+  // goes straight to `confirmed`; routing it back through a second draft
   // state would mean two taps to say yes once.
   ai_identified: ['confirmed', 'needs_confirmation', 'photos_needed', 'discarded'],
   needs_confirmation: ['confirmed', 'photos_needed', 'ai_identified', 'discarded'],
@@ -69,8 +69,8 @@ export function assertTransition(from: ItemStatus, to: ItemStatus): void {
  * Photo coverage deliberately no longer decides status. Someone standing in a
  * unit with five minutes often has exactly one photograph of a thing, and an
  * app that answers that with "Photos needed" has refused to do the one job it
- * exists for. The shot list survives as advice on the item screen — adding a
- * label shot genuinely helps a listing sell — but it never blocks anything.
+ * exists for. The shot list survives as advice on the item screen (adding a
+ * label shot genuinely helps a listing sell), but it never blocks anything.
  *
  * Only the two machine-owned drafting states move here. Once a person has
  * reviewed, exported, or sold an item, nothing automatic may walk it backwards.

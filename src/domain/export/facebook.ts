@@ -9,7 +9,7 @@ import { toCsv } from './csv'
  * Commerce Manager catalogue feed format, which is what Facebook actually
  * documents and accepts, and it requires a business catalogue. A private seller
  * clearing a garage lists through the app, and for them the useful export is
- * the share sheet — photos and copy in one tap — not this file.
+ * the share sheet (photos and copy in one tap), not this file.
  *
  * So this exists to be correct for the people it fits, and the UI says plainly
  * who those people are rather than implying one tap posts to Marketplace.
@@ -74,7 +74,7 @@ export interface ExportResult {
 /**
  * Builds the feed, and reports what it could not vouch for.
  *
- * Items with no price are skipped rather than exported at zero — a catalogue
+ * Items with no price are skipped rather than exported at zero: a catalogue
  * row priced at 0.00 is worse than an absent one. Everything else that is
  * merely incomplete produces a warning the UI shows, so the seller finds out
  * here rather than from a rejected upload.
@@ -112,7 +112,7 @@ export function buildFacebookFeed(items: readonly ExportableItem[]): ExportResul
       warnings.push({
         itemId: item.id,
         field: 'brand',
-        message: `“${item.title}” has no brand — Facebook wants one.`,
+        message: `“${item.title}” has no brand. Facebook wants one.`,
       })
     }
 
@@ -137,7 +137,7 @@ export function buildFacebookFeed(items: readonly ExportableItem[]): ExportResul
   return { csv: toCsv(FACEBOOK_COLUMNS, rows), rowCount: rows.length, skipped, warnings }
 }
 
-/** Facebook wants `9.99 USD` — amount, space, ISO currency code. */
+/** Facebook wants `9.99 USD`: amount, space, ISO currency code. */
 export function formatPrice(cents: number, currency: string): string {
   return `${(cents / 100).toFixed(2)} ${currency}`
 }

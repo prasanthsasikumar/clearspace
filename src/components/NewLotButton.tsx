@@ -17,7 +17,7 @@ const KINDS = [
  * Creating a lot is three fields and a button.
  *
  * The native `<dialog>` handles the focus trap, the backdrop, and Escape for
- * free — reimplementing those is where hand-rolled modals go wrong.
+ * free; reimplementing those is where hand-rolled modals go wrong.
  */
 export function NewLotButton() {
   const dialogRef = useRef<HTMLDialogElement>(null)
@@ -108,7 +108,7 @@ export function NewLotButton() {
 
           <div className="field">
             <label className="label" htmlFor="lot-location">
-              Where <span className="meta">— optional</span>
+              Where <span className="meta">(optional)</span>
             </label>
             <input
               id="lot-location"

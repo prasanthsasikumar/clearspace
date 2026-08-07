@@ -17,14 +17,14 @@ type Phase =
 const MAX_PHOTOS = 60
 
 /**
- * Bulk capture — the front door of the whole product.
+ * Bulk capture: the front door of the whole product.
  *
  * The user's job is to walk around taking photos badly and then hand them over.
  * There is no per-item ceremony here, no framing rules to follow, and nothing
  * to name: pick everything, tap once, walk away. Anything that asks the user to
  * think about an individual object belongs after grouping, not before it.
  *
- * A video walkthrough lands in the same place — frames are pulled out on the
+ * A video walkthrough lands in the same place: frames are pulled out on the
  * phone and uploaded as ordinary photos, so grouping treats a walkthrough and a
  * pile of stills identically.
  */
@@ -155,7 +155,7 @@ export function BulkCapture({ lotId }: { lotId: string }) {
         <div className="stack stack--tight">
           <h1>Photograph the whole space.</h1>
           <p className="lede">
-            Walk around and shoot everything. Overlap, repeat yourself, get it wrong — Clearspace
+            Walk around and shoot everything. Overlap, repeat yourself, get it wrong. Clearspace
             works out which photos show the same thing.
           </p>
         </div>
@@ -194,7 +194,7 @@ export function BulkCapture({ lotId }: { lotId: string }) {
             <div className="panel__body">
               <ul className="steps">
                 <li>Open the door and let in as much light as you can.</li>
-                <li>Photograph anything you might sell — several times, from wherever you are standing.</li>
+                <li>Photograph anything you might sell, several times, from wherever you are standing.</li>
                 <li>Get closer to small things. A shelf of tools needs its own shot.</li>
                 <li>Twenty photos of a storage unit is plenty. Sixty is the limit.</li>
               </ul>
@@ -235,7 +235,7 @@ export function BulkCapture({ lotId }: { lotId: string }) {
                 <span aria-hidden="true">◆</span>
                 <span>
                   {blurry} {blurry === 1 ? 'photo looks' : 'photos look'} soft or dark. They
-                  still upload — Clearspace will just find less in them.
+                  still upload. Clearspace will just find less in them.
                 </span>
               </p>
             ) : null}

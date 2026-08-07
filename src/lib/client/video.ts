@@ -23,7 +23,7 @@ const BLUR_FLOOR = 0.2
  *
  * Doing this client-side is what lets Clearspace accept video at all without an
  * ffmpeg dependency on the server. It also means a 60-second, 90 MB walkthrough
- * never leaves the phone — only the eight or so frames worth analysing do.
+ * never leaves the phone; only the eight or so frames worth analysing do.
  *
  * Frames are sampled evenly, then filtered twice: anything below the blur floor
  * is dropped (walking motion smears most frames), and anything too similar to

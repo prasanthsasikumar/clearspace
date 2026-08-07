@@ -46,7 +46,7 @@ export class ConflictError extends Error {
  * The detected region is cut out of the scene photo and becomes the item's
  * first picture, so the item is recognisable in the inventory list before the
  * user has photographed it properly. The crop is tagged `other` rather than
- * `front` on purpose — it is a starting point, not a listing photo, and the
+ * `front` on purpose: it is a starting point, not a listing photo, and the
  * coverage checklist should still ask for a real front shot.
  */
 export async function promoteDetection(

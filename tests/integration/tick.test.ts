@@ -63,7 +63,7 @@ describe('queue draining without a long-lived worker', () => {
       files: [{ data: await makeJpeg(800, 600), mimeType: 'image/jpeg' }],
     })
 
-    // Nothing reclaimable yet — the job is still pending, not stuck.
+    // Nothing reclaimable yet: the job is still pending, not stuck.
     expect(await reclaimStalledJobs(harness.db)).toBe(0)
   })
 })

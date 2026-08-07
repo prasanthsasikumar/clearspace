@@ -90,7 +90,7 @@ export interface ListingDraft {
  *
  * Gemini implements it today. A future GroundingDINO + SAM 2 pipeline would
  * implement `detectObjects` alone and compose with Gemini for the reasoning
- * methods — which is exactly why detection is its own method rather than a
+ * methods, which is exactly why detection is its own method rather than a
  * flag on a general-purpose `analyze` call.
  */
 export interface VisionProvider {

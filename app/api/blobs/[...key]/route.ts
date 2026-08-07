@@ -9,7 +9,7 @@ type Params = { params: Promise<{ key: string[] }> }
  *
  * Keys are validated by the store before they touch the filesystem, so a
  * crafted path cannot walk out of the storage root. Blobs are immutable once
- * written — the key contains a UUID — so they are cached aggressively.
+ * written (the key contains a UUID), so they are cached aggressively.
  */
 export const GET = route(async (_request: NextRequest, { params }: Params) => {
   const { key } = await params

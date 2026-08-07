@@ -32,7 +32,7 @@ export interface EnrichedListing {
  * Everything the model returned is stored, including its sources and how it
  * says it arrived at the price, because the review screen has to be able to
  * show the seller where a number came from. `priceUnconfirmed` stays true
- * until a person has looked at it — an unchecked estimate must never leave
+ * until a person has looked at it; an unchecked estimate must never leave
  * the app wearing the authority of a decision.
  */
 export async function enrichItem(
@@ -182,7 +182,7 @@ export interface EnrichmentRunProgress {
  *
  * Enrichment is explicitly not automatic. A sixty-item lot would otherwise
  * research sixty listings the moment grouping finished, when the seller only
- * meant to sell twelve — and each one is two model calls.
+ * meant to sell twelve, and each one is two model calls.
  */
 export async function requestEnrichment(
   db: Database,

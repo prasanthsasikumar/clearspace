@@ -29,7 +29,7 @@ const MIN_USABLE_EDGE = 640
  * Scores a photo from cheap measurements taken on-device.
  *
  * This runs in the browser the instant the shutter fires, so a blurry photo is
- * caught before it is uploaded — which matters a great deal when the seller is
+ * caught before it is uploaded, which matters a great deal when the seller is
  * standing in a concrete box with one bar of signal. Gemini's richer judgement
  * (is the serial number actually legible?) runs afterwards, server-side.
  */
@@ -56,7 +56,7 @@ export function isUsable(quality: PhotoQuality | null | undefined): boolean {
 const ISSUE_ADVICE: Record<PhotoIssue, string> = {
   blurry: 'Hold still and tap the item to focus, then shoot again.',
   too_dark: 'Turn on a light or move the item toward the door.',
-  too_bright: 'Step out of direct sun — the details are blown out.',
+  too_bright: 'Step out of direct sun. The details are blown out.',
   low_resolution: 'Use the main camera at full resolution.',
   obstructed: 'Something is in the way. Move it and reshoot.',
   too_far: 'Move closer so the item fills most of the frame.',

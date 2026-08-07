@@ -39,7 +39,7 @@ export const matcherResponseSchema = z.object({
 /**
  * The prompt is written to fail toward *separate*.
  *
- * A storage unit is full of things that look alike — four matching dining
+ * A storage unit is full of things that look alike: four matching dining
  * chairs, three identical storage bins, two of the same drill. Left to its own
  * instincts a vision model happily merges them, and each merge silently
  * destroys inventory the user photographed. A duplicate listing is annoying and
@@ -110,7 +110,7 @@ export class GeminiObjectMatcher implements ObjectMatcher {
 
 /**
  * Maps 1-based image numbers back to candidate ids, dropping anything out of
- * range. Ids the model omitted are not added back here — `applyGrouping` owns
+ * range. Ids the model omitted are not added back here; `applyGrouping` owns
  * that repair, so there is one place responsible for never losing a detection.
  */
 export function toIdGroups(
