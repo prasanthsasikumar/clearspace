@@ -31,7 +31,8 @@ export default async function LotsPage() {
           <div className="stack stack--tight">
             <h1>Everything you own, sorted.</h1>
             <p className="lede">
-              Photograph a room. Sorta finds the sellable things in it, one tap each.
+              Photograph a space from wherever you are standing. Sorta works out what is in
+              there, matches the same thing across your photos, and writes it up.
             </p>
           </div>
 
@@ -59,11 +60,11 @@ export default async function LotsPage() {
                 <span className="label">{lots.length}</span>
               </div>
               {lots.map((lot) => (
-                <Link className="rowlink" key={lot.id} href={`/lots/${lot.id}`}>
+                <div className="rowlink rowlink--actions" key={lot.id}>
                   <span className="label" aria-hidden="true">
                     {KIND_LABELS[lot.kind]?.slice(0, 2) ?? 'LT'}
                   </span>
-                  <span className="stack stack--tight">
+                  <Link className="linkish stack stack--tight" href={`/lots/${lot.id}`}>
                     <span className="rowlink__title">{lot.name}</span>
                     <span className="meta">
                       {KIND_LABELS[lot.kind] ?? 'Lot'}
@@ -72,17 +73,18 @@ export default async function LotsPage() {
                         ? 'nothing catalogued yet'
                         : `${lot.itemCount} ${lot.itemCount === 1 ? 'item' : 'items'}`}
                     </span>
-                  </span>
+                  </Link>
                   {lot.actionableCount > 0 ? (
-                    <span className="chip chip--attention">
-                      {lot.actionableCount} to do
-                    </span>
+                    <span className="chip chip--attention">{lot.actionableCount} to do</span>
                   ) : (
-                    <span className="rowlink__chev" aria-hidden="true">
-                      ›
-                    </span>
+                    <span />
                   )}
-                </Link>
+                  {/* Adding photos is the whole product; it should not be two
+                      screens deep from the first thing the user sees. */}
+                  <Link className="btn btn--sm btn--primary" href={`/lots/${lot.id}/capture`}>
+                    Add photos
+                  </Link>
+                </div>
               ))}
             </section>
           )}

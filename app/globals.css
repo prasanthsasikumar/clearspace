@@ -473,6 +473,16 @@ select.field__control {
 .rowlink:last-child {
   border-bottom: 0;
 }
+
+/* A row that carries its own action alongside its destination. The title is
+   the link; the action sits outside it, because a link inside a link is
+   invalid markup and unpredictable to tap. */
+.rowlink--actions {
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+}
+.rowlink--actions:hover {
+  background: transparent;
+}
 .rowlink:hover {
   background: var(--color-paper-2);
 }
