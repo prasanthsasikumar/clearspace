@@ -1,5 +1,8 @@
 import { AppBar } from '@/components/AppBar'
 import { SignIn } from '@/components/SignIn'
+import { getAppContext } from '@/server/context'
+import { requireSessionUser } from '@/server/auth'
+import { listLots } from '@/services/lots'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,6 +29,19 @@ export default async function SignInPage({
 }) {
   const { next, error } = await searchParams
 
+  /*
+   * Everyone who opens the app is signed in anonymously before they reach
+   * this page, so "are you new?" is not the same question as "is this session
+   * anonymous?". The one that matters is whether this browser has anything to
+   * lose: with nothing here, the visitor is somebody coming back on a new
+   * device, and the right move is to sign them straight in rather than to try
+   * to graft their Google account onto an empty session it will refuse.
+   */
+  const { db } = getAppContext()
+  const user = await requireSessionUser(db)
+  const lots = await listLots(db, user.id)
+  const returning = user.isAnonymous && lots.length === 0
+
   return (
     <div className="shell">
       <AppBar back={{ href: next ?? '/', label: 'Back' }} title="Sign in" />
@@ -47,7 +63,11 @@ export default async function SignInPage({
             </p>
           ) : null}
 
-          <SignIn next={next ?? '/'} claimed={error === 'identity_already_exists'} />
+          <SignIn
+            next={next ?? '/'}
+            directSignIn={returning || error === 'identity_already_exists'}
+            warnWorkStays={error === 'identity_already_exists'}
+          />
         </div>
       </main>
     </div>

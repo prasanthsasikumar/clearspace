@@ -17,12 +17,25 @@ type Phase =
  * they just photographed is still theirs afterwards. Signing in normally is
  * the fallback for a visitor arriving on a new device.
  *
- * `claimed` is set when Supabase has already refused to link this Google
- * account because it belongs to someone else. Linking again would refuse
- * again, forever, so the button switches to plain sign-in and the copy says
- * what that costs.
+ * `directSignIn` turns the linking off. It is set in the two cases where
+ * linking cannot succeed: this browser has nothing to keep, so the visitor is
+ * somebody returning on a new device, or Supabase has already refused because
+ * the identity belongs to another account. Linking again would refuse again,
+ * forever, which is what made signing in work exactly once per account.
+ *
+ * `warnWorkStays` is separate on purpose. It is only true when there is work
+ * in this browser that signing in elsewhere would leave behind, and saying so
+ * to someone with an empty session would be a warning about nothing.
  */
-export function SignIn({ next = '/', claimed = false }: { next?: string; claimed?: boolean }) {
+export function SignIn({
+  next = '/',
+  directSignIn = false,
+  warnWorkStays = false,
+}: {
+  next?: string
+  directSignIn?: boolean
+  warnWorkStays?: boolean
+}) {
   const [email, setEmail] = useState('')
   const [phase, setPhase] = useState<Phase>({ name: 'idle' })
 
@@ -45,9 +58,11 @@ export function SignIn({ next = '/', claimed = false }: { next?: string; claimed
     try {
       const { data } = await supabase.auth.getUser()
 
-      // An anonymous visitor gets their existing account upgraded, so nothing
-      // they have already done is stranded on an account they cannot reach.
-      if (data.user?.is_anonymous) {
+      // An anonymous visitor with work in this browser gets that account
+      // upgraded, so nothing they have already done is stranded somewhere they
+      // cannot reach. With nothing here to keep, upgrading would only collide
+      // with the account that already owns the address.
+      if (data.user?.is_anonymous && !directSignIn) {
         const { error } = await supabase.auth.updateUser({ email: address })
         if (error) throw error
         setPhase({ name: 'sent', email: address })
@@ -75,7 +90,7 @@ export function SignIn({ next = '/', claimed = false }: { next?: string; claimed
     try {
       const { data } = await supabase.auth.getUser()
 
-      if (data.user?.is_anonymous && !claimed) {
+      if (data.user?.is_anonymous && !directSignIn) {
         const { error } = await supabase.auth.linkIdentity({
           provider: 'google',
           options: { redirectTo },
@@ -131,7 +146,7 @@ export function SignIn({ next = '/', claimed = false }: { next?: string; claimed
         >
           Continue with Google
         </button>
-        {claimed ? (
+        {warnWorkStays ? (
           <span className="meta">
             This opens the account that Google is already connected to. Photos taken in this
             browser stay on the account you are in now.
