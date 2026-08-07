@@ -10,6 +10,10 @@ import { ApiError, blobUrl, nudgeQueue, requestEnrichment, updateItem } from '@/
 import { StatusChip } from './StatusChip'
 import { ExportButton } from './ExportButton'
 
+/** How long an undo stays offered. Long enough to change your mind, short
+ *  enough that it is not a permanent bar across the grid. */
+const UNDO_MS = 6_000
+
 /** How often the board takes its turn at draining the queue. */
 const DRAIN_MS = 2500
 /** About four minutes, after which an item that will never enrich stops asking. */
@@ -115,6 +119,19 @@ export function InventoryBoard({
 
   /* Anything that is not binning ends the undo window. */
   const clearUndo = useCallback(() => setBinned([]), [])
+
+  /*
+   * And so does time. The toast used to sit until the next non-binning
+   * action, which on a phone meant a bar across the middle of the grid for as
+   * long as someone kept binning, covering the cards they were trying to
+   * judge. Each bin restarts the clock, so a run of them keeps one undo
+   * available throughout.
+   */
+  useEffect(() => {
+    if (binned.length === 0) return
+    const timer = setTimeout(() => setBinned([]), UNDO_MS)
+    return () => clearTimeout(timer)
+  }, [binned])
 
   function toggle(id: string) {
     clearUndo()
@@ -379,7 +396,7 @@ export function InventoryBoard({
           <button type="button" className="btn btn--sm" onClick={() => void undo()}>
             Undo
           </button>
-          <kbd className="kbd" aria-hidden="true">
+          <kbd className="kbd kbd--desktop" aria-hidden="true">
             U
           </kbd>
         </p>

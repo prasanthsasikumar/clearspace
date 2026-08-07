@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { eq } from 'drizzle-orm'
 import { createHarness, makeJpeg, type Harness } from '../helpers/harness'
+import { jobs } from '@/db/schema'
 import { createBatch } from '@/services/batches'
 import { createLot } from '@/services/lots'
 import { listItems } from '@/services/items'
@@ -65,5 +67,32 @@ describe('queue draining without a long-lived worker', () => {
 
     // Nothing reclaimable yet: the job is still pending, not stuck.
     expect(await reclaimStalledJobs(harness.db)).toBe(0)
+  })
+
+  /*
+   * The bug that made a batch sit at "writing" until the next day.
+   *
+   * An enrichment is two model calls with a web search behind them and
+   * routinely outlives the function running it. The kill leaves the row marked
+   * running and locked, nothing claims a locked row, and reclaiming was gated
+   * behind the scheduled run, which on this plan happens once a day.
+   */
+  it('reclaims a job whose function was killed, without a scheduler secret', async () => {
+    const [job] = await harness.db
+      .insert(jobs)
+      .values({ type: 'detect_objects', payload: { scanId: crypto.randomUUID() } })
+      .returning()
+
+    // Locked long enough ago that nothing could still be running it.
+    await harness.db
+      .update(jobs)
+      .set({ status: 'running', lockedAt: new Date(Date.now() - 10 * 60_000) })
+      .where(eq(jobs.id, job!.id))
+
+    expect(await reclaimStalledJobs(harness.db)).toBe(1)
+
+    const [after] = await harness.db.select().from(jobs).where(eq(jobs.id, job!.id))
+    expect(after!.status).toBe('pending')
+    expect(after!.lockedAt).toBeNull()
   })
 })

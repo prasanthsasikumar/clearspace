@@ -1690,12 +1690,17 @@ select.field__control {
   color: var(--color-ink-2);
 }
 
-/* Only where a keyboard is plausible. A phone showing "J K move" is noise. */
-.kbdrow {
+/* Only where a keyboard is plausible. A phone showing "J K move" is noise,
+   and so is a "U" next to Undo on a device with no U to press. */
+.kbdrow,
+.kbd--desktop {
   display: none;
 }
 
 @media (hover: hover) and (pointer: fine) {
+  .kbd--desktop {
+    display: inline-flex;
+  }
   .kbdrow {
     display: flex;
     align-items: center;

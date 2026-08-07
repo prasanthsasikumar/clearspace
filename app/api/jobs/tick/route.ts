@@ -32,6 +32,8 @@ import { getIdentity } from '@/server/auth'
 export const maxDuration = 60
 
 const SAFETY_MARGIN_MS = 8_000
+/** No job is worth starting with less than this left on the clock. */
+const MIN_JOB_BUDGET_MS = 15_000
 
 export const GET = route(async (request: NextRequest) => handle(request))
 export const POST = route(async (request: NextRequest) => handle(request))
@@ -64,12 +66,30 @@ async function handle(request: NextRequest): Promise<NextResponse> {
   const deadline = Date.now() + Math.max(5_000, maxDuration * 1_000 - SAFETY_MARGIN_MS)
   const limit = scheduled ? Number.POSITIVE_INFINITY : VISITOR_JOB_LIMIT
 
-  // A process that died mid-job leaves its row locked; nothing else will ever
-  // pick it up unless someone reclaims it first.
-  const reclaimed = scheduled ? await reclaimStalledJobs(ctx.db) : 0
+  /*
+   * Everyone reclaims, not just the scheduler.
+   *
+   * A job that outlives the function is killed with its row still marked
+   * running and still locked, and nothing claims a locked row, so that job is
+   * invisible from then on. Enrichment is two model calls with a web search
+   * behind them and outlives the budget often. Reclaiming was gated behind
+   * the scheduled run, which on this plan happens once a day, so a batch that
+   * lost a job to the clock sat at "writing" until tomorrow.
+   *
+   * There is nothing to gate: reclaiming only touches rows whose lock is
+   * older than the longest a job could possibly still be alive, which makes
+   * them dead by definition.
+   */
+  const reclaimed = await reclaimStalledJobs(ctx.db)
 
+  /*
+   * Do not start something there is no time to finish. Starting a job with
+   * five seconds left buys a killed function and a locked row, which is the
+   * failure this reclaim exists to clean up: better to leave it pending for
+   * the next call, which begins with a full budget.
+   */
   let processed = 0
-  while (processed < limit && Date.now() < deadline) {
+  while (processed < limit && Date.now() + MIN_JOB_BUDGET_MS < deadline) {
     const job = await runOnce(ctx)
     if (!job) break
     processed += 1

@@ -141,7 +141,13 @@ export async function getJob(db: Database, jobId: string): Promise<Job | null> {
  */
 export async function reclaimStalledJobs(
   db: Database,
-  staleAfterMs = 5 * 60_000,
+  /*
+   * Comfortably longer than a serverless function may live, so nothing still
+   * running is ever taken from underneath itself, and short enough that a
+   * batch which lost a job to the clock recovers while its owner is still
+   * looking at the screen rather than tomorrow.
+   */
+  staleAfterMs = 2 * 60_000,
 ): Promise<number> {
   const cutoff = new Date(Date.now() - staleAfterMs)
   const reclaimed = await db
