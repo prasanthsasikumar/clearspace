@@ -70,7 +70,7 @@ export function AccountBadge({
   async function signOut() {
     setOpen(false)
     await createBrowserAuthClient().auth.signOut()
-    router.push('/')
+    router.push('/lots')
     router.refresh()
   }
 

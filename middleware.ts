@@ -56,11 +56,17 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Everything except static assets, the blob proxy, and the queue tick.
-     * The tick is called by a scheduler that has no cookies and authenticates
-     * with its own secret; running it through session handling would be pure
-     * overhead on every minute of every day.
+     * Everything except static assets, the blob proxy, the queue tick, and the
+     * marketing page. The tick is called by a scheduler that has no cookies and
+     * authenticates with its own secret; running it through session handling
+     * would be pure overhead on every minute of every day.
+     *
+     * The marketing page is excluded for a sharper reason: it is the landing
+     * page for cold outreach, and every visitor who bounces off it would
+     * otherwise be issued an anonymous Supabase user that never captures a
+     * photograph. `(?!$)` excludes the root exactly, without excluding the
+     * routes beneath it.
      */
-    '/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|api/blobs|api/jobs).*)',
+    '/((?!$|site/|_next/static|_next/image|favicon.ico|manifest.webmanifest|api/blobs|api/jobs).*)',
   ],
 }

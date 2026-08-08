@@ -27,7 +27,7 @@ export function AppBar({ title, back, action, account }: AppBarProps) {
             {back.label}
           </Link>
         ) : (
-          <Link className="wordmark__link" href="/" aria-label="Clearspace, home">
+          <Link className="wordmark__link" href="/lots" aria-label="Clearspace, home">
             <Wordmark />
           </Link>
         )}

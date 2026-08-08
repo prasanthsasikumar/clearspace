@@ -39,6 +39,11 @@ npm run seed             # optional demo lot
 npm run dev -- -p 3300
 ```
 
+`/` is the marketing page and the tool itself is at **`/lots`**. The page is a
+built artifact, not a route: edit `marketing/page.src.html` and run
+`node marketing/build.mjs`, which inlines the fonts and photographs into
+`public/site/index.html` so it makes no external requests.
+
 On a phone, open the same URL over your LAN. Capture uses `<input capture>`
 rather than `getUserMedia`, so the camera works over plain HTTP.
 

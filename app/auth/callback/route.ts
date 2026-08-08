@@ -12,7 +12,7 @@ const SAFE_CODE = /^[a-z_]{1,64}$/
 function signinUrl(origin: string, error: string, next: string): URL {
   const target = new URL('/signin', origin)
   target.searchParams.set('error', error)
-  if (next !== '/') target.searchParams.set('next', next)
+  if (next !== '/lots') target.searchParams.set('next', next)
   return target
 }
 
@@ -27,8 +27,11 @@ export async function GET(request: NextRequest) {
   const url = new URL(request.url)
   const code = url.searchParams.get('code')
   // Only same-origin paths, so a crafted link cannot bounce someone off-site.
-  const next = url.searchParams.get('next') ?? '/'
-  const destination = next.startsWith('/') ? next : '/'
+  // The rejection falls back to the app rather than to `/`, which is now the
+  // marketing page: someone who has just proved who they are should land on
+  // their lots, not on the pitch that sold them the thing.
+  const next = url.searchParams.get('next') ?? '/lots'
+  const destination = next.startsWith('/') ? next : '/lots'
 
   /*
    * A provider that refuses returns here with `error_code` and no `code` at

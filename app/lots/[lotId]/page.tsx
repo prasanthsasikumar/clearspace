@@ -43,7 +43,7 @@ export default async function LotPage({
   return (
     <div className="shell">
       <AppBar
-        back={{ href: '/', label: 'Lots' }}
+        back={{ href: '/lots', label: 'Lots' }}
         title={lot.name}
         action={
           live.length > 0 ? (

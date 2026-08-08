@@ -34,7 +34,7 @@ export const metadata: Metadata = {
    * message app fetches these before it draws the bubble, and relative paths
    * resolve against nothing when it does.
    */
-  metadataBase: new URL('https://clearspace.prasanthsasikumar.com'),
+  metadataBase: new URL('https://clearspace.auction'),
   title: 'Clearspace',
   description: BLURB,
   applicationName: 'Clearspace',

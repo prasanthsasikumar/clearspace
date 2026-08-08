@@ -23,7 +23,7 @@ type Phase =
  * back: it tickets this anonymous session before the browser leaves, and the
  * callback moves the work across once the sign-in lands.
  */
-export function SignIn({ next = '/' }: { next?: string }) {
+export function SignIn({ next = '/lots' }: { next?: string }) {
   const [email, setEmail] = useState('')
   const [phase, setPhase] = useState<Phase>({ name: 'idle' })
 

@@ -28,7 +28,7 @@ export default async function SignInPage({
 
   return (
     <div className="shell">
-      <AppBar back={{ href: next ?? '/', label: 'Back' }} title="Sign in" />
+      <AppBar back={{ href: next ?? '/lots', label: 'Back' }} title="Sign in" />
       <main className="page">
         <div className="stack stack--loose">
           <div className="stack stack--tight">
@@ -47,7 +47,7 @@ export default async function SignInPage({
             </p>
           ) : null}
 
-          <SignIn next={next ?? '/'} />
+          <SignIn next={next ?? '/lots'} />
         </div>
       </main>
     </div>
