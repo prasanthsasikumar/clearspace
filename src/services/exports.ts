@@ -229,7 +229,7 @@ async function mapWithConcurrency<T, R>(
  * `extensionForMime` maps an unrecognised or missing content-type to `bin`,
  * and `SupabaseBlobStore.get` hands back exactly that generic type whenever a
  * response omits the header. The CSV row and the archive entry would still
- * agree in that case — the invariant holds — but the auctioneer would be
+ * agree in that case (the invariant holds), but the auctioneer would be
  * handed a `12_1.bin` their system refuses to open. The blob key was written
  * with the right extension at upload time (see `makeBlobKey`), so that is
  * what a bad or absent content-type falls back to before giving up and
@@ -249,14 +249,14 @@ function photoExtension(blobKey: string, contentType: string): string {
  *
  * They are packed together rather than downloaded separately because the
  * failure this design exists to prevent is a filename in a row pointing at a
- * photograph that is not there — and that failure is discovered by the
+ * photograph that is not there, and that failure is discovered by the
  * recipient, mid-upload, not by us. Generating both from a single ordering
  * pass into a single archive makes the disagreement unrepresentable.
  *
  * Deliberately takes no item filter, unlike its Facebook and Marketplace
  * siblings. `assignLotNumbers` derives its high-water mark from `Math.max`
  * over whatever rows it is given, and this function persists the numbers it
- * assigns — so a narrowed view of the lot would compute a mark blind to every
+ * assigns, so a narrowed view of the lot would compute a mark blind to every
  * item outside it and then write numbers that collide with them. The other
  * two exports accept `itemIds` safely only because they persist nothing.
  */
@@ -328,7 +328,7 @@ export async function buildLotAuctionExport(
   // tens of seconds against a function timeout, while holding roughly 2x the
   // total photo bytes in memory once concatenated into the archive. Bounding
   // rather than fetching everything at once keeps that memory ceiling in
-  // check. This is a mitigation, not a fix for the underlying shape — a
+  // check. This is a mitigation, not a fix for the underlying shape. A
   // genuinely large lot wants a streamed archive or a queued job that hands
   // back a blob key instead of building the whole ZIP in one function's
   // memory.

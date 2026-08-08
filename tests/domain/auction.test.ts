@@ -44,7 +44,7 @@ describe('buildAuctionCatalog', () => {
   /*
    * `valuations.lowCents`/`highCents` are NOT NULL and enrichment clamps
    * rather than rejects, so a model that answers "$0" for a low-value item
-   * writes a real 0 — and a $0-$0 row is exactly the invented-looking number
+   * writes a real 0, and a $0-$0 row is exactly the invented-looking number
    * this skip check exists to keep out of the catalogue.
    */
   it('skips an item priced at zero rather than exporting a researched-looking $0-$0', () => {

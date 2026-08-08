@@ -254,7 +254,7 @@ describe('buildLotAuctionExport', () => {
 
     expect(csv).not.toContain('gone')
     // The item became lot 2; its one surviving photo is numbered 2_1, not
-    // 2_2 — a gap would mean the missing blob still consumed a slot.
+    // 2_2. A gap would mean the missing blob still consumed a slot.
     expect(names).toContain('2_1.jpg')
     expect(names).not.toContain('2_2.jpg')
   })

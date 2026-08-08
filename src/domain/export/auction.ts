@@ -12,8 +12,8 @@ import { toCsv } from './csv'
  *
  * PROVISIONAL HEADERS. These names are a field set, not a verified HiBid /
  * Auction Flex import template. Reconcile them against a real template before
- * a generated file is sent to an auction house. The rest of this module — the
- * skip rules, the dollar conversion, the photo references — is independent of
+ * a generated file is sent to an auction house. The rest of this module (the
+ * skip rules, the dollar conversion, the photo references) is independent of
  * what the columns end up being called, so that reconciliation is a change to
  * the two constants below and nothing else.
  */
@@ -80,8 +80,8 @@ export interface AuctionResult {
  * Whole dollars. Auction estimates are not quoted to the cent.
  *
  * A value under 50 cents still rounds to $0 here rather than being special-
- * cased. The skip check below already turns away the case that matters — a
- * non-positive estimate, which reads as a researched "$0" — so what is left
+ * cased. The skip check below already turns away the case that matters: a
+ * non-positive estimate, which reads as a researched "$0". So what is left
  * once an item reaches this line is a positive valuation too small to survive
  * rounding, not a fabricated one. That is a display oddity for goods nobody
  * appraises in single-digit cents, not the invariant this file protects.
@@ -119,7 +119,7 @@ export function buildAuctionCatalog(
 
     // A non-positive estimate is treated as no estimate: `valuations` columns
     // are NOT NULL and enrichment clamps rather than rejects, so a model that
-    // answers "$0" for a low-value item writes a real 0 — and a $0–$0 row in
+    // answers "$0" for a low-value item writes a real 0, and a $0–$0 row in
     // an auction catalogue reads as researched, not missing.
     if (
       item.lowCents === null ||

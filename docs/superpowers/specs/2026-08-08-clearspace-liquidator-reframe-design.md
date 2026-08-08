@@ -12,8 +12,8 @@ inconvenience for them, it is their cost of goods. This document reframes the
 product, the website, and the go-to-market around that buyer.
 
 The decision to avoid self-storage operators is deliberate and worth recording.
-Their profit comes from length of stay — existing-customer rate increases on
-long-tenure tenants — so a tool whose pitch is "clearing out is easy now" argues
+Their profit comes from length of stay (existing-customer rate increases on
+long-tenure tenants), so a tool whose pitch is "clearing out is easy now" argues
 against the metric their asset managers are paid on. Their cleanout costs are
 real, but they are a cost line inside a business whose revenue line we would
 appear to attack. Storage is a referral channel later, not a customer now.
@@ -31,7 +31,7 @@ appear to attack. Storage is a referral channel later, not a customer now.
 
 Approach chosen: build the thin auction-shaped layer **first**, then the
 outreach artifact, then the website. The export format is not a feature added
-after validation — it is the instrument the validation is performed with, since
+after validation. It is the instrument the validation is performed with, since
 the entire persuasive force of a cold artifact comes from the output looking
 like something the recipient would have paid a cataloguer to produce.
 
@@ -56,19 +56,19 @@ enrichment changes.
 
 ### What is missing
 
-**`items.lotNumber`** — nullable integer, assigned at export.
+**`items.lotNumber`**: nullable integer, assigned at export.
 
-**`items.reserveCents`** — nullable integer, distinct from the estimate.
+**`items.reserveCents`**: nullable integer, distinct from the estimate.
 Never model-generated under any circumstance. A reserve is a seller's
 instruction with legal weight, and an invented one is a liability rather than a
 convenience. It is set by a person or it is absent.
 
-**`marketplace` enum** — add `auction`.
+**`marketplace` enum**: add `auction`.
 
-**`src/domain/export/auction.ts`** — a sibling formatter, pure, no I/O, built on
+**`src/domain/export/auction.ts`**: a sibling formatter, pure, no I/O, built on
 `csv.ts` in the same shape as `facebook.ts`.
 
-**Photo bundle** — a ZIP of item photos named `{lotNumber}_{n}.jpg`, where `n`
+**Photo bundle**: a ZIP of item photos named `{lotNumber}_{n}.jpg`, where `n`
 is a 1-based index over that item's photos with the primary photo first, so
 `12_1.jpg` is the lead image of lot 12. Built in `src/services/exports.ts`
 alongside the CSV, from the same ordering pass.
@@ -97,7 +97,7 @@ would be work spent twice.
 ### Column mapping, and how to get it right
 
 The existing formatters were written against the real vendor templates with
-obsessive fidelity — `marketplace.ts` preserves an EN DASH in a dropdown value
+obsessive fidelity. `marketplace.ts` preserves an EN DASH in a dropdown value
 because the validation sheet uses one and the help text does not. The auction
 formatter is held to the same standard.
 
@@ -127,13 +127,13 @@ condition) and the auction file needs an estimate range instead of a price.
 
 ### Testing
 
-Follows the existing split — pure domain tests plus integration against the
+Follows the existing split: pure domain tests plus integration against the
 in-process Postgres.
 
 - Domain: numbering assignment and continuation, skip reasons, condition
   mapping, CSV escaping of descriptions containing quotes and newlines.
 - Integration: the invariant that **every photo filename referenced in the CSV
-  exists in the ZIP, and every ZIP entry is referenced** — this is the single
+  exists in the ZIP, and every ZIP entry is referenced**. This is the single
   most valuable test in the change, because it is the failure the recipient
   would discover instead of us.
 - Regression: the Facebook and Marketplace exports are untouched and their
@@ -193,7 +193,7 @@ sentences from real auctions to use instead of invented ones.
 The riskiest assumption in this plan is not the export format or the site. It is
 that blind estimates land close enough to hammer prices that showing a firm the
 comparison helps rather than harms. If calibration is poor, the artifact argues
-against us — it hands an auctioneer evidence that our pricing is wrong.
+against us: it hands an auctioneer evidence that our pricing is wrong.
 
 Testing it costs one afternoon with the app exactly as it stands. Take one
 completed HiBid estate auction, catalogue 20 lots from the published photos
@@ -214,7 +214,7 @@ without looking at the results, then compare.
 HiBid and AuctionZip publish completed auctions with photos and realized prices.
 EstateSales.net covers tag-sale firms moving online. Filter for owner-operated
 firms running photo-rich estate auctions across two or three metros. Target
-roughly 30 names — small enough that every one is personalised.
+roughly 30 names, small enough that every one is personalised.
 
 ### The artifact
 
@@ -251,5 +251,5 @@ guessing every detail from zero customer contact.
 ## Note on implementation planning
 
 Sections 1 and 2 are buildable and belong in an implementation plan. Section 3
-is operational — a target list, an outreach sequence, and a calibration
-experiment — and is recorded here for context rather than to be coded.
+is operational (a target list, an outreach sequence, and a calibration
+experiment) and is recorded here for context rather than to be coded.

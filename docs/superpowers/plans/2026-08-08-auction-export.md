@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Turn a catalogued lot into a single ZIP an estate auctioneer can upload to HiBid — a lot CSV plus the numbered photos it references.
+**Goal:** Turn a catalogued lot into a single ZIP an estate auctioneer can upload to HiBid: a lot CSV plus the numbered photos it references.
 
 **Architecture:** Three new pure-domain units (lot numbering, the auction CSV formatter, auction export readiness) sitting on the existing `csv.ts` writer, assembled by one new service function that also fetches photo bytes and packs everything into one archive. The stored-entry ZIP writer currently private inside `src/lib/xlsx.ts` is extracted so both the workbook and the photo bundle share it. Nothing in capture, detection, grouping, or enrichment is touched.
 
@@ -22,7 +22,7 @@
 
 `AUCTION_COLUMNS` in Task 3 is a **best-effort field set, not a verified HiBid / Auction Flex header row.** The spec requires the formatter be written against a real import template, and no such template was available when this plan was written.
 
-The column list is deliberately isolated in one exported constant with one mapping function beside it, so reconciling it against the real template is a single-file change and the tests around numbering, skipping, and packaging stay valid. **Do not send a generated file to a firm before that reconciliation.** This does not block any task here — the calibration gate and internal testing run fine on provisional headers.
+The column list is deliberately isolated in one exported constant with one mapping function beside it, so reconciling it against the real template is a single-file change and the tests around numbering, skipping, and packaging stay valid. **Do not send a generated file to a firm before that reconciliation.** This does not block any task here; the calibration gate and internal testing run fine on provisional headers.
 
 ## File Structure
 
@@ -42,7 +42,7 @@ The column list is deliberately isolated in one exported constant with one mappi
 | `tests/domain/auction.test.ts` | **Create.** |
 | `tests/integration/auction-export.test.ts` | **Create.** |
 
-**One refinement on the spec.** The spec describes a CSV and a photo ZIP built alongside each other. This plan puts the CSV *inside* the ZIP as `lots.csv`. It serves the spec's stated invariant more directly — a filename in the CSV cannot drift from the archive when they are the same archive — and it makes the download one click instead of two. The invariant test in Task 5 is unchanged in spirit.
+**One refinement on the spec.** The spec describes a CSV and a photo ZIP built alongside each other. This plan puts the CSV *inside* the ZIP as `lots.csv`. It serves the spec's stated invariant more directly (a filename in the CSV cannot drift from the archive when they are the same archive) and it makes the download one click instead of two. The invariant test in Task 5 is unchanged in spirit.
 
 ---
 
@@ -101,11 +101,11 @@ describe('zip', () => {
 - [ ] **Step 2: Run it to make sure it fails**
 
 Run: `npx vitest run tests/lib/zip.test.ts`
-Expected: FAIL — cannot resolve `@/lib/zip`.
+Expected: FAIL, cannot resolve `@/lib/zip`.
 
 - [ ] **Step 3: Create the extracted module**
 
-Create `src/lib/zip.ts`. The body of `crc32`, `CRC_TABLE`, and `zip` is moved verbatim from `src/lib/xlsx.ts` — do not rewrite the byte offsets.
+Create `src/lib/zip.ts`. The body of `crc32`, `CRC_TABLE`, and `zip` is moved verbatim from `src/lib/xlsx.ts`. Do not rewrite the byte offsets.
 
 ```ts
 /**
@@ -203,7 +203,7 @@ In `src/lib/xlsx.ts`, delete the `CRC_TABLE` constant, `crc32`, `interface Entry
 import { zip } from './zip'
 ```
 
-Leave `buildXlsx` and everything else exactly as it is — it already calls `zip([...])` with `{ name, data }` objects, which is the `ZipEntry` shape.
+Leave `buildXlsx` and everything else exactly as it is, since it already calls `zip([...])` with `{ name, data }` objects, which is the `ZipEntry` shape.
 
 Update the file's header comment, whose last paragraph now describes code that lives elsewhere. Replace that paragraph with:
 
@@ -230,7 +230,7 @@ git commit -m "Lift the ZIP out of the spreadsheet"
 
 ---
 
-### Task 2: Schema — lot number, reserve, and the auction destination
+### Task 2: Schema, lot number, reserve, and the auction destination
 
 **Files:**
 - Modify: `src/db/schema.ts:79-85` (the `marketplace` enum), `src/db/schema.ts:159-182` (the `items` table)
@@ -291,11 +291,11 @@ describe('auction schema', () => {
 - [ ] **Step 2: Run it to make sure it fails**
 
 Run: `npx vitest run tests/integration/auction-export.test.ts`
-Expected: FAIL — `lotNumber` does not exist on the items type / column missing.
+Expected: FAIL, `lotNumber` does not exist on the items type / column missing.
 
 - [ ] **Step 3: Add the enum value**
 
-In `src/db/schema.ts`, extend the `marketplace` enum. Append rather than reorder — the values are persisted.
+In `src/db/schema.ts`, extend the `marketplace` enum. Append rather than reorder, because the values are persisted.
 
 ```ts
 export const marketplace = pgEnum('marketplace', [
@@ -428,7 +428,7 @@ describe('assignLotNumbers', () => {
 - [ ] **Step 2: Run it to make sure it fails**
 
 Run: `npx vitest run tests/domain/lot-numbers.test.ts`
-Expected: FAIL — cannot resolve `@/domain/export/lot-numbers`.
+Expected: FAIL, cannot resolve `@/domain/export/lot-numbers`.
 
 - [ ] **Step 3: Implement**
 
@@ -606,7 +606,7 @@ describe('buildAuctionCatalog', () => {
 - [ ] **Step 2: Run it to make sure it fails**
 
 Run: `npx vitest run tests/domain/auction.test.ts`
-Expected: FAIL — cannot resolve `@/domain/export/auction`.
+Expected: FAIL, cannot resolve `@/domain/export/auction`.
 
 - [ ] **Step 3: Implement**
 
@@ -627,8 +627,8 @@ import { toCsv } from './csv'
  *
  * PROVISIONAL HEADERS. These names are a field set, not a verified HiBid /
  * Auction Flex import template. Reconcile them against a real template before
- * a generated file is sent to an auction house. The rest of this module — the
- * skip rules, the dollar conversion, the photo references — is independent of
+ * a generated file is sent to an auction house. The rest of this module (the
+ * skip rules, the dollar conversion, the photo references) is independent of
  * what the columns end up being called, so that reconciliation is a change to
  * the two constants below and nothing else.
  */
@@ -792,7 +792,7 @@ git commit -m "Write a catalogue in lots rather than listings"
 
 ### Task 5: Auction export readiness
 
-`exportReadiness` encodes Marketplace's requirements — title, price, condition. The auction file needs an estimate range instead of a price, so the board would otherwise promise an export it cannot keep.
+`exportReadiness` encodes Marketplace's requirements: title, price, condition. The auction file needs an estimate range instead of a price, so the board would otherwise promise an export it cannot keep.
 
 **Files:**
 - Modify: `src/domain/export-readiness.ts` (append; do not alter `exportReadiness`)
@@ -856,7 +856,7 @@ describe('auctionReadiness', () => {
 - [ ] **Step 2: Run it to make sure it fails**
 
 Run: `npx vitest run tests/domain/export-readiness.test.ts`
-Expected: FAIL — `auctionReadiness` is not exported.
+Expected: FAIL, `auctionReadiness` is not exported.
 
 - [ ] **Step 3: Implement**
 
@@ -1074,7 +1074,7 @@ describe('buildLotAuctionExport', () => {
 - [ ] **Step 2: Run it to make sure it fails**
 
 Run: `npx vitest run tests/integration/auction-export.test.ts`
-Expected: FAIL — `buildLotAuctionExport` is not exported.
+Expected: FAIL, `buildLotAuctionExport` is not exported.
 
 - [ ] **Step 3: Implement**
 
@@ -1110,7 +1110,7 @@ export interface LotAuctionExport {
  *
  * They are packed together rather than downloaded separately because the
  * failure this design exists to prevent is a filename in a row pointing at a
- * photograph that is not there — and that failure is discovered by the
+ * photograph that is not there, and that failure is discovered by the
  * recipient, mid-upload, not by us. Generating both from a single ordering
  * pass into a single archive makes the disagreement unrepresentable.
  */
@@ -1310,7 +1310,7 @@ describe('the auction export route', () => {
 - [ ] **Step 2: Run it**
 
 Run: `npx vitest run tests/integration/auction-export.test.ts`
-Expected: PASS. If it fails, **stop** — the route's security model is not what this plan assumes, and `getLot` scoping must be resolved before any handler is written on top of it.
+Expected: PASS. If it fails, **stop**. The route's security model is not what this plan assumes, and `getLot` scoping must be resolved before any handler is written on top of it.
 
 - [ ] **Step 3: Write the route**
 
@@ -1382,17 +1382,17 @@ After Task 7, from a clean tree:
 npm test && npm run typecheck && npm run build
 ```
 
-All three must pass. Then, by hand — the part no test covers:
+All three must pass. Then, by hand, the part no test covers:
 
 1. `npm run dev -- -p 3300`, create a lot, upload photos of several objects, let enrichment finish.
 2. `curl -sO -J http://localhost:3300/api/lots/<lotId>/export/auction`
-3. `unzip -l clearspace-auction.zip` — every photo named in `lots.csv` is present.
+3. `unzip -l clearspace-auction.zip`, and every photo named in `lots.csv` is present.
 4. Open `lots.csv` in Excel. Confirm the estimate columns read as whole dollars, descriptions with quotes and line breaks survive, and the reserve column is empty rather than zero.
 
 ## Not in this plan
 
 - The marketing site (spec Section 2). It gets its own plan once the outreach artifacts exist, because the spec sequences its copy after them.
-- Outreach, the target list, and the calibration gate (spec Section 3) — operational, not code.
+- Outreach, the target list, and the calibration gate (spec Section 3) are operational, not code.
 - Any UI for triggering the auction export. The route is reachable directly, which is enough for the calibration gate and for the first pilots. A button belongs with the site work, when there is a professional surface to put it on.
 - Reserve entry UI. The column and the export honour it; nothing sets it yet. Deliberate: it is only worth building once a real auctioneer has asked for it.
 - Lot reordering, staff seats, consignor records, multi-platform export. Out of scope per the spec.
