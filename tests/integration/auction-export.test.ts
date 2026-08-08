@@ -179,6 +179,108 @@ describe('buildLotAuctionExport', () => {
     expect(result.rowCount).toBe(1)
     expect(result.skipped.some((s) => s.field === 'estimate')).toBe(true)
   })
+
+  /*
+   * The bug this exists for: `assignLotNumbers` takes its high-water mark
+   * from `Math.max` over whatever rows it is handed, and the function
+   * persists the numbers it assigns. A caller that could narrow the query
+   * (the removed `itemIds` parameter) would compute that mark blind to items
+   * outside the narrowed set and then write numbers that collide with them.
+   * Exporting the whole lot repeatedly, as new items land, must never produce
+   * two rows sharing a number.
+   */
+  it('never produces duplicate lot numbers across two exports, even as items are added between them', async () => {
+    const { db, blobs, lot, item } = await seedLot()
+
+    await buildLotAuctionExport(db, blobs, { lotId: lot.id })
+
+    const [second] = await db
+      .insert(items)
+      .values({ lotId: lot.id, title: 'Brass candlesticks', condition: 'good', status: 'confirmed' })
+      .returning()
+    await db.insert(valuations).values({
+      itemId: second!.id,
+      conditionTier: 'good',
+      lowCents: 4000,
+      highCents: 6000,
+      recommendedCents: 5000,
+      method: 'test',
+    })
+
+    await buildLotAuctionExport(db, blobs, { lotId: lot.id })
+
+    const rows = await db.select().from(items).where(eq(items.lotId, lot.id))
+    const numbers = rows.map((r) => r.lotNumber)
+
+    expect(new Set(numbers).size).toBe(numbers.length)
+    expect([...numbers].sort()).toEqual([1, 2])
+    expect(rows.find((r) => r.id === item.id)!.lotNumber).toBe(1)
+    expect(rows.find((r) => r.id === second!.id)!.lotNumber).toBe(2)
+  })
+
+  it('skips a photo whose blob has disappeared, and still numbers the survivor densely', async () => {
+    const { db, blobs, lot } = await seedLot()
+
+    const [item] = await db
+      .insert(items)
+      .values({ lotId: lot.id, title: 'Brass candlesticks', condition: 'good', status: 'confirmed' })
+      .returning()
+    await db.insert(valuations).values({
+      itemId: item!.id,
+      conditionTier: 'good',
+      lowCents: 4000,
+      highCents: 6000,
+      recommendedCents: 5000,
+      method: 'test',
+    })
+
+    // Never put into the store: the photo row outlived its blob.
+    await db.insert(itemPhotos).values({
+      itemId: item!.id,
+      blobKey: 'items/test/gone.jpg',
+      isPrimary: false,
+    })
+    await blobs.put('items/test/d.jpg', Buffer.from([0xff, 0xd8, 0xfc]), 'image/jpeg')
+    await db.insert(itemPhotos).values({
+      itemId: item!.id,
+      blobKey: 'items/test/d.jpg',
+      isPrimary: true,
+    })
+
+    const result = await buildLotAuctionExport(db, blobs, { lotId: lot.id })
+    const entries = readEntries(result.archive)
+    const csv = entries.get('lots.csv')!.toString('utf8')
+    const names = [...entries.keys()].filter((n) => n !== 'lots.csv')
+
+    expect(csv).not.toContain('gone')
+    // The item became lot 2; its one surviving photo is numbered 2_1, not
+    // 2_2 — a gap would mean the missing blob still consumed a slot.
+    expect(names).toContain('2_1.jpg')
+    expect(names).not.toContain('2_2.jpg')
+  })
+
+  it('names a photo from its blob key when the content-type is generic', async () => {
+    const { db, blobs, lot, item } = await seedLot()
+
+    // A response that omits content-type, or one storage hands back as the
+    // generic fallback: extensionForMime alone would call this a `.bin`.
+    await blobs.put(
+      'items/test/c.png',
+      Buffer.from([0x89, 0x50, 0x4e, 0x47]),
+      'application/octet-stream',
+    )
+    await db.insert(itemPhotos).values({
+      itemId: item.id,
+      blobKey: 'items/test/c.png',
+      isPrimary: false,
+    })
+
+    const result = await buildLotAuctionExport(db, blobs, { lotId: lot.id })
+    const names = [...readEntries(result.archive).keys()].filter((n) => n !== 'lots.csv')
+
+    expect(names).toContain('1_2.png')
+    expect(names.some((n) => n.endsWith('.bin'))).toBe(false)
+  })
 })
 
 describe('the auction export route', () => {

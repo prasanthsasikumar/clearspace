@@ -89,6 +89,12 @@ describe('auctionReadiness', () => {
     })
   })
 
+  it('treats a zero estimate as no estimate, matching the auction export', () => {
+    expect(auctionReadiness({ ...ready, lowCents: 0, highCents: 0 }).blocker).toBe(
+      'Needs an estimate',
+    )
+  })
+
   it('blocks on a missing title', () => {
     expect(auctionReadiness({ ...ready, title: '  ' })).toEqual({
       ready: false,

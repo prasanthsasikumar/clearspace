@@ -41,6 +41,27 @@ describe('buildAuctionCatalog', () => {
     expect(result.skipped[0]!.message).toContain('Walnut sideboard')
   })
 
+  /*
+   * `valuations.lowCents`/`highCents` are NOT NULL and enrichment clamps
+   * rather than rejects, so a model that answers "$0" for a low-value item
+   * writes a real 0 — and a $0-$0 row is exactly the invented-looking number
+   * this skip check exists to keep out of the catalogue.
+   */
+  it('skips an item priced at zero rather than exporting a researched-looking $0-$0', () => {
+    const result = buildAuctionCatalog([{ ...base, lowCents: 0, highCents: 0 }])
+
+    expect(result.rowCount).toBe(0)
+    expect(result.skipped[0]!.field).toBe('estimate')
+  })
+
+  it('skips an item with a negative estimate the same way', () => {
+    const low = buildAuctionCatalog([{ ...base, lowCents: -100, highCents: 500 }])
+    expect(low.skipped[0]!.field).toBe('estimate')
+
+    const high = buildAuctionCatalog([{ ...base, lowCents: 500, highCents: -100 }])
+    expect(high.skipped[0]!.field).toBe('estimate')
+  })
+
   it('skips an untitled item', () => {
     const result = buildAuctionCatalog([{ ...base, title: '   ' }])
     expect(result.rowCount).toBe(0)

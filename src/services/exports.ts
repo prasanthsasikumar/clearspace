@@ -198,6 +198,52 @@ export interface LotAuctionExport {
 }
 
 /**
+ * Runs `fn` over `items` with at most `limit` calls in flight, in a fixed
+ * pool rather than chunked batches, so a slow fetch for one item does not
+ * hold up starting the next one behind it.
+ */
+async function mapWithConcurrency<T, R>(
+  items: readonly T[],
+  limit: number,
+  fn: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = new Array(items.length)
+  let cursor = 0
+
+  async function worker(): Promise<void> {
+    for (;;) {
+      const index = cursor
+      cursor += 1
+      if (index >= items.length) return
+      results[index] = await fn(items[index]!)
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker))
+  return results
+}
+
+/**
+ * The extension a photo should be named with in the archive.
+ *
+ * `extensionForMime` maps an unrecognised or missing content-type to `bin`,
+ * and `SupabaseBlobStore.get` hands back exactly that generic type whenever a
+ * response omits the header. The CSV row and the archive entry would still
+ * agree in that case — the invariant holds — but the auctioneer would be
+ * handed a `12_1.bin` their system refuses to open. The blob key was written
+ * with the right extension at upload time (see `makeBlobKey`), so that is
+ * what a bad or absent content-type falls back to before giving up and
+ * calling it a generic photo.
+ */
+function photoExtension(blobKey: string, contentType: string): string {
+  const fromMime = extensionForMime(contentType)
+  if (fromMime !== 'bin') return fromMime
+
+  const fromKey = blobKey.match(/\.([a-zA-Z0-9]+)$/)?.[1]?.toLowerCase()
+  return fromKey ?? 'jpg'
+}
+
+/**
  * Builds one archive an auctioneer can upload: the lot catalogue and its
  * photographs, named to match.
  *
@@ -206,11 +252,18 @@ export interface LotAuctionExport {
  * photograph that is not there — and that failure is discovered by the
  * recipient, mid-upload, not by us. Generating both from a single ordering
  * pass into a single archive makes the disagreement unrepresentable.
+ *
+ * Deliberately takes no item filter, unlike its Facebook and Marketplace
+ * siblings. `assignLotNumbers` derives its high-water mark from `Math.max`
+ * over whatever rows it is given, and this function persists the numbers it
+ * assigns — so a narrowed view of the lot would compute a mark blind to every
+ * item outside it and then write numbers that collide with them. The other
+ * two exports accept `itemIds` safely only because they persist nothing.
  */
 export async function buildLotAuctionExport(
   db: Database,
   blobs: BlobStore,
-  input: { lotId: string; itemIds?: readonly string[] },
+  input: { lotId: string },
 ): Promise<LotAuctionExport> {
   const filename = 'clearspace-auction.zip'
 
@@ -219,11 +272,7 @@ export async function buildLotAuctionExport(
   const rows = await db
     .select()
     .from(items)
-    .where(
-      input.itemIds && input.itemIds.length > 0
-        ? and(eq(items.lotId, input.lotId), inArray(items.id, [...input.itemIds]))
-        : and(eq(items.lotId, input.lotId), ne(items.status, 'discarded')),
-    )
+    .where(and(eq(items.lotId, input.lotId), ne(items.status, 'discarded')))
     .orderBy(asc(items.createdAt))
 
   const live = rows.filter((item) => item.status !== 'discarded')
@@ -270,12 +319,26 @@ export async function buildLotAuctionExport(
     photosByItem.set(photo.itemId, bucket)
   }
 
-  // One pass: fetch the bytes, name the entry, and keep both against the item,
-  // so deciding what to pack later is a lookup rather than a guess from the
-  // shape of a filename.
-  const entriesByItem = new Map<string, ZipEntry[]>()
-
-  for (const item of live) {
+  // One pass per item: fetch the bytes, name the entry, and keep both against
+  // the item, so deciding what to pack later is a lookup rather than a guess
+  // from the shape of a filename.
+  //
+  // Fetched across items in parallel, bounded, because serial round-trips do
+  // not scale: a 150-item lot at 3 photos each is 450 sequential blob fetches,
+  // tens of seconds against a function timeout, while holding roughly 2x the
+  // total photo bytes in memory once concatenated into the archive. Bounding
+  // rather than fetching everything at once keeps that memory ceiling in
+  // check. This is a mitigation, not a fix for the underlying shape — a
+  // genuinely large lot wants a streamed archive or a queued job that hands
+  // back a blob key instead of building the whole ZIP in one function's
+  // memory.
+  //
+  // Within an item, fetches stay sequential and in order: the entry name uses
+  // the running count of that item's own photos so far, so racing an item's
+  // own photos against each other would make the numbering sparse or
+  // unstable whenever one fetch finished before another.
+  const PHOTO_FETCH_CONCURRENCY = 8
+  const entryLists = await mapWithConcurrency(live, PHOTO_FETCH_CONCURRENCY, async (item) => {
     const lotNumber = numbers.get(item.id)!
     const itemEntries: ZipEntry[] = []
 
@@ -285,12 +348,13 @@ export async function buildLotAuctionExport(
       // naming it would put a filename in the CSV with nothing behind it.
       if (!blob) continue
 
-      const name = `${lotNumber}_${itemEntries.length + 1}.${extensionForMime(blob.contentType)}`
+      const name = `${lotNumber}_${itemEntries.length + 1}.${photoExtension(photo.blobKey, blob.contentType)}`
       itemEntries.push({ name, data: blob.data })
     }
 
-    entriesByItem.set(item.id, itemEntries)
-  }
+    return [item.id, itemEntries] as const
+  })
+  const entriesByItem = new Map<string, ZipEntry[]>(entryLists)
 
   const catalogItems: AuctionItem[] = live.map((item) => {
     const draft = listingByItem.get(item.id)

@@ -72,7 +72,14 @@ export function auctionReadiness(item: AuctionReadinessInput): ExportReadiness {
   if (!isApproved(item.status)) return { ready: false, blocker: null }
 
   if (!item.title?.trim()) return { ready: false, blocker: 'Needs a title' }
-  if (item.lowCents === null || item.highCents === null) {
+  // A zero-or-under estimate is not an estimate, matching the auction export's
+  // own skip rule and the "a price of zero is not a price" call made above.
+  if (
+    item.lowCents === null ||
+    item.highCents === null ||
+    item.lowCents <= 0 ||
+    item.highCents <= 0
+  ) {
     return { ready: false, blocker: 'Needs an estimate' }
   }
 

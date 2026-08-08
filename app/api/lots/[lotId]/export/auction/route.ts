@@ -13,7 +13,12 @@ type Params = { params: Promise<{ lotId: string }> }
  * Unlike the Facebook feed this needs no origin, because nothing in it is a
  * URL. The photographs are in the archive, which is what makes the file useful
  * on an auctioneer's desktop rather than only on the machine that made it.
+ *
+ * A large lot means dozens to hundreds of blob fetches before the archive can
+ * be returned; see `app/api/jobs/tick/route.ts` for the same convention.
  */
+export const maxDuration = 60
+
 export const GET = route(async (_request: NextRequest, { params }: Params) => {
   const { lotId } = await params
   const { db, blobs } = getAppContext()
