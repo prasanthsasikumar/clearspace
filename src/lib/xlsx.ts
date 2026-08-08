@@ -8,28 +8,12 @@
  * and ffmpeg out applies here: four kilobytes of ZIP and XML against a
  * dependency that ships a parser as well as a writer.
  *
- * Entries are stored rather than deflated. Every reader accepts method 0, it
- * removes the only part that would need zlib, and at this size compression
- * would save nothing worth the code.
+ * The ZIP container itself is in `./zip`, shared with the auction photo bundle.
  */
 
+import { zip } from './zip'
+
 export type CellValue = string | number | null
-
-const CRC_TABLE = (() => {
-  const table = new Uint32Array(256)
-  for (let i = 0; i < 256; i += 1) {
-    let c = i
-    for (let k = 0; k < 8; k += 1) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1
-    table[i] = c >>> 0
-  }
-  return table
-})()
-
-function crc32(buf: Buffer): number {
-  let c = 0xffffffff
-  for (const byte of buf) c = CRC_TABLE[(c ^ byte) & 0xff]! ^ (c >>> 8)
-  return (c ^ 0xffffffff) >>> 0
-}
 
 function escapeXml(value: string): string {
   return value
@@ -81,65 +65,6 @@ function sheetXml(rows: readonly (readonly CellValue[])[]): string {
     .join('')
 
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${body}</sheetData></worksheet>`
-}
-
-interface Entry {
-  name: string
-  data: Buffer
-}
-
-/** Stored-entry ZIP. Fixed timestamp, so the same rows always produce the same bytes. */
-function zip(entries: readonly Entry[]): Buffer {
-  const locals: Buffer[] = []
-  const centrals: Buffer[] = []
-  let offset = 0
-
-  for (const entry of entries) {
-    const name = Buffer.from(entry.name, 'utf8')
-    const crc = crc32(entry.data)
-    const size = entry.data.length
-
-    const local = Buffer.alloc(30)
-    local.writeUInt32LE(0x04034b50, 0)
-    local.writeUInt16LE(20, 4) // version needed
-    local.writeUInt16LE(0, 6) // flags
-    local.writeUInt16LE(0, 8) // method: stored
-    local.writeUInt16LE(0, 10) // time
-    local.writeUInt16LE(0x21, 12) // date: 1980-01-01, so output is byte-stable
-    local.writeUInt32LE(crc, 14)
-    local.writeUInt32LE(size, 18)
-    local.writeUInt32LE(size, 22)
-    local.writeUInt16LE(name.length, 26)
-    local.writeUInt16LE(0, 28)
-    locals.push(local, name, entry.data)
-
-    const central = Buffer.alloc(46)
-    central.writeUInt32LE(0x02014b50, 0)
-    central.writeUInt16LE(20, 4)
-    central.writeUInt16LE(20, 6)
-    central.writeUInt16LE(0, 8)
-    central.writeUInt16LE(0, 10)
-    central.writeUInt16LE(0, 12)
-    central.writeUInt16LE(0x21, 14)
-    central.writeUInt32LE(crc, 16)
-    central.writeUInt32LE(size, 20)
-    central.writeUInt32LE(size, 24)
-    central.writeUInt16LE(name.length, 28)
-    central.writeUInt32LE(offset, 42)
-    centrals.push(central, name)
-
-    offset += local.length + name.length + size
-  }
-
-  const centralBuf = Buffer.concat(centrals)
-  const end = Buffer.alloc(22)
-  end.writeUInt32LE(0x06054b50, 0)
-  end.writeUInt16LE(entries.length, 8)
-  end.writeUInt16LE(entries.length, 10)
-  end.writeUInt32LE(centralBuf.length, 12)
-  end.writeUInt32LE(offset, 16)
-
-  return Buffer.concat([Buffer.concat(locals), centralBuf, end])
 }
 
 /** One sheet, named, with the rows given. */
