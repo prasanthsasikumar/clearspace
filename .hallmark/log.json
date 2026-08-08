@@ -1,11 +1,21 @@
 [
   {
+    "date": "2026-08-08",
+    "macrostructure": "Split Studio",
+    "theme": "Cobalt",
+    "theme_note": "held fixed by the brief so the site and app read as one product; rotation taken on macrostructure, nav and footer instead",
+    "enrichment": "none, the product's own catalogue output is the imagery",
+    "nav": "N5 floating pill (solid + hairline, no blur)",
+    "footer": "Ft5 statement",
+    "brief": "Clearspace marketing site for estate liquidators, arriving cold from a one-to-one email"
+  },
+  {
     "date": "2026-08-06",
     "macrostructure": "Workbench",
     "theme": "Cobalt",
     "enrichment": "none, the user's own photographs are the imagery",
     "nav": "N9 edge-aligned minimal",
     "footer": "Ft2 inline single line (index only)",
-    "brief": "Clearspace · mobile-first PWA that turns a room photo into a sellable inventory"
+    "brief": "Clearspace \u00b7 mobile-first PWA that turns a room photo into a sellable inventory"
   }
 ]

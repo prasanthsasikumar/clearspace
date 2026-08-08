@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<!--
+  Clearspace · marketing site · source file.
+
+  This file is readable and previewable: open it directly and the three faces
+  load from ./fonts. `node marketing/build.mjs` inlines those woff2 files as
+  data URIs and writes public/site/index.html, which is the deliverable: one
+  file, zero external requests.
+
+  Edit THIS file, never the built one.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clearspace: photographs in, numbered lots out</title>
+<meta name="description" content="Clearspace turns the photographs your staff already take into a finished auction catalogue: numbered lots, written descriptions, and a researched low/high estimate with its sources. $0.50 a lot, first 25 free.">
+<meta name="color-scheme" content="light dark">
+<style>
+/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V4
+ * Hallmark · genre: modern-minimal · macrostructure: Split Studio · theme: Cobalt
+ * enrichment: none (the product's own catalogue output is the imagery)
+ * nav: N5 floating pill (solid + hairline, not blur; house rule is depth from hairlines)
+ * footer: Ft5 statement · tone: technical-plain · anchor hue: cool (cobalt 256°)
+ * audience: estate liquidators, 2–20 staff, arriving cold from a one-to-one email
+ *
+ * Theme is fixed to Cobalt by the brief rather than rotated: the site and the
+ * app must read as one product, so every token below is the app's real value
+ * from /tokens.css. Rotation is honoured on the axes the brief leaves free:
+ * Split Studio replaces Workbench, N5 replaces N9, Ft5 replaces Ft2.
+ */
+
+/* --- Faces ------------------------------------------------------------- */
+/* Latin subsets, self-hosted. Inlined as data URIs by marketing/build.mjs. */
+
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 500 700;
+  font-display: swap;
+  src: url("fonts/space-grotesk-latin.woff2") format("woff2");
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("fonts/inter-latin.woff2") format("woff2");
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url("fonts/jetbrains-mono-latin.woff2") format("woff2");
+}
+
+/* --- Tokens ------------------------------------------------------------ */
+
+:root {
+  /* Colour: the app's values, unchanged. */
+  --color-paper: oklch(98.5% 0.004 250);
+  --color-paper-2: oklch(96.6% 0.005 250);
+  --color-paper-3: oklch(93.8% 0.006 252);
+
+  --color-ink: oklch(24% 0.02 258);
+  --color-ink-2: oklch(38% 0.018 257);
+  --color-ink-3: oklch(54% 0.015 257);
+
+  --color-rule: oklch(89.5% 0.008 254);
+  --color-rule-2: oklch(80% 0.012 254);
+
+  --color-accent: oklch(58% 0.20 256);
+  --color-accent-press: oklch(51% 0.19 256);
+  --color-accent-soft: oklch(94.5% 0.045 256);
+  --color-accent-ink: oklch(99% 0.005 250);
+
+  --color-graphite: oklch(22% 0.016 260);
+  --color-graphite-ink: oklch(92% 0.008 254);
+
+  --color-focus: oklch(58% 0.20 256);
+
+  --color-warn: oklch(64% 0.14 72);
+  --color-warn-soft: oklch(96% 0.04 82);
+
+  /* Type */
+  --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+  --text-2xs: 0.6875rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-md: 0.9375rem;
+  --text-lg: 1.0625rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+
+  /* The app steps display type to 44px because it is read at arm's length in
+     a storage unit. This is a desktop reading surface, so the site adds three
+     larger steps above the app's ceiling rather than reusing its density. */
+  --text-lede: clamp(1.0625rem, 0.4vw + 0.95rem, 1.1875rem);
+  --text-section: clamp(1.625rem, 1.8vw + 1.05rem, 2.375rem);
+  --text-hero: clamp(2.25rem, 4vw + 0.85rem, 3.5rem);
+  --text-statement: clamp(1.75rem, 3.2vw + 0.8rem, 3rem);
+
+  --tracking-tight: -0.022em;
+  --tracking-display: -0.032em;
+  --tracking-mono: 0.06em;
+
+  /* Space (4 pt) */
+  --space-3xs: 0.25rem;
+  --space-2xs: 0.5rem;
+  --space-xs: 0.75rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
+  --space-4xl: 8.5rem;
+
+  --page-gutter: clamp(1.25rem, 4vw, 2.5rem);
+  --page-max: 62rem;
+  /* The catalogue is the widest thing on the page and earns its own measure. */
+  --page-wide: 70rem;
+  /* Wider again for the hero, which carries a photograph beside the headline. */
+  --page-hero: 76rem;
+
+  /* Structure */
+  --rule-hair: 1px;
+  --rule-marker: 3px;
+  --radius-xs: 3px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  --z-base: 1;
+  --z-sticky: 10;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-tick: 100ms;
+  --dur-short: 180ms;
+}
+
+/* Dark is the same system after nightfall: graphite paper, the accent lifted
+   until it holds contrast against it, hairlines still doing the structure. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-paper: oklch(19% 0.014 260);
+    --color-paper-2: oklch(23% 0.015 260);
+    --color-paper-3: oklch(27% 0.016 260);
+
+    --color-ink: oklch(94% 0.006 254);
+    --color-ink-2: oklch(80% 0.010 255);
+    /* Not the mirror of the light ink-3. Metadata is set at 11–13px here, and
+       a muted grey that clears 4.5:1 on paper needs 78% lightness against a
+       19% ground. The naive inversion lands at 2.1:1 and is unreadable. */
+    --color-ink-3: oklch(78% 0.013 256);
+
+    --color-rule: oklch(31% 0.016 258);
+    --color-rule-2: oklch(42% 0.020 258);
+
+    --color-accent: oklch(77% 0.14 256);
+    --color-accent-press: oklch(83% 0.12 256);
+    --color-accent-soft: oklch(30% 0.055 258);
+    --color-accent-ink: oklch(17% 0.02 260);
+
+    --color-graphite: oklch(96.6% 0.005 250);
+    --color-graphite-ink: oklch(22% 0.016 260);
+
+    --color-focus: oklch(78% 0.14 256);
+
+    --color-warn: oklch(78% 0.13 78);
+    --color-warn-soft: oklch(28% 0.05 76);
+  }
+}
+
+/* --- Base -------------------------------------------------------------- */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  overflow-x: clip;
+  margin: 0;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-lede);
+  line-height: 1.6;
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: var(--tracking-display);
+  line-height: 1.06;
+  margin: 0;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+p { margin: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+
+a { color: inherit; }
+
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+.shell {
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+}
+.shell--wide { max-width: var(--page-wide); }
+.shell--hero { max-width: var(--page-hero); }
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+
+.tnum { font-variant-numeric: tabular-nums; }
+
+.rule {
+  border: 0;
+  border-top: var(--rule-hair) solid var(--color-rule);
+  margin: 0;
+}
+
+.skip {
+  position: absolute;
+  left: -9999px;
+}
+.skip:focus {
+  left: var(--page-gutter);
+  top: var(--space-2xs);
+  z-index: 100;
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  padding: var(--space-2xs) var(--space-sm);
+  border-radius: var(--radius-md);
+}
+
+/* --- Buttons ----------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45em;
+  min-height: 48px;
+  padding: 0 var(--space-md);
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  font-weight: 500;
+  letter-spacing: var(--tracking-tight);
+  white-space: nowrap;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  border: var(--rule-hair) solid transparent;
+  transition:
+    background-color var(--dur-short) var(--ease-out),
+    border-color var(--dur-short) var(--ease-out),
+    transform var(--dur-tick) var(--ease-out);
+}
+
+.btn--accent {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+}
+.btn--accent:hover { background: var(--color-accent-press); }
+.btn--accent:active { transform: translateY(1px); }
+
+.btn--quiet {
+  border-color: var(--color-rule-2);
+  color: var(--color-ink);
+  background: transparent;
+}
+.btn--quiet:hover {
+  border-color: var(--color-ink-3);
+  background: var(--color-paper-2);
+}
+.btn--quiet:active { transform: translateY(1px); }
+
+.btn--lg {
+  min-height: 56px;
+  padding-inline: var(--space-lg);
+  font-size: var(--text-lg);
+}
+
+/* Nothing on this page is disabled today, but the state is defined so that a
+   future action which can be unavailable does not have to invent one. */
+.btn[aria-disabled="true"],
+.btn:disabled {
+  background: var(--color-paper-3);
+  border-color: var(--color-rule);
+  color: var(--color-ink-3);
+  pointer-events: none;
+}
+
+/* --- Nav · N5 floating pill -------------------------------------------- */
+/* Detached and content-sized like the archetype, but solid with a hairline
+   rather than a blurred glass panel: the app has exactly one shadow in its
+   whole system and this is not it. */
+
+.nav {
+  position: sticky;
+  top: var(--space-2xs);
+  z-index: var(--z-sticky);
+  padding-inline: var(--page-gutter);
+  margin-block-start: var(--space-2xs);
+}
+
+.nav__pill {
+  max-width: 52rem;
+  margin-inline: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-3xs) var(--space-3xs) var(--space-3xs) var(--space-sm);
+  background: var(--color-paper);
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-lg);
+}
+
+.nav__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  text-decoration: none;
+  white-space: nowrap;
+  padding-block: var(--space-2xs);
+  /* The brand holds the gap open, so hiding the links on a phone leaves the
+     CTA where it was rather than sliding it back against the wordmark. */
+  margin-inline-end: auto;
+}
+
+.nav__links {
+  display: flex;
+  gap: var(--space-md);
+}
+
+/* The mark is the product's argument in 26px: scattered things on the left,
+   the same things ordered into a grid on the right, one lot still live. */
+.mark {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  fill: currentColor;
+}
+.mark__grid {
+  stroke: currentColor;
+  fill: none;
+}
+.mark__live { fill: var(--color-accent); }
+.mark--foot { width: 30px; height: 30px; }
+
+.nav__link {
+  font-size: var(--text-sm);
+  color: var(--color-ink-2);
+  text-decoration: none;
+  white-space: nowrap;
+  padding-block: var(--space-2xs);
+  border-bottom: var(--rule-hair) solid transparent;
+  transition: color var(--dur-short) var(--ease-out),
+              border-color var(--dur-short) var(--ease-out);
+}
+.nav__link:hover {
+  color: var(--color-ink);
+  border-bottom-color: var(--color-rule-2);
+}
+
+.nav .btn {
+  min-height: 40px;
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 46rem) {
+  .nav__links { display: none; }
+}
+
+/* --- Hero · H2 split diptych ------------------------------------------- */
+
+.hero {
+  padding-block: var(--space-2xl) var(--space-3xl);
+}
+
+.hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+  gap: var(--space-xl);
+  align-items: start;
+}
+
+/* 18ch is the second sentence exactly. The headline is two lines or it is
+   nothing: “out.” stranded on a third line reads as an accident. */
+.hero h1 {
+  font-size: var(--text-hero);
+  max-width: 18ch;
+}
+
+.hero__lede {
+  margin-block-start: var(--space-md);
+  max-width: 46ch;
+  color: var(--color-ink-2);
+}
+
+.hero__actions {
+  margin-block-start: var(--space-lg);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  align-items: center;
+}
+
+.hero__price {
+  margin-block-start: var(--space-sm);
+  font-size: var(--text-sm);
+  color: var(--color-ink-3);
+  max-width: 46ch;
+}
+.hero__price b {
+  font-weight: 500;
+  color: var(--color-ink-2);
+}
+
+/* --- The proof panel ---------------------------------------------------- */
+/* Photographs in, a box drawn round something in one of them, a lot out.
+   The whole argument of the product, at the size of a postcard. */
+
+.proof {
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-paper-2);
+}
+
+.proof__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+}
+
+/* The filmstrip exists to make the count look arbitrary, because it is.
+   Six here; two or two hundred behave the same way. */
+.strip {
+  display: flex;
+  gap: var(--rule-hair);
+  background: var(--color-rule);
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+}
+.strip li {
+  flex: 1 1 0;
+  min-width: 0;
+  position: relative;
+  background: var(--color-paper);
+}
+/* height:auto matters. The width/height attributes on an <img> are
+   presentational hints for the CSS width and height properties, so leaving
+   height unset lets the attribute win and aspect-ratio never applies. */
+.strip img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+.strip li::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--color-paper);
+  opacity: 0.42;
+}
+.strip li.is-open::after { opacity: 0; }
+
+.frame {
+  position: relative;
+  background: var(--color-graphite);
+}
+.frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+}
+
+/* Each box is positioned in per-cent of the photograph, so the overlay holds
+   its place at every width the frame is ever drawn at. */
+.det {
+  position: absolute;
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in oklch, var(--color-accent) 12%, transparent);
+  opacity: 0;
+  animation: det-in 11s var(--ease-out) infinite;
+}
+.det b {
+  position: absolute;
+  inset-block-end: 100%;
+  inset-inline-start: -2px;
+  margin-block-end: var(--space-3xs);
+  padding: 0 var(--space-3xs);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--color-accent-ink);
+  background: var(--color-accent);
+  border-radius: var(--radius-xs);
+}
+
+.det--a { left: 33.5%; top: 5%;  width: 24%; height: 39%; animation-delay: 0.4s; }
+/* This box is too near the top edge to hang its label above itself. */
+.det--a b {
+  inset-block-end: auto;
+  inset-block-start: 2px;
+  inset-inline-start: 2px;
+  margin-block-end: 0;
+}
+.det--b { left: 74.5%; top: 23%; width: 21%; height: 30%; animation-delay: 1.1s; }
+.det--c { left: 5%;    top: 58%; width: 62%; height: 40%; animation-delay: 1.8s; }
+.det--d { left: 76%;   top: 62%; width: 24%; height: 35%; animation-delay: 2.5s; }
+
+/* The fourth box is the one the lot is made from, so it stays lit while the
+   other three retire. */
+.det--d { animation-name: det-in-hold; }
+
+@keyframes det-in {
+  0%, 3%   { opacity: 0; transform: scale(0.97); }
+  8%, 46%  { opacity: 1; transform: none; }
+  56%, 100% { opacity: 0; transform: none; }
+}
+@keyframes det-in-hold {
+  0%, 3%   { opacity: 0; transform: scale(0.97); }
+  8%, 88%  { opacity: 1; transform: none; }
+  96%, 100% { opacity: 0; transform: none; }
+}
+
+.proof__arrow {
+  padding: var(--space-2xs) var(--space-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+  border-block: var(--rule-hair) solid var(--color-rule);
+  background: var(--color-paper);
+}
+
+.proof__lot {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  background: var(--color-paper);
+  opacity: 0;
+  animation: lot-in 11s var(--ease-out) infinite;
+  animation-delay: 3.1s;
+}
+.proof__lot img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: var(--rule-hair) solid var(--color-rule);
+}
+.proof__title { margin-block-start: var(--space-3xs); }
+
+@keyframes lot-in {
+  0%, 3%   { opacity: 0; transform: translateY(6px); }
+  10%, 88% { opacity: 1; transform: none; }
+  96%, 100% { opacity: 0; transform: translateY(6px); }
+}
+
+/* Nothing moves, and everything the animation would eventually have shown is
+   already on screen. The panel still makes its whole argument standing still. */
+@media (prefers-reduced-motion: reduce) {
+  .det, .proof__lot { animation: none; opacity: 1; transform: none; }
+}
+
+@media (max-width: 56rem) {
+  .hero { padding-block: var(--space-xl) var(--space-2xl); }
+  .hero__grid { grid-template-columns: minmax(0, 1fr); gap: var(--space-xl); }
+  .hero h1 { max-width: 18ch; }
+}
+
+/* --- Section heads · S2 hanging ---------------------------------------- */
+
+.head {
+  max-width: 48ch;
+  margin-block-end: var(--space-lg);
+}
+.head h2 { font-size: var(--text-section); max-width: 24ch; }
+.head p {
+  margin-block-start: var(--space-xs);
+  color: var(--color-ink-2);
+  font-size: var(--text-md);
+}
+
+/* --- The catalogue ----------------------------------------------------- */
+
+.catalogue {
+  padding-block: var(--space-2xl) var(--space-3xl);
+  border-top: var(--rule-hair) solid var(--color-rule);
+  background: var(--color-paper-2);
+}
+
+.disclaimer {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  margin-block-end: var(--space-md);
+  padding: var(--space-3xs) var(--space-2xs);
+  border: var(--rule-hair) solid var(--color-rule-2);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+  background: var(--color-paper);
+}
+
+.lots {
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-lg);
+  background: var(--color-paper);
+  overflow: hidden;
+}
+
+.lot {
+  display: grid;
+  grid-template-columns: 3.25rem 5rem minmax(0, 1fr) 11rem;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-md) var(--space-md) var(--space-sm);
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+  border-inline-start: var(--rule-marker) solid transparent;
+  transition: background-color var(--dur-short) var(--ease-out),
+              border-inline-start-color var(--dur-short) var(--ease-out);
+}
+.lot:last-child { border-bottom: 0; }
+.lot:hover {
+  background: var(--color-paper-2);
+  border-inline-start-color: var(--color-rule-2);
+}
+
+.lot__no {
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+}
+.lot__thumb {
+  width: 5rem;
+  height: 5rem;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: var(--rule-hair) solid var(--color-rule);
+}
+
+.lot__no span {
+  display: block;
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+  font-weight: 400;
+}
+
+.lot__title {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.25;
+}
+
+.lot__desc {
+  margin-block-start: var(--space-3xs);
+  font-size: var(--text-md);
+  color: var(--color-ink-2);
+  max-width: 58ch;
+}
+
+.lot__meta {
+  margin-block-start: var(--space-2xs);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+.lot__meta b {
+  font-weight: 500;
+  color: var(--color-ink-2);
+}
+
+.lot__estimate {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.lot__figure {
+  font-size: var(--text-lg);
+  font-weight: 500;
+  color: var(--color-ink);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.lot__label {
+  display: block;
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+  margin-block-start: var(--space-3xs);
+}
+
+/* The refusal. Marked, not styled away, because it has to read as a
+   deliberate answer rather than a gap in the data. */
+.lot--held {
+  background: var(--color-warn-soft);
+  border-inline-start-color: var(--color-warn);
+}
+.lot--held:hover {
+  background: var(--color-warn-soft);
+  border-inline-start-color: var(--color-warn);
+}
+.lot--held .lot__no { color: var(--color-ink-2); }
+.lot__unsourced {
+  font-size: var(--text-md);
+  font-weight: 500;
+  color: var(--color-ink);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+}
+.lot__reason {
+  margin-block-start: var(--space-2xs);
+  font-size: var(--text-md);
+  color: var(--color-ink-2);
+  border-inline-start: var(--rule-hair) solid var(--color-rule-2);
+  padding-inline-start: var(--space-2xs);
+  max-width: 58ch;
+}
+
+@media (max-width: 52rem) {
+  .lot {
+    grid-template-columns: 3rem 3.5rem minmax(0, 1fr);
+    gap: var(--space-2xs) var(--space-sm);
+  }
+  .lot__thumb { width: 3.5rem; height: 3.5rem; }
+  .lot > div { grid-column: 1 / -1; }
+  .lot__estimate {
+    grid-column: 1 / -1;
+    text-align: left;
+    margin-block-start: var(--space-2xs);
+    padding-block-start: var(--space-2xs);
+    border-top: var(--rule-hair) solid var(--color-rule);
+  }
+  .lot__label { display: inline; margin-inline-start: 0.5em; }
+}
+
+/* --- The export -------------------------------------------------------- */
+
+.export {
+  padding-block: var(--space-3xl);
+}
+
+.gets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm) var(--space-xl);
+  margin-block-end: var(--space-xl);
+}
+.gets li {
+  padding-block-start: var(--space-2xs);
+  border-top: var(--rule-hair) solid var(--color-rule-2);
+}
+.gets b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+}
+.gets span {
+  display: block;
+  margin-block-start: var(--space-3xs);
+  font-size: var(--text-md);
+  color: var(--color-ink-2);
+}
+
+.export__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-xl);
+  align-items: start;
+}
+
+.slab {
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-paper-2);
+}
+.slab__head {
+  padding: var(--space-xs) var(--space-sm);
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+  background: var(--color-paper);
+}
+.slab__body {
+  padding: var(--space-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.9;
+  color: var(--color-ink-2);
+  overflow-x: auto;
+}
+.slab__body b {
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+.cols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3xs);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+.cols li {
+  padding: var(--space-3xs) var(--space-2xs);
+  border: var(--rule-hair) solid var(--color-rule-2);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink-2);
+  background: var(--color-paper);
+  white-space: nowrap;
+}
+
+.tree {
+  white-space: pre;
+  margin: 0;
+  font: inherit;
+}
+
+@media (max-width: 56rem) {
+  .export { padding-block: var(--space-2xl); }
+  .gets { grid-template-columns: minmax(0, 1fr); gap: var(--space-md); }
+  .export__grid { grid-template-columns: minmax(0, 1fr); gap: var(--space-lg); }
+}
+
+/* --- Cost · F3 tabular spec sheet -------------------------------------- */
+
+.cost {
+  padding-block: var(--space-2xl) var(--space-3xl);
+  border-top: var(--rule-hair) solid var(--color-rule);
+  background: var(--color-paper-2);
+}
+
+.sheet-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+}
+.sheet-table caption {
+  text-align: left;
+  padding-block-end: var(--space-2xs);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+.sheet-table th,
+.sheet-table td {
+  padding: var(--space-sm) var(--space-sm) var(--space-sm) 0;
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+  vertical-align: baseline;
+}
+.sheet-table thead th {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: 400;
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+  padding-block: var(--space-2xs);
+}
+.sheet-table tbody th {
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  font-weight: 400;
+  color: var(--color-ink-2);
+  padding-inline-end: var(--space-md);
+}
+.sheet-table td {
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  color: var(--color-ink);
+  white-space: nowrap;
+}
+.sheet-table .is-ours th { color: var(--color-ink); font-weight: 500; }
+.sheet-table .is-ours td { color: var(--color-accent); font-weight: 500; }
+.sheet-table tbody tr:last-child th,
+.sheet-table tbody tr:last-child td { border-bottom: 0; }
+
+.cost__note {
+  margin-block-start: var(--space-md);
+  font-size: var(--text-md);
+  color: var(--color-ink-2);
+  max-width: 62ch;
+}
+
+@media (max-width: 40rem) {
+  .sheet-table thead { position: absolute; left: -9999px; }
+  .sheet-table tbody th,
+  .sheet-table tbody td {
+    display: block;
+    width: 100%;
+    border-bottom: 0;
+    padding-block: var(--space-3xs);
+  }
+  .sheet-table tbody th { padding-block-start: var(--space-sm); }
+  .sheet-table tbody tr {
+    display: block;
+    border-bottom: var(--rule-hair) solid var(--color-rule);
+    padding-block-end: var(--space-sm);
+  }
+  .sheet-table td::before {
+    content: attr(data-label) "  ";
+    font-size: var(--text-2xs);
+    letter-spacing: var(--tracking-mono);
+    text-transform: uppercase;
+    color: var(--color-ink-3);
+  }
+}
+
+/* --- Refusals ---------------------------------------------------------- */
+
+.refusals {
+  padding-block: var(--space-3xl);
+}
+.refusals__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-xl);
+}
+.refusal h3 {
+  font-size: var(--text-xl);
+  padding-block-end: var(--space-2xs);
+  border-bottom: var(--rule-hair) solid var(--color-ink-3);
+  display: inline-block;
+}
+.refusal p {
+  margin-block-start: var(--space-sm);
+  color: var(--color-ink-2);
+  font-size: var(--text-md);
+  max-width: 46ch;
+}
+.refusal code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  color: var(--color-ink);
+  background: var(--color-accent-soft);
+  padding: 0 var(--space-3xs);
+  border-radius: var(--radius-sm);
+}
+
+@media (max-width: 52rem) {
+  .refusals { padding-block: var(--space-2xl); }
+  .refusals__grid { grid-template-columns: minmax(0, 1fr); gap: var(--space-lg); }
+}
+
+/* --- Closing ----------------------------------------------------------- */
+
+.close {
+  padding-block: var(--space-2xl) var(--space-3xl);
+  border-top: var(--rule-hair) solid var(--color-rule);
+  text-align: center;
+}
+.close h2 {
+  font-size: var(--text-section);
+  max-width: 22ch;
+  margin-inline: auto;
+}
+.close p {
+  margin-block-start: var(--space-sm);
+  color: var(--color-ink-2);
+  font-size: var(--text-md);
+}
+.close .btn { margin-block-start: var(--space-lg); }
+
+/* --- Footer · Ft5 statement -------------------------------------------- */
+
+.foot {
+  background: var(--color-graphite);
+  color: var(--color-graphite-ink);
+  padding: var(--space-2xl) 0 var(--space-lg);
+}
+.foot__line {
+  font-family: var(--font-display);
+  font-size: var(--text-statement);
+  font-weight: 600;
+  letter-spacing: var(--tracking-display);
+  line-height: 1.05;
+  max-width: 20ch;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.foot__meta {
+  margin-block-start: var(--space-2xl);
+  padding-block-start: var(--space-sm);
+  border-top: var(--rule-hair) solid color-mix(in oklch, var(--color-graphite-ink) 22%, transparent);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2xs) var(--space-md);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: color-mix(in oklch, var(--color-graphite-ink) 72%, transparent);
+}
+.foot__meta b { font-weight: 500; color: var(--color-graphite-ink); }
+
+.foot .mark { margin-block-end: var(--space-md); }
+
+.foot__credit {
+  margin-block-start: var(--space-md);
+  max-width: 62ch;
+  font-size: var(--text-sm);
+  color: color-mix(in oklch, var(--color-graphite-ink) 66%, transparent);
+}
+
+/* --- Reduced motion ---------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="nav__pill">
+    <a class="nav__brand" href="#main"><svg class="mark" viewBox="0 0 72 72" aria-hidden="true" focusable="false">
+        <g><circle cx="21" cy="25" r="2.4"/><circle cx="22" cy="41" r="1.7"/><circle cx="17" cy="34" r="2.1"/><circle cx="16" cy="47" r="1.5"/><circle cx="12" cy="21" r="1.5"/><circle cx="11" cy="30" r="2.2"/><rect x="18" y="17" width="3.6" height="3.6" rx="0.4"/><rect x="14" y="28" width="3.4" height="3.4" rx="0.4"/><rect x="8" y="45" width="2.8" height="2.8" rx="0.4"/></g>
+        <g class="mark__grid" stroke-width="2.2" stroke-linecap="round"><line x1="34" y1="24" x2="58" y2="24"/><line x1="34" y1="36" x2="58" y2="36"/><line x1="34" y1="48" x2="58" y2="48"/><line x1="34" y1="24" x2="34" y2="48"/><line x1="46" y1="24" x2="46" y2="48"/><line x1="58" y1="24" x2="58" y2="48"/></g>
+        <g><circle cx="34" cy="24" r="4"/><circle cx="46" cy="24" r="4"/><circle cx="58" cy="24" r="4"/><circle cx="34" cy="36" r="4"/><circle cx="46" cy="36" r="4"/><circle cx="58" cy="36" r="4"/><circle cx="34" cy="48" r="4"/><circle cx="46" cy="48" r="4"/></g>
+        <circle class="mark__live" cx="58" cy="48" r="4"/>
+      </svg>Clearspace</a>
+    <nav class="nav__links" aria-label="Primary">
+      <a class="nav__link" href="#catalogue">Catalogue</a>
+      <a class="nav__link" href="#export">Export</a>
+      <a class="nav__link" href="#cost">Cost</a>
+    </nav>
+    <a class="btn btn--accent" href="/lots">Try it free</a>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- Hero · H2 split diptych: the claim on the left, one lot's worth of
+       evidence on the right, so the mechanism is visible in the fold. -->
+  <section class="hero shell shell--hero">
+    <div class="hero__grid">
+      <div>
+        <h1>Photographs in. Numbered lots out.</h1>
+        <p class="hero__lede">
+          Clearspace takes the photographs your staff already take (quickly,
+          badly, one-handed) and gives back a catalogue: numbered lots, titles,
+          written descriptions, condition, and a low/high estimate with the
+          pages it actually read. Your job is to prune and adjust.
+        </p>
+        <div class="hero__actions">
+          <a class="btn btn--accent btn--lg" href="/lots">Catalogue a room, free</a>
+          <a class="btn btn--quiet btn--lg" href="#catalogue">See the output</a>
+        </div>
+        <p class="hero__price">
+          <b>Free</b> while it is in early access: no signup, no card, no
+          limit on the lots. Works on a phone, in the house.
+        </p>
+      </div>
+
+      <div class="proof">
+        <div class="proof__head">
+          <span class="mono">In · 6 photographs</span>
+          <span class="mono">One property</span>
+        </div>
+
+        <ul class="strip" aria-label="Photographs of the property">
+          <li><img src="photos/living.webp" alt="Living room with fitted bookshelves and armchairs" width="420" height="315"></li>
+          <li><img src="photos/books.webp" alt="Shelves of books and media" width="420" height="315"></li>
+          <li><img src="photos/tools.webp" alt="Workshop wall of hand tools" width="420" height="315"></li>
+          <li><img src="photos/sewing.webp" alt="Hand-crank sewing machine with gilt decal work" width="420" height="315"></li>
+          <li><img src="photos/radio.webp" alt="Valve radio in a wooden case" width="420" height="315"></li>
+          <li class="is-open"><img src="photos/dining.webp" alt="Dining room, currently open below" width="420" height="315"></li>
+        </ul>
+
+        <figure class="frame">
+          <img src="photos/dining.webp" width="1000" height="667" fetchpriority="high"
+               alt="A dining room: chandelier, oak table, six upholstered chairs, a sideboard and a large wall clock.">
+          <span class="det det--a" aria-hidden="true"><b>chandelier</b></span>
+          <span class="det det--b" aria-hidden="true"><b>wall clock</b></span>
+          <span class="det det--c" aria-hidden="true"><b>table · 6 chairs</b></span>
+          <span class="det det--d" aria-hidden="true"><b>sideboard</b></span>
+        </figure>
+
+        <p class="proof__arrow">Out ↓ one of the lots it wrote</p>
+
+        <div class="proof__lot">
+          <img src="photos/lot-sideboard.webp" alt="" aria-hidden="true" width="200" height="200">
+          <div>
+            <p class="mono">Lot 15</p>
+            <p class="lot__title proof__title">Weathered oak sideboard</p>
+            <p class="lot__desc">
+              Two panelled doors over two drawers, limed finish. Cut from the
+              same photograph the table and chairs came out of.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- The centrepiece. Given the most space and the most attention, per the
+       brief: proof, not adjectives. -->
+  <section class="catalogue" id="catalogue">
+    <div class="shell shell--wide">
+      <div class="head">
+        <h2>Six photographs, catalogued.</h2>
+        <p>
+          Every row below is what the app hands back, and every thumbnail is
+          the crop it cut for itself out of the photographs above. Including
+          the one it refused to price.
+        </p>
+      </div>
+
+      <p class="disclaimer">Illustrative: sample lots, not a customer’s catalogue</p>
+
+      <ol class="lots">
+        <li class="lot">
+          <p class="lot__no">12<span>Lot</span></p>
+          <img class="lot__thumb" src="photos/lot-chairs.webp" alt="Oak trestle table with tufted upholstered chairs" width="200" height="200">
+          <div>
+            <h3 class="lot__title">Oak trestle table and six tufted chairs</h3>
+            <p class="lot__desc">Sold as one lot. Light ringing to the table top, one chair with a mark to the outside back. Counted across two photographs of the room.</p>
+            <p class="lot__meta">
+              <span>Condition <b>Good</b></span>
+              <span>Sources <b>ebay sold · liveauctioneers · worthpoint</b></span>
+            </p>
+          </div>
+          <p class="lot__estimate">
+            <span class="lot__figure">$400 – $650</span>
+            <span class="lot__label">Estimate</span>
+          </p>
+        </li>
+
+        <li class="lot">
+          <p class="lot__no">13<span>Lot</span></p>
+          <img class="lot__thumb" src="photos/lot-chandelier.webp" alt="Iron and crystal chandelier" width="200" height="200">
+          <div>
+            <h3 class="lot__title">Iron and crystal chandelier</h3>
+            <p class="lot__desc">Aged iron frame hung with cut drops, no drops missing where the photographs show it. Wired, untested.</p>
+            <p class="lot__meta">
+              <span>Condition <b>Excellent</b></span>
+              <span>Sources <b>liveauctioneers · ebay sold</b></span>
+            </p>
+          </div>
+          <p class="lot__estimate">
+            <span class="lot__figure">$220 – $340</span>
+            <span class="lot__label">Estimate</span>
+          </p>
+        </li>
+
+        <li class="lot">
+          <p class="lot__no">14<span>Lot</span></p>
+          <img class="lot__thumb" src="photos/lot-sewing.webp" alt="Hand-crank sewing machine with gilt decal work" width="200" height="200">
+          <div>
+            <h3 class="lot__title">Hand-crank sewing machine, gilt decal</h3>
+            <p class="lot__desc">Decal wear to the arm, crank present and turning in the second photograph. Base and cover not with it.</p>
+            <p class="lot__meta">
+              <span>Condition <b>Fair</b></span>
+              <span>Sources <b>ebay sold · worthpoint</b></span>
+            </p>
+          </div>
+          <p class="lot__estimate">
+            <span class="lot__figure">$75 – $140</span>
+            <span class="lot__label">Estimate</span>
+          </p>
+        </li>
+
+        <li class="lot">
+          <p class="lot__no">15<span>Lot</span></p>
+          <img class="lot__thumb" src="photos/lot-sideboard.webp" alt="Weathered oak sideboard with two doors and two drawers" width="200" height="200">
+          <div>
+            <h3 class="lot__title">Weathered oak sideboard</h3>
+            <p class="lot__desc">Two panelled doors over two drawers, limed finish, one handle proud. Cut from the same photograph the table and chairs came out of.</p>
+            <p class="lot__meta">
+              <span>Condition <b>Good</b></span>
+              <span>Sources <b>ebay sold · liveauctioneers · worthpoint</b></span>
+            </p>
+          </div>
+          <p class="lot__estimate">
+            <span class="lot__figure">$180 – $260</span>
+            <span class="lot__label">Estimate</span>
+          </p>
+        </li>
+
+        <li class="lot lot--held">
+          <p class="lot__no">–<span>Held</span></p>
+          <img class="lot__thumb" src="photos/lot-clock.webp" alt="Large open-frame wall clock with Roman numerals" width="200" height="200">
+          <div>
+            <h3 class="lot__title">Open-frame wall clock, unmarked</h3>
+            <p class="lot__desc">
+              No maker’s mark and no movement visible from the photographs.
+              The research pass returned nothing comparable.
+            </p>
+            <p class="lot__reason">
+              “Open-frame wall clock, unmarked” has no estimate yet, so it was
+              left out. It is waiting for you in the app, not exported at zero.
+            </p>
+          </div>
+          <p class="lot__estimate">
+            <span class="lot__unsourced">Unsourced</span>
+            <span class="lot__label">No estimate</span>
+          </p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- The export -->
+  <section class="export shell" id="export">
+    <div class="head">
+      <h2>Upload photographs. Take away the whole catalogue.</h2>
+      <p>
+        Built for HiBid and Auction Flex import. Every photograph is renamed
+        for the lot it belongs to, so the sheet and the images can never drift
+        apart.
+      </p>
+    </div>
+
+    <ul class="gets">
+      <li><b>One zip</b><span>clearspace-auction.zip, and nothing else to assemble</span></li>
+      <li><b>lots.csv</b><span>opens straight in Excel, or goes to the importer as it is</span></li>
+      <li><b>The photographs, sorted</b><span>renamed 15_1.jpg, 15_2.jpg, so the lot is in the filename</span></li>
+      <li><b>A page per lot</b><span>a link to each one, to check and adjust before you import</span></li>
+    </ul>
+
+    <div class="export__grid">
+      <div class="slab">
+        <p class="slab__head mono">lots.csv header row</p>
+        <div class="slab__body">
+          <ul class="cols">
+            <li>lot</li><li>title</li><li>description</li><li>condition</li>
+            <li>estimate_low</li><li>estimate_high</li><li>reserve</li>
+            <li>category</li><li>quantity</li><li>photos</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="slab">
+        <p class="slab__head mono">clearspace-auction.zip</p>
+        <div class="slab__body">
+<pre class="tree"><b>lots.csv</b>
+12_1.jpg
+12_2.jpg
+12_3.jpg
+13_1.jpg
+14_1.jpg
+14_2.jpg
+…</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cost · F3 tabular spec sheet -->
+  <section class="cost" id="cost">
+    <div class="shell">
+      <div class="head">
+        <h2>Free, against what it replaces.</h2>
+        <p>
+          Cataloguing is the cost of goods, so the only comparison that matters
+          is the salary it stands in for.
+        </p>
+      </div>
+
+      <table class="sheet-table">
+        <caption>Cataloguing a 300-lot estate</caption>
+        <thead>
+          <tr>
+            <th scope="col">Method</th>
+            <th scope="col">Per lot</th>
+            <th scope="col">300 lots</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">A cataloguer at $20/hour, 10–20 minutes a lot</th>
+            <td data-label="Per lot">$3 – $7</td>
+            <td data-label="300 lots">~$1,500</td>
+          </tr>
+          <tr class="is-ours">
+            <th scope="row">Clearspace, while it is in early access</th>
+            <td data-label="Per lot">Free</td>
+            <td data-label="300 lots">Free</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="cost__note">
+        We will charge for this eventually, and we would rather work out what
+        it is worth from auctioneers who have run a real sale through it. Until
+        then it is free and uncapped. Put the output next to your own
+        cataloguer’s and tell us what you would have paid.
+      </p>
+    </div>
+  </section>
+
+  <!-- The refusals. The differentiator, stated as what the product will not do. -->
+  <section class="refusals shell">
+    <div class="head">
+      <h2>Two things it will not do.</h2>
+    </div>
+    <div class="refusals__grid">
+      <div class="refusal">
+        <h3>Invent an estimate</h3>
+        <p>
+          Estimates come from a research pass, and the pages it retrieved are
+          stored against the lot. When the research turns up nothing, the lot
+          says <code>unsourced</code> in that word, rather than showing a guess
+          in the same typeface as a fact.
+        </p>
+      </div>
+      <div class="refusal">
+        <h3>Export a zero</h3>
+        <p>
+          A lot with no estimate is left out of the catalogue with a stated
+          reason. It never leaves as a $0 row, because a $0 row in an import
+          sheet reads as researched rather than missing.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="close">
+    <div class="shell">
+      <h2>Photograph your next lot and see what comes back.</h2>
+      <p>No signup, no call, no card. Free while it is in early access.</p>
+      <a class="btn btn--accent btn--lg" href="/lots">Catalogue a room, free</a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="shell">
+    <svg class="mark mark--foot" viewBox="0 0 72 72" aria-hidden="true" focusable="false">
+      <g><circle cx="21" cy="25" r="2.4"/><circle cx="22" cy="41" r="1.7"/><circle cx="17" cy="34" r="2.1"/><circle cx="16" cy="47" r="1.5"/><circle cx="12" cy="21" r="1.5"/><circle cx="11" cy="30" r="2.2"/><rect x="18" y="17" width="3.6" height="3.6" rx="0.4"/><rect x="14" y="28" width="3.4" height="3.4" rx="0.4"/><rect x="8" y="45" width="2.8" height="2.8" rx="0.4"/></g>
+      <g class="mark__grid" stroke-width="2.2" stroke-linecap="round"><line x1="34" y1="24" x2="58" y2="24"/><line x1="34" y1="36" x2="58" y2="36"/><line x1="34" y1="48" x2="58" y2="48"/><line x1="34" y1="24" x2="34" y2="48"/><line x1="46" y1="24" x2="46" y2="48"/><line x1="58" y1="24" x2="58" y2="48"/></g>
+      <g><circle cx="34" cy="24" r="4"/><circle cx="46" cy="24" r="4"/><circle cx="58" cy="24" r="4"/><circle cx="34" cy="36" r="4"/><circle cx="46" cy="36" r="4"/><circle cx="58" cy="36" r="4"/><circle cx="34" cy="48" r="4"/><circle cx="46" cy="48" r="4"/></g>
+      <circle class="mark__live" cx="58" cy="48" r="4"/>
+    </svg>
+    <p class="foot__line">The catalogue is the job. Everything else is pruning.</p>
+    <div class="foot__meta">
+      <span><b>Clearspace</b></span>
+      <span>Free while in early access</span>
+      <span>lots.csv + photographs, one zip</span>
+    </div>
+    <p class="foot__credit">
+      Photographs on this page are public-domain (CC0) and stand in for a real
+      consignment: Kristin Hardwick, Jay Mantri and Barn Images via StockSnap,
+      Annie Spratt via Wikimedia Commons, and Rawpixel.
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>

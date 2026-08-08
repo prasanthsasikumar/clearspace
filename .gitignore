@@ -24,3 +24,6 @@ playwright-report/
 .vercel.env
 .vercel
 .env*
+
+# Built by marketing/build.mjs; public/site/index.html is the one that ships.
+marketing/preview.fragment.html
