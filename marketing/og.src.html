@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<!--
+  Source for public/og.png, the 1200x630 card a link preview draws.
+
+  Rendered locally with `node marketing/og.mjs`, which needs Chrome, so the
+  PNG is committed rather than built on deploy. Regenerate it whenever the
+  headline or the offer changes: a share card that still advertises a price we
+  no longer charge is worse than no card at all.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+@font-face {
+  font-family: 'Space Grotesk';
+  font-weight: 500 700;
+  src: url("fonts/space-grotesk-latin.woff2") format("woff2");
+}
+@font-face {
+  font-family: 'Inter';
+  font-weight: 400 600;
+  src: url("fonts/inter-latin.woff2") format("woff2");
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-weight: 400 500;
+  src: url("fonts/jetbrains-mono-latin.woff2") format("woff2");
+}
+
+:root {
+  --color-paper: oklch(98.5% 0.004 250);
+  --color-paper-2: oklch(96.6% 0.005 250);
+  --color-ink: oklch(24% 0.02 258);
+  --color-ink-2: oklch(38% 0.018 257);
+  --color-ink-3: oklch(54% 0.015 257);
+  --color-rule: oklch(89.5% 0.008 254);
+  --color-accent: oklch(58% 0.20 256);
+  --color-accent-ink: oklch(99% 0.005 250);
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; }
+
+body {
+  width: 1200px;
+  height: 630px;
+  display: grid;
+  grid-template-columns: 1fr 470px;
+  align-items: center;
+  gap: 56px;
+  padding: 64px 64px 64px 72px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.022em;
+}
+.brand svg { width: 34px; height: 34px; fill: currentColor; }
+.brand .grid { stroke: currentColor; fill: none; }
+.brand .live { fill: var(--color-accent); }
+
+h1 {
+  margin-block-start: 40px;
+  font-family: var(--font-display);
+  font-size: 66px;
+  font-weight: 600;
+  letter-spacing: -0.032em;
+  line-height: 1.02;
+  max-width: 11ch;
+}
+
+.offer {
+  margin-block-start: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 17px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-2);
+}
+.offer b {
+  font-weight: 500;
+  color: var(--color-accent-ink);
+  background: var(--color-accent);
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+/* The same photograph and the same box as the page, so the card is a promise
+   the site immediately keeps. */
+.frame {
+  position: relative;
+  border: 1px solid var(--color-rule);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--color-paper-2);
+}
+.frame img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; }
+
+.det {
+  position: absolute;
+  left: 76%; top: 62%; width: 24%; height: 35%;
+  border: 3px solid var(--color-accent);
+  border-radius: 6px;
+  background: color-mix(in oklch, var(--color-accent) 12%, transparent);
+}
+.det b {
+  position: absolute;
+  inset-block-end: 100%;
+  inset-inline-start: -3px;
+  margin-block-end: 5px;
+  padding: 2px 7px;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--color-accent-ink);
+  background: var(--color-accent);
+  border-radius: 4px;
+}
+
+.caption {
+  margin-block-start: 14px;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+</style>
+</head>
+<body>
+  <div>
+    <div class="brand">
+      <svg viewBox="0 0 72 72" aria-hidden="true">
+        <g><circle cx="21" cy="25" r="2.4"/><circle cx="22" cy="41" r="1.7"/><circle cx="17" cy="34" r="2.1"/><circle cx="16" cy="47" r="1.5"/><circle cx="12" cy="21" r="1.5"/><circle cx="11" cy="30" r="2.2"/><rect x="18" y="17" width="3.6" height="3.6" rx="0.4"/><rect x="14" y="28" width="3.4" height="3.4" rx="0.4"/><rect x="8" y="45" width="2.8" height="2.8" rx="0.4"/></g>
+        <g class="grid" stroke-width="2.2" stroke-linecap="round"><line x1="34" y1="24" x2="58" y2="24"/><line x1="34" y1="36" x2="58" y2="36"/><line x1="34" y1="48" x2="58" y2="48"/><line x1="34" y1="24" x2="34" y2="48"/><line x1="46" y1="24" x2="46" y2="48"/><line x1="58" y1="24" x2="58" y2="48"/></g>
+        <g><circle cx="34" cy="24" r="4"/><circle cx="46" cy="24" r="4"/><circle cx="58" cy="24" r="4"/><circle cx="34" cy="36" r="4"/><circle cx="46" cy="36" r="4"/><circle cx="58" cy="36" r="4"/><circle cx="34" cy="48" r="4"/><circle cx="46" cy="48" r="4"/></g>
+        <circle class="live" cx="58" cy="48" r="4"/>
+      </svg>
+      Clearspace
+    </div>
+
+    <h1>Photographs in. Numbered lots out.</h1>
+
+    <p class="offer"><b>Free</b> while in early access</p>
+  </div>
+
+  <div>
+    <div class="frame">
+      <img src="photos/dining.webp" alt="">
+      <span class="det"><b>sideboard</b></span>
+    </div>
+    <p class="caption">Lot 15 · Estimate $180 – $260</p>
+  </div>
+</body>
+</html>

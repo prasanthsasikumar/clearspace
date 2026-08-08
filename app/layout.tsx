@@ -24,9 +24,9 @@ const jetbrainsMono = JetBrains_Mono({
   display: 'swap',
 })
 
-const TAGLINE = 'List everything in minutes, not weekends.'
+const TAGLINE = 'photographs in, numbered lots out'
 const BLURB =
-  'Photograph the space. AI splits it into items, writes each listing, and gets them ready for Facebook Marketplace and eBay.'
+  'Clearspace turns the photographs your staff already take into a finished auction catalogue: numbered lots, written descriptions, condition, and a researched low/high estimate with its sources.'
 
 export const metadata: Metadata = {
   /*
