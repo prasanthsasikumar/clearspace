@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { exportReadiness, type ReadinessInput } from '@/domain/export-readiness'
+import { auctionReadiness, exportReadiness, type ReadinessInput } from '@/domain/export-readiness'
 
 const approved: ReadinessInput = {
   status: 'confirmed',
@@ -57,6 +57,57 @@ describe('exportReadiness', () => {
 
   it('stays quiet about binned items', () => {
     expect(exportReadiness({ ...approved, status: 'discarded' })).toEqual({
+      ready: false,
+      blocker: null,
+    })
+  })
+})
+
+describe('auctionReadiness', () => {
+  const ready = {
+    status: 'confirmed' as const,
+    title: 'Walnut sideboard',
+    lowCents: 12000,
+    highCents: 18000,
+  }
+
+  it('is ready when approved, titled, and estimated', () => {
+    expect(auctionReadiness(ready)).toEqual({ ready: true, blocker: null })
+  })
+
+  it('says nothing about an item nobody has approved yet', () => {
+    expect(auctionReadiness({ ...ready, status: 'detected' })).toEqual({
+      ready: false,
+      blocker: null,
+    })
+  })
+
+  it('blocks on a missing estimate rather than a missing price', () => {
+    expect(auctionReadiness({ ...ready, lowCents: null, highCents: null })).toEqual({
+      ready: false,
+      blocker: 'Needs an estimate',
+    })
+  })
+
+  it('treats a zero estimate as no estimate, matching the auction export', () => {
+    expect(auctionReadiness({ ...ready, lowCents: 0, highCents: 0 }).blocker).toBe(
+      'Needs an estimate',
+    )
+  })
+
+  it('blocks on a missing title', () => {
+    expect(auctionReadiness({ ...ready, title: '  ' })).toEqual({
+      ready: false,
+      blocker: 'Needs a title',
+    })
+  })
+
+  it('does not require a condition, which an auctioneer grades themselves', () => {
+    expect(auctionReadiness(ready).ready).toBe(true)
+  })
+
+  it('stays quiet about a discarded item', () => {
+    expect(auctionReadiness({ ...ready, status: 'discarded' })).toEqual({
       ready: false,
       blocker: null,
     })

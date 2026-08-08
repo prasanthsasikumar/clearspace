@@ -82,6 +82,7 @@ export const marketplace = pgEnum('marketplace', [
   'craigslist',
   'offerup',
   'generic',
+  'auction',
 ])
 
 export const detectionSource = pgEnum('detection_source', ['model', 'user'])
@@ -174,6 +175,19 @@ export const items = pgTable('items', {
   estimatedValueCents: integer('estimated_value_cents'),
   /** True until a human has actually looked at the suggested price. */
   priceUnconfirmed: boolean('price_unconfirmed').notNull().default(true),
+  /**
+   * Assigned when an auction export is built, never at detection, and kept
+   * once assigned. See docs/superpowers/specs/2026-08-08-clearspace-liquidator-reframe-design.md:
+   * the CSV and the photo filenames are generated from one ordering in one
+   * pass, and a published catalogue must not renumber when two more items
+   * are added to the lot tomorrow.
+   */
+  lotNumber: integer('lot_number'),
+  /**
+   * A seller's instruction with legal weight, so it is set by a person or it
+   * is absent. Nothing in the enrichment pipeline may write this.
+   */
+  reserveCents: integer('reserve_cents'),
   currency: text('currency').notNull().default('USD'),
   status: itemStatus('status').notNull().default('detected'),
   createdFromDetectionId: uuid('created_from_detection_id'),

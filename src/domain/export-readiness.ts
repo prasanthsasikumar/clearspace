@@ -51,3 +51,37 @@ export function exportReadiness(item: ReadinessInput): ExportReadiness {
 
   return { ready: true, blocker: null }
 }
+
+export interface AuctionReadinessInput {
+  status: ItemStatus
+  title: string | null
+  lowCents: number | null
+  highCents: number | null
+}
+
+/**
+ * The same question as `exportReadiness`, asked of the auction catalogue.
+ *
+ * It is a separate function rather than a flag because the requirements
+ * genuinely differ: a lot needs a published estimate range where a listing
+ * needs one price, and condition is optional here because an auctioneer grades
+ * goods themselves and would rather see a blank than the app's guess.
+ */
+export function auctionReadiness(item: AuctionReadinessInput): ExportReadiness {
+  if (item.status === 'discarded') return { ready: false, blocker: null }
+  if (!isApproved(item.status)) return { ready: false, blocker: null }
+
+  if (!item.title?.trim()) return { ready: false, blocker: 'Needs a title' }
+  // A zero-or-under estimate is not an estimate, matching the auction export's
+  // own skip rule and the "a price of zero is not a price" call made above.
+  if (
+    item.lowCents === null ||
+    item.highCents === null ||
+    item.lowCents <= 0 ||
+    item.highCents <= 0
+  ) {
+    return { ready: false, blocker: 'Needs an estimate' }
+  }
+
+  return { ready: true, blocker: null }
+}
