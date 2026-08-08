@@ -9,7 +9,8 @@
  *   node marketing/og.mjs
  */
 import { execFile } from 'node:child_process'
-import { access, stat } from 'node:fs/promises'
+import sharp from 'sharp'
+import { access, stat, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
@@ -53,5 +54,20 @@ await run(chrome, [
   `file://${SOURCE}`,
 ])
 
-const { size } = await stat(OUTPUT)
-console.log(`Wrote ${OUTPUT} - ${Math.round(size / 102.4) / 10} kB`)
+/*
+ * Chrome writes a true-colour PNG, which is about 200 kB for a card that is
+ * mostly flat paper and one photograph. Link scrapers fetch on short timeouts
+ * and some cap the file size outright, so the card is quantised to a palette:
+ * roughly a third of the bytes with no visible loss at this size.
+ */
+const { size: before } = await stat(OUTPUT)
+const quantised = await sharp(OUTPUT)
+  .png({ quality: 82, compressionLevel: 9, palette: true, colours: 200 })
+  .toBuffer()
+if (quantised.length < before) await writeFile(OUTPUT, quantised)
+
+const { size: after } = await stat(OUTPUT)
+console.log(
+  `Wrote ${OUTPUT} - ${Math.round(after / 102.4) / 10} kB` +
+    ` (from ${Math.round(before / 102.4) / 10} kB before quantising)`,
+)
