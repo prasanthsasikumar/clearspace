@@ -88,11 +88,15 @@ export async function groupBatchIntoItems(
    *
    * An estimate that arrives on its own can be changed by anyone who
    * disagrees with it. One that has to be requested is one nobody knows to
-   * request. Each item is two model calls, and they run on the queue, so a
-   * lot writes itself while the seller is still binning.
+   * request.
+   *
+   * One job for the lot rather than one per item. Every item on a single
+   * numbered sheet is one model call instead of fifty, which is the
+   * difference between a board that fills in while you look at it and one you
+   * wait minutes for.
    */
-  for (const id of createdIds) {
-    await enqueue(db, 'enrich_item', { itemId: id })
+  if (createdIds.length > 0) {
+    await enqueue(db, 'enrich_lot', { lotId: input.lotId })
   }
 
   const created = createdIds.length

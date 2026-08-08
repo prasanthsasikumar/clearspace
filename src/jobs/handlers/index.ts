@@ -2,6 +2,7 @@ import { registerHandler } from '../worker'
 import { assessPhotoHandler } from './assess-photo'
 import { detectObjectsHandler } from './detect-objects'
 import { enrichItemHandler } from './enrich-item'
+import { enrichLotHandler } from './enrich-lot'
 import { groupObjectsHandler } from './group-objects'
 
 let registered = false
@@ -17,6 +18,7 @@ export function registerJobHandlers(): void {
   registerHandler('assess_photo', assessPhotoHandler)
   registerHandler('group_objects', groupObjectsHandler)
   registerHandler('enrich_item', enrichItemHandler)
+  registerHandler('enrich_lot', enrichLotHandler)
   registered = true
 }
 

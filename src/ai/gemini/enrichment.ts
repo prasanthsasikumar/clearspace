@@ -3,6 +3,8 @@ import { z } from 'zod'
 import { itemCategories } from '@/domain/types'
 import { VisionProviderError } from '../vision-provider'
 import { GeminiClient, type GeminiClientOptions } from './client'
+import { usablePriceCents } from '@/domain/sheet-results'
+import type { SheetEnrichment } from '../enricher'
 
 const NAME = 'gemini-enrichment'
 
@@ -192,6 +194,16 @@ export class GeminiEnricher {
     this.client = 'client' in options ? options.client : new GeminiClient(options)
   }
 
+  /** One page of items, one call. See `enrichSheet` below for why. */
+  async enrichSheet(input: {
+    image: Buffer
+    mimeType: string
+    tiles: number
+    currency: string
+  }): Promise<SheetEnrichment[]> {
+    return enrichSheet(this.client, input)
+  }
+
   async enrich(input: EnrichmentInput): Promise<EnrichmentResult> {
     // Capped at three images: more views help identification a little and cost
     // tokens a lot, and the first three are the best ones by construction.
@@ -247,4 +259,93 @@ function blankToNull(value: string | undefined): string | null {
   const trimmed = value?.trim()
   if (!trimmed || trimmed.toLowerCase() === 'unknown') return null
   return trimmed
+}
+
+/* -------------------------------------------------------------------------- */
+/* One sheet, one call                                                        */
+/* -------------------------------------------------------------------------- */
+
+const sheetSchema: Schema = {
+  type: Type.OBJECT,
+  properties: {
+    items: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          n: { type: Type.INTEGER },
+          title: { type: Type.STRING },
+          category: { type: Type.STRING },
+          condition: { type: Type.STRING },
+          price: { type: Type.NUMBER },
+          description: { type: Type.STRING },
+        },
+        required: ['n', 'title', 'price'],
+      },
+    },
+  },
+  required: ['items'],
+}
+
+/**
+ * Reads a numbered page of items and prices every tile on it.
+ *
+ * No grounding, on purpose. Search is what makes a single item's price worth
+ * believing and it is also what makes it take half a minute, which is the
+ * wrong trade for a board of twenty five things most of which are about to be
+ * binned. These are estimates, the caller records them as unconfirmed, and the
+ * researched path stays for items somebody actually cares about.
+ *
+ * The prompt insists on the tile number in every row because that number is
+ * the only thing tying an answer to an item, and it insists on one row per
+ * tile because a short reply is indistinguishable from a lot of small ones.
+ */
+export async function enrichSheet(
+  client: GeminiClient,
+  input: { image: Buffer; mimeType: string; tiles: number; currency: string },
+): Promise<SheetEnrichment[]> {
+  const prompt = [
+    `This is a contact sheet of ${input.tiles} second-hand items from one storage space.`,
+    'Each tile carries its number printed underneath it.',
+    '',
+    `Return one row for every tile, ${input.tiles} rows in total, each carrying:`,
+    '- n: the number printed under that tile. Never guess it, read it.',
+    '- title: what the thing is, as a seller would list it. Six words at most.',
+    '- category: one broad word, such as furniture, tools, electronics, kitchenware.',
+    '- condition: one of new, like_new, excellent, good, fair, poor.',
+    `- price: what it would realistically sell for used, as a whole number of ${input.currency}.`,
+    '- description: one or two plain sentences a buyer would find useful.',
+    '',
+    'Price what you can actually see. A sealed box you cannot identify is worth',
+    'guessing low on rather than inventing a brand for. Do not name a brand or a',
+    'model number unless it is legible in the picture.',
+  ].join('\n')
+
+  const parsed = await client.generateJson(
+    [
+      GeminiClient.imagePart({ data: input.image, mimeType: input.mimeType }),
+      GeminiClient.textPart(prompt),
+    ],
+    sheetSchema,
+    'gemini-sheet',
+  )
+
+  const rows = (parsed as { items?: unknown[] }).items
+  if (!Array.isArray(rows)) return []
+
+  return rows.map((raw) => {
+    const row = raw as Record<string, unknown>
+    return {
+      n: typeof row.n === 'number' ? row.n : Number.NaN,
+      title: typeof row.title === 'string' ? row.title : null,
+      category: typeof row.category === 'string' ? row.category : null,
+      condition: typeof row.condition === 'string' ? row.condition : null,
+      // The model is asked for whole currency units; everything downstream
+      // counts in cents.
+      priceCents: usablePriceCents(
+        typeof row.price === 'number' ? row.price * 100 : Number.NaN,
+      ),
+      description: typeof row.description === 'string' ? row.description : null,
+    }
+  })
 }

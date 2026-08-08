@@ -15,12 +15,14 @@ export type JobType =
   | 'assess_photo'
   | 'group_objects'
   | 'enrich_item'
+  | 'enrich_lot'
 
 export interface JobPayloads {
   detect_objects: { scanId: string; frameId?: string; batchId?: string }
   assess_photo: { photoId: string }
   group_objects: { batchId: string; lotId: string }
   enrich_item: { itemId: string }
+  enrich_lot: { lotId: string }
 }
 
 export interface EnqueueOptions {

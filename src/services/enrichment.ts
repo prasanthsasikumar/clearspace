@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNull } from 'drizzle-orm'
 import type { Database } from '@/db/client'
 import {
   identifications,
@@ -17,6 +17,8 @@ import { isDraft } from '@/domain/item-status'
 import type { Enricher } from '@/ai/enricher'
 import type { BlobStore } from '@/storage'
 import { enqueue } from '@/jobs/queue'
+import { assignSheetRows, usablePriceCents } from '@/domain/sheet-results'
+import { buildContactSheet, chunkForSheets, type SheetSource } from './contact-sheet'
 import { touchLot } from './lots'
 
 export interface EnrichedListing {
@@ -197,15 +199,26 @@ export async function requestEnrichment(
   if (itemIds.length === 0) return { requested: 0, done: 0, pending: 0 }
 
   const targets = await db
-    .select({ id: items.id, status: items.status })
+    .select({
+      id: items.id,
+      status: items.status,
+      priceUnconfirmed: items.priceUnconfirmed,
+    })
     .from(items)
     .where(and(eq(items.lotId, lotId), inArray(items.id, [...itemIds])))
 
   let queued = 0
   for (const target of targets) {
-    // Re-running on an item already reviewed would overwrite the seller's own
-    // edits with a fresh guess.
-    if (!isDraft(target.status)) continue
+    /*
+     * Re-running over a listing a person has looked at would overwrite their
+     * words with a fresh guess. An item the sheet pass wrote has not been
+     * looked at by anyone: it sits at `ai_identified` carrying an unconfirmed
+     * estimate, and researching it is the entire point of asking. Without
+     * this, the fast pass would lock every item out of ever getting a real
+     * price.
+     */
+    const estimateOnly = target.status === 'ai_identified' && target.priceUnconfirmed
+    if (!isDraft(target.status) && !estimateOnly) continue
     await enqueue(db, 'enrich_item', { itemId: target.id })
     queued += 1
   }
@@ -230,3 +243,123 @@ export async function getEnrichmentProgress(
 
   return { requested: live.length, done, pending: live.length - done }
 }
+
+/* -------------------------------------------------------------------------- */
+/* A whole lot, in one call                                                   */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Names and prices every unwritten item in a lot from a single contact sheet.
+ *
+ * Per-item enrichment is two grounded calls and about half a minute each, so a
+ * lot of twenty five was fifty calls and minutes of somebody watching a
+ * spinner before they could do anything at all. Most of those items are about
+ * to be binned. This gives the board something true and useful to show in one
+ * call, and leaves the researched path for the items that survive triage.
+ *
+ * Everything written here is marked unconfirmed, because it is: a figure read
+ * off a small tile with no search behind it. `priceBasis` says so in words, so
+ * the export's count of unchecked prices stays honest.
+ *
+ * Anything the reply skipped keeps what it already had. A tile the model
+ * declined to answer for is an item still waiting, not an item worth guessing
+ * about from a neighbouring answer.
+ */
+export async function enrichLotFromSheet(
+  db: Database,
+  blobs: BlobStore,
+  enricher: Enricher,
+  lotId: string,
+): Promise<{ written: number; skipped: number }> {
+  if (!enricher.enrichSheet) return { written: 0, skipped: 0 }
+
+  const pending = await db
+    .select()
+    .from(items)
+    .where(and(eq(items.lotId, lotId), isNull(items.estimatedValueCents)))
+
+  const targets = pending.filter((item) => isDraft(item.status))
+  if (targets.length === 0) return { written: 0, skipped: 0 }
+
+  let written = 0
+  let skipped = 0
+
+  for (const group of chunkForSheets(targets)) {
+    const sources: SheetSource[] = []
+    for (const item of group) {
+      const [photo] = await db
+        .select()
+        .from(itemPhotos)
+        .where(eq(itemPhotos.itemId, item.id))
+        .orderBy(desc(itemPhotos.isPrimary))
+        .limit(1)
+      if (!photo) continue
+      const blob = await blobs.get(photo.blobKey)
+      if (!blob) continue
+      sources.push({ itemId: item.id, data: blob.data })
+    }
+
+    if (sources.length === 0) continue
+
+    const sheet = await buildContactSheet(sources)
+    const rows = await enricher.enrichSheet({
+      image: sheet.image,
+      mimeType: sheet.mimeType,
+      tiles: sheet.order.length,
+      currency: group[0]?.currency ?? 'USD',
+    })
+
+    const { assigned, unmatched } = assignSheetRows(sheet.order, rows)
+    skipped += unmatched.length
+
+    for (const { itemId, row } of assigned) {
+      const price = usablePriceCents(row.priceCents)
+      if (price === null) {
+        skipped += 1
+        continue
+      }
+
+      const title = row.title?.trim()
+      await db
+        .update(items)
+        .set({
+          ...(title ? { title } : {}),
+          ...(row.category && isItemCategory(row.category) ? { category: row.category } : {}),
+          ...(row.condition && CONDITIONS.has(row.condition)
+            ? { condition: row.condition as ItemCondition }
+            : {}),
+          estimatedValueCents: price,
+          priceUnconfirmed: true,
+          status: 'ai_identified',
+          updatedAt: new Date(),
+        })
+        .where(eq(items.id, itemId))
+
+      if (row.description) {
+        await db.insert(listings).values({
+          itemId,
+          marketplace: 'facebook',
+          title: title ?? 'Untitled item',
+          description: row.description,
+          priceCents: price,
+          status: 'draft',
+        })
+      }
+
+      written += 1
+    }
+  }
+
+  await touchLot(db, lotId)
+  return { written, skipped }
+}
+
+const CONDITIONS = new Set([
+  'new',
+  'like_new',
+  'excellent',
+  'good',
+  'fair',
+  'poor',
+  'for_parts',
+])
