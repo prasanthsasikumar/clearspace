@@ -180,3 +180,20 @@ describe('buildLotAuctionExport', () => {
     expect(result.skipped.some((s) => s.field === 'estimate')).toBe(true)
   })
 })
+
+describe('the auction export route', () => {
+  it('refuses a lot belonging to someone else', async () => {
+    harness = await createHarness()
+    const { db } = harness
+
+    const [mine] = await db.insert(users).values({ isAnonymous: true }).returning()
+    const [theirs] = await db.insert(users).values({ isAnonymous: true }).returning()
+    const [lot] = await db
+      .insert(lots)
+      .values({ userId: theirs!.id, name: 'Not yours', kind: 'estate' })
+      .returning()
+
+    const { getLot } = await import('@/services/lots')
+    expect(await getLot(db, mine!.id, lot!.id)).toBeFalsy()
+  })
+})
