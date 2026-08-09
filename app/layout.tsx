@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono, Space_Grotesk } from 'next/font/google'
 import './globals.css'
 import { isDemoMode } from '@/config/env'
 import { SITE_ORIGIN } from '@/config/site'
+import { GoogleAnalytics } from '@next/third-parties/google'
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -70,6 +71,8 @@ export const viewport: Viewport = {
   themeColor: '#f7f8fb',
 }
 
+const gaId = process.env.NEXT_PUBLIC_GA_ID
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
@@ -77,6 +80,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable}`}
     >
       <body>
+        {/*
+         * The marketing page carries its own copy of this tag, injected at
+         * build time, because it is a static file that never sees this
+         * layout. Both report to the same property, so the journey from the
+         * page to a first upload is one funnel rather than two halves.
+         *
+         * Unset in development, so a local session never lands in the numbers
+         * a decision gets made on.
+         */}
+        {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
         {isDemoMode ? (
           <div className="demostrip">
             <span className="demostrip__glyph" aria-hidden="true">

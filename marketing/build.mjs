@@ -55,6 +55,42 @@ if (/url\(["']?(?!data:)[^)]/.test(page) || /src="(?!data:)/.test(page)) {
   throw new Error('A non-data asset reference survived the inlining pass; refusing to write the page.')
 }
 
+/*
+ * Analytics, injected rather than written into the source.
+ *
+ * The page is a static file served through a rewrite, so it never sees the
+ * app's layout and cannot inherit the tag from it. Injecting here keeps the
+ * source readable and keeps the ID out of version control. The reason that
+ * actually matters: it keeps the tag out of the shareable preview below,
+ * which would otherwise log every teammate opening the artifact as a visitor.
+ *
+ * The click handler exists because the CTA is a same-domain link, which
+ * Google's enhanced measurement does not count as an outbound click. Without
+ * it there is no way to tell an auctioneer who read the page from one who
+ * pressed the button, and that ratio is the only number this page is judged
+ * on.
+ */
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID
+
+if (GA_ID) {
+  const tag = `<script async src="https://www.googletagmanager.com/gtag/js?id=${GA_ID}"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${GA_ID}');
+addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('a[href^="/lots"]').forEach(function (link) {
+    link.addEventListener('click', function () {
+      gtag('event', 'start_app', { link_text: link.textContent.trim() });
+    });
+  });
+});
+</script>
+</head>`
+  page = page.replace('</head>', tag)
+}
+
 await mkdir(dirname(OUTPUT), { recursive: true })
 await writeFile(OUTPUT, page)
 
@@ -83,6 +119,13 @@ const fragment = [
   style[0],
   body[1].replace(/href="(\/[\w/-]*)"/g, (_, path) => `href="${APP_ORIGIN}${path}"`),
 ].join('\n')
+
+// The tag lives in <head>, which the fragment drops by construction. Assert it
+// rather than trust it: a stray tag here would quietly log artifact readers as
+// visitors to the real site.
+if (/googletagmanager|gtag\(/.test(fragment)) {
+  throw new Error('Analytics leaked into the preview fragment; refusing to write it.')
+}
 
 await writeFile(PREVIEW, fragment)
 

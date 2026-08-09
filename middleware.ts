@@ -66,7 +66,14 @@ export const config = {
      * otherwise be issued an anonymous Supabase user that never captures a
      * photograph. `(?!$)` excludes the root exactly, without excluding the
      * routes beneath it.
+     *
+     * `.*\\.` excludes anything with a file extension, which is the same
+     * argument applied to everything a crawler fetches without being a
+     * visitor at all: robots.txt, sitemap.xml, og.png, the icons. Naming them
+     * one by one missed five of them and cost a Supabase user per request,
+     * which is a bill that grows with how well the site is indexed. Routes
+     * carry no dot; assets always do.
      */
-    '/((?!$|site/|_next/static|_next/image|favicon.ico|manifest.webmanifest|api/blobs|api/jobs).*)',
+    '/((?!$|site/|_next/static|_next/image|api/blobs|api/jobs|.*\\.).*)',
   ],
 }
