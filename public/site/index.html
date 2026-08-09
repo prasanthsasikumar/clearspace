@@ -43,6 +43,51 @@
 <meta name="twitter:title" content="Clearspace: photographs in, numbered lots out">
 <meta name="twitter:description" content="Photographs of a house or a unit become a finished auction catalogue: numbered lots, written descriptions, and a researched low/high estimate with its sources. Free while in early access.">
 <meta name="twitter:image" content="https://clearspace.auction/og.png">
+
+<!--
+  Structured data, kept to what is verifiable. No aggregateRating and no
+  review: there are no customers yet, and inventing either is the same lie in
+  a machine-readable wrapper. No offers block either, because the price is
+  deliberately unsettled and stale structured pricing outlives the page copy
+  that contradicts it.
+-->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://clearspace.auction/#organization",
+      "name": "Clearspace",
+      "url": "https://clearspace.auction/",
+      "logo": "https://clearspace.auction/icon-512.png"
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://clearspace.auction/#website",
+      "url": "https://clearspace.auction/",
+      "name": "Clearspace",
+      "publisher": { "@id": "https://clearspace.auction/#organization" },
+      "inLanguage": "en"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Clearspace",
+      "url": "https://clearspace.auction/",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web browser",
+      "description": "Turns photographs of a house or storage unit into a finished auction lot catalogue: numbered lots, written descriptions, condition, and a researched low/high estimate with its sources, exported as lots.csv plus the photographs it references.",
+      "featureList": [
+        "Detects individual objects across multiple photographs of the same room",
+        "Writes a title, description and condition for each lot",
+        "Researches a low/high estimate and stores the pages it read",
+        "Exports lots.csv plus renamed photographs in one archive for HiBid and Auction Flex"
+      ],
+      "publisher": { "@id": "https://clearspace.auction/#organization" }
+    }
+  ]
+}
+</script>
 <style>
 /* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V4
  * Hallmark · genre: modern-minimal · macrostructure: Split Studio · theme: Cobalt

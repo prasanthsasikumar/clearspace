@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter, JetBrains_Mono, Space_Grotesk } from 'next/font/google'
 import './globals.css'
 import { isDemoMode } from '@/config/env'
+import { SITE_ORIGIN } from '@/config/site'
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -34,11 +35,18 @@ export const metadata: Metadata = {
    * message app fetches these before it draws the bubble, and relative paths
    * resolve against nothing when it does.
    */
-  metadataBase: new URL('https://clearspace.auction'),
+  metadataBase: new URL(SITE_ORIGIN),
   title: 'Clearspace',
   description: BLURB,
   applicationName: 'Clearspace',
   appleWebApp: { capable: true, title: 'Clearspace', statusBarStyle: 'default' },
+  /*
+   * Every route under this layout is someone's working inventory, reached
+   * through an anonymous session rather than a login. None of it should turn
+   * up in a search result. The marketing page is a static file served through
+   * a rewrite, so it never sees this layout and stays indexable.
+   */
+  robots: { index: false, follow: true },
   openGraph: {
     type: 'website',
     siteName: 'Clearspace',
