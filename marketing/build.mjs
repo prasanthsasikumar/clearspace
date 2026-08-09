@@ -1,11 +1,14 @@
 /**
- * Builds the marketing page.
+ * Builds the marketing page, twice, for two different jobs.
  *
- * The deliverable has to be one file that makes no external requests, which
- * rules out a stylesheet link for the three faces. So the source keeps them
- * as ordinary relative URLs, readable and previewable by opening
- * page.src.html directly, and this script swaps each one for a data URI on
- * the way to public/site/index.html.
+ * public/site/index.html is what ships. Its fonts and photographs sit beside
+ * it as real files with content-hashed names, so a browser fetches them once
+ * and reuses them forever, and the HTML itself stays small enough to paint
+ * immediately.
+ *
+ * marketing/preview.fragment.html is for hosting the page somewhere that is
+ * not this app. That one keeps everything inlined, because a preview host
+ * blocks external requests and there is nowhere to put a sibling file.
  *
  *   node marketing/build.mjs
  *
@@ -13,47 +16,87 @@
  * copied out of .next/static/media so the site and the app render in exactly
  * the same metal.
  */
-import { readFile, writeFile, mkdir } from 'node:fs/promises'
-import { dirname, join } from 'node:path'
+import { createHash } from 'node:crypto'
+import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
+import { dirname, extname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const SOURCE = join(here, 'page.src.html')
-const OUTPUT = join(here, '..', 'public', 'site', 'index.html')
+const SITE_DIR = join(here, '..', 'public', 'site')
+const OUTPUT = join(SITE_DIR, 'index.html')
+const ASSET_DIR = join(SITE_DIR, 'assets')
+const PREVIEW = join(here, 'preview.fragment.html')
+
+/** Served from the app's origin, so an absolute path, not a relative one. */
+const ASSET_BASE = '/site/assets'
+const APP_ORIGIN = 'https://clearspace.auction'
 
 /*
  * Two shapes of reference, because the two asset kinds are cited differently:
  * fonts through CSS `url(...)`, photographs through an HTML `src`.
  */
 const ASSETS = [
-  { pattern: /url\("(fonts\/[\w.-]+\.woff2)"\)/g, wrap: (uri) => `url(${uri})`, mime: 'font/woff2' },
-  { pattern: /src="(photos\/[\w.-]+\.webp)"/g, wrap: (uri) => `src="${uri}"`, mime: 'image/webp' },
+  { pattern: /url\("(fonts\/[\w.-]+\.woff2)"\)/g, mime: 'font/woff2', wrap: (v) => `url(${v})` },
+  { pattern: /src="(photos\/[\w.-]+\.webp)"/g, mime: 'image/webp', wrap: (v) => `src="${v}"` },
 ]
 
 const source = await readFile(SOURCE, 'utf8')
 
-const inlined = []
-let page = source
-
-for (const { pattern, wrap, mime } of ASSETS) {
-  for (const [reference, path] of source.matchAll(pattern)) {
-    if (page.indexOf(reference) === -1) continue // already replaced (same asset cited twice)
-    const bytes = await readFile(join(here, path))
-    const uri = `data:${mime};base64,${bytes.toString('base64')}`
-    page = page.split(reference).join(wrap(uri))
-    inlined.push({ filename: path, kb: Math.round(bytes.length / 102.4) / 10 })
+/** Every distinct asset the page cites, read once. */
+const cited = new Map()
+for (const { pattern, mime } of ASSETS) {
+  for (const [, path] of source.matchAll(pattern)) {
+    if (cited.has(path)) continue
+    cited.set(path, { bytes: await readFile(join(here, path)), mime })
   }
 }
 
-if (inlined.length === 0) {
+if (cited.size === 0) {
   throw new Error(`No asset references found in ${SOURCE}. Did the url()/src format change?`)
 }
 
-// A leftover relative reference would be a silent external request in the
-// artifact, which is the one thing the single-file brief rules out.
-if (/url\(["']?(?!data:)[^)]/.test(page) || /src="(?!data:)/.test(page)) {
-  throw new Error('A non-data asset reference survived the inlining pass; refusing to write the page.')
+// ---------------------------------------------------------------------------
+// The shipped page: assets beside it, addressed by content hash.
+// ---------------------------------------------------------------------------
+
+/*
+ * The hash is what makes a one-year immutable cache safe. Without it, editing
+ * a photograph would leave every returning visitor looking at the old one for
+ * a year, so the choice would be between fresh content and a useful cache.
+ * Naming the file after its bytes gives both: change the photograph, change
+ * the URL.
+ */
+await rm(ASSET_DIR, { recursive: true, force: true })
+await mkdir(ASSET_DIR, { recursive: true })
+
+const hashedNames = new Map()
+for (const [path, { bytes }] of cited) {
+  const base = path.split('/').pop()
+  const ext = extname(base)
+  const digest = createHash('sha256').update(bytes).digest('hex').slice(0, 8)
+  const name = `${base.slice(0, -ext.length)}.${digest}${ext}`
+  await writeFile(join(ASSET_DIR, name), bytes)
+  hashedNames.set(path, `${ASSET_BASE}/${name}`)
 }
+
+let shipped = source
+for (const { pattern, wrap } of ASSETS) {
+  shipped = shipped.replace(pattern, (_, path) => wrap(hashedNames.get(path)))
+}
+
+/*
+ * The display and body faces are asked for before the CSS that needs them has
+ * been parsed. The mono face is deliberately left out: it sets labels and
+ * figures, none of which are the first thing anyone reads.
+ */
+const preloads = ['fonts/space-grotesk-latin.woff2', 'fonts/inter-latin.woff2']
+  .filter((path) => hashedNames.has(path))
+  .map(
+    (path) =>
+      `<link rel="preload" as="font" type="font/woff2" href="${hashedNames.get(path)}" crossorigin>`,
+  )
+  .join('\n')
 
 /*
  * Analytics, injected rather than written into the source.
@@ -71,9 +114,8 @@ if (/url\(["']?(?!data:)[^)]/.test(page) || /src="(?!data:)/.test(page)) {
  * on.
  */
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID
-
-if (GA_ID) {
-  const tag = `<script async src="https://www.googletagmanager.com/gtag/js?id=${GA_ID}"></script>
+const tag = GA_ID
+  ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${GA_ID}"></script>
 <script>
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
@@ -86,29 +128,40 @@ addEventListener('DOMContentLoaded', function () {
     });
   });
 });
-</script>
-</head>`
-  page = page.replace('</head>', tag)
-}
+</script>`
+  : ''
+
+shipped = shipped.replace('</head>', [preloads, tag, '</head>'].filter(Boolean).join('\n'))
 
 await mkdir(dirname(OUTPUT), { recursive: true })
-await writeFile(OUTPUT, page)
+await writeFile(OUTPUT, shipped)
+
+// ---------------------------------------------------------------------------
+// The preview fragment: everything inlined, nothing external, no analytics.
+// ---------------------------------------------------------------------------
+
+let inlined = source
+for (const { pattern, wrap } of ASSETS) {
+  inlined = inlined.replace(pattern, (_, path) => {
+    const { bytes, mime } = cited.get(path)
+    return wrap(`data:${mime};base64,${bytes.toString('base64')}`)
+  })
+}
+
+if (/url\(["']?(?!data:)[^)]/.test(inlined) || /src="(?!data:)/.test(inlined)) {
+  throw new Error('A non-data asset reference survived the inlining pass; refusing to write the preview.')
+}
 
 /*
- * A second emit, for previewing the page somewhere that is not this app.
- *
  * Hosts that wrap uploaded markup in their own document skeleton choke on a
  * whole <html> document, and the CTAs are root-relative ("/lots"), correct
- * once the page is served from the app's own origin and useless anywhere else.
- * So this variant is the same bytes with the shell removed and every product
- * link made absolute. It is a preview artefact, never the thing that ships.
+ * once the page is served from the app's own origin and useless anywhere
+ * else. So the preview is the same bytes with the shell removed and every
+ * product link made absolute. It is a preview artefact, never what ships.
  */
-const PREVIEW = join(here, 'preview.fragment.html')
-const APP_ORIGIN = 'https://clearspace.auction'
-
-const head = page.match(/<title>([\s\S]*?)<\/title>/)
-const style = page.match(/<style>[\s\S]*?<\/style>/)
-const body = page.match(/<body>([\s\S]*?)<\/body>/)
+const head = inlined.match(/<title>([\s\S]*?)<\/title>/)
+const style = inlined.match(/<style>[\s\S]*?<\/style>/)
+const body = inlined.match(/<body>([\s\S]*?)<\/body>/)
 
 if (!head || !style || !body) {
   throw new Error('Could not split the page into title / style / body for the preview emit.')
@@ -120,9 +173,8 @@ const fragment = [
   body[1].replace(/href="(\/[\w/-]*)"/g, (_, path) => `href="${APP_ORIGIN}${path}"`),
 ].join('\n')
 
-// The tag lives in <head>, which the fragment drops by construction. Assert it
-// rather than trust it: a stray tag here would quietly log artifact readers as
-// visitors to the real site.
+// Asserted rather than assumed: a stray tag here would quietly log artifact
+// readers as visitors to the real site.
 if (/googletagmanager|gtag\(/.test(fragment)) {
   throw new Error('Analytics leaked into the preview fragment; refusing to write it.')
 }
@@ -130,6 +182,6 @@ if (/googletagmanager|gtag\(/.test(fragment)) {
 await writeFile(PREVIEW, fragment)
 
 const kb = (bytes) => Math.round(Buffer.byteLength(bytes) / 102.4) / 10
-console.log(`Wrote ${OUTPUT}: ${kb(page)} kB`)
-for (const font of inlined) console.log(`  inlined ${font.filename} (${font.kb} kB)`)
-console.log(`Wrote ${PREVIEW}: ${kb(fragment)} kB (preview only)`)
+const assetFiles = await readdir(ASSET_DIR)
+console.log(`Wrote ${OUTPUT}: ${kb(shipped)} kB + ${assetFiles.length} cacheable assets`)
+console.log(`Wrote ${PREVIEW}: ${kb(fragment)} kB (preview only, fully inlined)`)
