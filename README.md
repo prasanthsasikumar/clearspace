@@ -78,3 +78,7 @@ src/jobs/       Postgres-backed job queue
   feed spec for anyone who has a Commerce Manager catalogue.
 
 More detail is in [`docs/`](docs/).
+
+## License
+
+[MIT](LICENSE)
