@@ -1,132 +1,80 @@
 # Clearspace
 
-Photograph a space. Get listings.
+**Photograph a space. Get listings.**
 
-Clearspace is for people clearing out storage units, garages, estates, and houses.
-The bottleneck in liquidation is not selling: it is cataloguing. Photographing,
-identifying, pricing, and writing up each item costs 10–20 minutes, so a 60-item
-unit is a lost weekend, and most people hand the lot to a liquidator for pennies
-instead.
+Clearing out a storage unit, garage, or estate is slow because of the
+cataloguing, not the selling. Photographing, identifying, pricing, and writing
+up each item takes 10–20 minutes. Clearspace does that part. You take photos of
+everything, then bin what you don't want to sell.
 
-So the user's only real job is **pruning**. Walk around taking photos badly,
-hand them over, bin what you do not want to sell. Everything else happens
-without you.
+![Adding photos, sorting them, checking listings, and one finished listing](docs/screenshots/flow.png)
 
-```
-photos in ──▶ detect per photo ──▶ match the same object across photos ──▶ drafts
-                                                                            │
-        share sheet / CSV ◀── approve ◀── written listing + sourced price ◀──┘
-```
+## How it works
 
-## Status
+1. **Photograph the space.** Take as many photos as you like and don't worry
+   about framing. A blurry shot gets a warning and still uploads.
+2. **Clearspace sorts it out.** It finds every object in every photo. When the
+   same object appears in more than one photo, it becomes a single draft.
+3. **Prune.** Bin what you don't want to sell. Binned items can be brought back.
+4. **Check and export.** Each listing has a title, description, and price
+   estimate, with sources wherever the research found some. Share a listing to
+   Facebook Marketplace through the phone's share sheet, or export the whole lot
+   as a CSV.
 
-| Stage | Contents | State |
-|---|---|---|
-| 1 | Capture, object detection, review canvas, inventory | **Built** |
-| A | Bulk capture, cross-photo grouping, auto-created drafts | **Built** |
-| B | Identification, sourced pricing, written listings | **Built** |
-| C | Facebook catalogue CSV, iOS share sheet | **Built** |
-| - | eBay publishing, photo ZIP, offline queue, auth | Not built |
+![The lot board on desktop after pruning](docs/screenshots/board.png)
 
-167 tests: pure domain logic plus integration against real in-process Postgres.
-
-## Running it
+## Run it locally
 
 ```bash
 npm install
-npm run db:push          # migrations into an embedded Postgres
+npm run db:push          # migrations into an embedded Postgres (PGlite)
 npm run seed             # optional demo lot
 npm run dev -- -p 3300
 ```
 
-`/` is the marketing page and the tool itself is at **`/lots`**. The page is a
-built artifact, not a route: edit `marketing/page.src.html` and run
-`node marketing/build.mjs`, which inlines the fonts and photographs into
-`public/site/index.html` so it makes no external requests.
+Open **http://localhost:3300/lots**. The page at `/` is the marketing page.
 
-On a phone, open the same URL over your LAN. Capture uses `<input capture>`
-rather than `getUserMedia`, so the camera works over plain HTTP.
+**You don't need an API key or a database to try it.** With no
+`GEMINI_API_KEY` set, the app replays recorded AI responses through the same
+pipeline and UI. To run real detection and pricing, copy `.env.example` to
+`.env.local` and add a Gemini key. For hosting (Supabase for storage, database,
+and auth, deployed on Vercel), see [DEPLOY.md](DEPLOY.md).
 
-**No API key and no database are needed to start.** With `GEMINI_API_KEY` unset
-the app replays recorded responses through the same queue, crop pipeline, and UI
-as production. For real detection and pricing, copy `.env.example` to
-`.env.local` and set the key.
+To check a phone, open the same URL over your LAN. Capture uses
+`<input capture>`, so the camera works over plain HTTP.
 
 ```bash
 npm test && npm run typecheck && npm run build
 ```
 
-## How it is put together
+## Stack
+
+Next.js · React · Drizzle on PGlite or Postgres · Google Gemini · Supabase (optional)
 
 ```
-Browser (mobile-first PWA)
-  ├─ Capture:  bulk photo picker · video decomposed to keyframes on-device
-  ├─ Board:    two-up triage, preselected, tap to drop
-  ├─ Listings: progress, approve, provenance, export
-  └─ fetch → Route Handlers
-        │
-   src/services/   orchestration
-   src/domain/     pure logic, zero I/O  ← geometry, grouping, export, status
-   src/ai/         VisionProvider · ObjectMatcher · Enricher  → Gemini | fixtures
-   src/storage/    BlobStore   → local disk | S3-shaped
-   src/db/         Drizzle     → PGlite (WASM) | Neon via DATABASE_URL
-   src/jobs/       Postgres-backed queue + in-process poller
+src/domain/     pure logic, no I/O (geometry, grouping, export)
+src/services/   orchestration
+src/ai/         vision, matching, enrichment → Gemini or recorded fixtures
+src/storage/    blob store → local disk or Supabase
+src/db/         Drizzle schema and client
+src/jobs/       Postgres-backed job queue
 ```
 
-### Five decisions worth knowing about
+## Design notes
 
-**Grounding and structured output cannot be combined.** Gemini accepts
-`googleSearch` and `responseSchema` in one request and then silently does not
-search: flawless JSON, zero sources, an invented price wearing the costume of a
-researched one. Enrichment is therefore two calls: a grounded research pass, then
-a structuring pass over what it found. Sources stored against a valuation are
-pages actually retrieved. When research finds nothing, the item says `unsourced`
-in those words rather than presenting a guess in the same typeface as a fact.
+- **Prices are never made up.** When the research turns up no sources, the
+  listing says so plainly and does not dress a guess up as a researched price.
+  Gemini ignores search grounding if you also ask for structured output, so
+  enrichment makes two calls: a grounded research pass, then a structuring pass.
+- **A duplicate is better than a lost item.** Two objects in the same photo are
+  never merged, and neither are objects from different categories. If matching
+  fails, every detection becomes its own listing.
+- **The phone does the heavy lifting.** Before upload, images are downscaled,
+  scored for sharpness, and converted to JPEG, which also covers iPhone HEIC.
+  Videos are turned into a few sharp keyframes in the browser.
+- **Export works within what the marketplaces allow.** Facebook Marketplace,
+  OfferUp, and Craigslist have no public API for personal listings. So each item
+  goes out through the share sheet, and the CSV follows Facebook's catalogue
+  feed spec for anyone who has a Commerce Manager catalogue.
 
-**Failure biases toward duplicates, never toward loss.** Cross-photo grouping
-enforces two rules in code rather than asking the model: two detections in one
-photograph are never the same object, and groups never cross a category. If the
-matcher dies, every crop becomes its own listing. A duplicate is visible and
-deletable; an item silently merged away is neither.
-
-**One photo is enough.** Photo coverage does not gate anything. Someone with
-five minutes in a unit often has exactly one picture of a thing, and answering
-that with "Photos needed" refuses the job. The shot list survives as advice.
-
-**PGlite, not a hosted database.** Real Postgres compiled to WASM, in-process,
-no Docker and no signup. `DATABASE_URL` swaps in Neon with no other change. The
-cost: single-process, so it is a development and MVP database.
-
-**Everything expensive happens on the phone.** Images are decoded, downscaled,
-scored for sharpness, and re-encoded to JPEG before upload, which also solves
-iPhone HEIC. Video is seeked and drawn to a canvas, so a 90 MB walkthrough
-uploads as eight sharp frames and there is no ffmpeg dependency.
-
-## Exporting, honestly
-
-There is **no public API for posting a personal Facebook Marketplace, OfferUp,
-or Craigslist listing**. Facebook's bulk import is the Commerce Manager
-catalogue feed and needs a business catalogue.
-
-So there are two paths, and the app is explicit about which is which:
-
-- **Share** (per item): photos plus the generated copy into the iOS share
-  sheet. Save to Photos, or send straight into the Facebook app and paste. This
-  is the real one-tap route for a private seller.
-- **Export CSV** (per lot): Facebook's catalogue feed to its documented spec.
-  Useful if you have a Commerce Manager catalogue. Unpriced and photo-less items
-  are skipped rather than exported at zero, and the export reports how many
-  prices nobody has checked.
-
-`image_link` and `link` are built from the origin you reached the app on, so a
-feed made from `localhost` will not resolve for anyone else.
-
-## Design
-
-Built for someone in a concrete box lit by one bulb, holding the phone
-one-handed. High ink contrast, hairline structure instead of shadow, 44 px
-minimum targets on touch, one signal colour so "this needs you" is never
-ambiguous, mono labels for catalogue metadata. Tokens in [`tokens.css`](tokens.css).
-
-Specs: [original design](docs/superpowers/specs/2026-08-06-clearspace-design.md) ·
-[bulk-capture pivot](docs/superpowers/specs/2026-08-06-clearspace-bulk-pivot-design.md).
+More detail is in [`docs/`](docs/).
