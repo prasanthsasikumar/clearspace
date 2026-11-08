@@ -27,3 +27,6 @@ playwright-report/
 
 # Built by marketing/build.mjs; public/site/index.html is the one that ships.
 marketing/preview.fragment.html
+
+# Local deploy secret, never commit
+VERCEL_TOKEN.md
