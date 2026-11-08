@@ -3,7 +3,7 @@ import { Inter, JetBrains_Mono, Space_Grotesk } from 'next/font/google'
 import './globals.css'
 import { isDemoMode } from '@/config/env'
 import { SITE_ORIGIN } from '@/config/site'
-import { GoogleAnalytics } from '@next/third-parties/google'
+import { GoogleAnalytics } from './analytics'
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
